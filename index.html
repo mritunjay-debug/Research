@@ -105,7 +105,7 @@ function extractReferenceSection(text){
  const stop=/^(?:(?:\d+(?:\.\d+)*|[IVXLCDM]+)[.)]?\s+)?(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests|ethics statement|supplementary information|endnotes)\b/i;
  const body=[];for(let i=start;i<lines.length;i++){if(stop.test(lines[i])&&body.length>=2)break;body.push(lines[i])}
  const numbered=/^(?:\[\d{1,4}\]|\(\d{1,4}\)|\d{1,4}[.)])\s+/;
- const authorYear=/^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z](?:\.[A-Z])*\.?|\s+[A-Z](?:\.[A-Z])*\.?)?[^.!?]{0,100}?\(?\b(?:19|20)\d{2}[a-z]?\b\)?/;
+ const authorYear=/^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*|\s+[A-Z][A-Za-z.]*)?[^\n]{0,110}?\(?\b(?:19|20)\d{2}[a-z]?\b\)?/;
  const looksLikeStart=line=>numbered.test(line)||authorYear.test(line);
  let entries=[],current='';
  for(const line of body){
