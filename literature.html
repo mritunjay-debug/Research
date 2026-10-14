@@ -68,6 +68,85 @@ $('saveLocalBtn').addEventListener('click',saveWorkspace);
 $('loadLocalBtn').addEventListener('click',()=>{try{const raw=localStorage.getItem('researchScholarToolkitLiteratureV1');if(!raw){$('localStatus').textContent='No saved workspace found.';return}const d=JSON.parse(raw);records=Array.isArray(d.records)?d.records:[];identifiedCount=Number(d.identifiedCount)||records.length;duplicatesRemoved=Number(d.duplicatesRemoved)||0;recordId=Number(d.recordId)||1;$('query').value=d.query||'';$('from').value=d.from||'';$('to').value=d.to||'';$('importNote').value=d.importNote||'';render();$('localStatus').textContent='Restored '+records.length+' records from '+(d.savedAt||'saved workspace')}catch(e){$('localStatus').textContent='Restore failed: '+e.message}});
 $('clearLocalBtn').addEventListener('click',()=>{if(confirm('Delete the saved workspace from this browser?')){localStorage.removeItem('researchScholarToolkitLiteratureV1');$('localStatus').textContent='Saved copy deleted.'}});
 $('exportRisBtn').addEventListener('click',()=>{if(!records.length){$('localStatus').textContent='No records to export.';return}const lines=[];for(const r of records){lines.push('TY  - JOUR');if(r.title)lines.push('TI  - '+r.title);if(r.authors)r.authors.split(/;|\n/).map(a=>a.trim()).filter(Boolean).forEach(a=>lines.push('AU  - '+a));if(r.year)lines.push('PY  - '+r.year);if(r.journal)lines.push('JO  - '+r.journal);if(r.doi)lines.push('DO  - '+r.doi);if(r.url)lines.push('UR  - '+r.url);if(r.abstract)lines.push('AB  - '+r.abstract);lines.push('N1  - Decision: '+r.decision+(r.reason?' | Reason: '+r.reason:''));lines.push('ER  - ','')}saveAs(new Blob([lines.join('\r\n')],{type:'application/x-research-info-systems;charset=utf-8'}),'literature_library.ris')});
+function prismaSvg(){const w=760,h=440;const counts={identified:identifiedCount,duplicates:duplicatesRemoved,screened:records.length,excluded:records.filter(r=>r.decision==='Exclude').length,included:records.filter(r=>r.decision==='Include').length,pending:records.filter(r=>r.decision==='Pending').length,maybe:records.filter(r=>r.decision==='Maybe').length};const escXml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="PRISMA-style flow diagram"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#315d70"/></marker></defs><rect x="18" y="14" width="390" height="62" rx="9" class="prisma-node"/><text x="32" y="35" class="prisma-text">Records identified from searches and imports</text><text x="32" y="57" class="prisma-text">n = '+counts.identified+'</text><rect x="450" y="14" width="292" height="62" rx="9" class="prisma-node-muted"/><text x="464" y="35" class="prisma-text">Duplicates removed</text><text x="464" y="57" class="prisma-text">n = '+counts.duplicates+'</text><path d="M213 76 V106" class="prisma-arrow"/><path d="M408 45 H440" class="prisma-arrow"/><rect x="18" y="108" width="390" height="62" rx="9" class="prisma-node"/><text x="32" y="130" class="prisma-text">Records in active library after deduplication</text><text x="32" y="152" class="prisma-text">n = '+counts.screened+'</text><path d="M213 170 V200" class="prisma-arrow"/><rect x="18" y="202" width="390" height="62" rx="9" class="prisma-node"/><text x="32" y="224" class="prisma-text">Title / abstract screening decisions completed</text><text x="32" y="246" class="prisma-text">n = '+(counts.screened-counts.pending-counts.maybe)+'</text><path d="M408 233 H438" class="prisma-arrow"/><rect x="450" y="202" width="292" height="62" rx="9" class="prisma-node-muted"/><text x="464" y="224" class="prisma-text">Excluded at screening</text><text x="464" y="246" class="prisma-text">n = '+counts.excluded+'</text><path d="M213 264 V294" class="prisma-arrow"/><rect x="18" y="296" width="390" height="62" rx="9" class="prisma-node"/><text x="32" y="318" class="prisma-text">Included by current screening decision</text><text x="32" y="340" class="prisma-text">n = '+counts.included+'</text><rect x="450" y="296" width="292" height="62" rx="9" class="prisma-node-muted"/><text x="464" y="318" class="prisma-text">Pending / maybe</text><text x="464" y="340" class="prisma-text">n = '+(counts.pending+counts.maybe)+'</text><text x="18" y="390" class="prisma-small">Not a complete PRISMA 2020 diagram: full-text reports sought, assessed, excluded with reasons, and studies included must be tracked separately.</text><text x="18" y="408" class="prisma-small">Counts reflect this browser workspace, including its search/import history.</text><text x="18" y="426" class="prisma-small">Use the official PRISMA 2020 flow diagram when preparing a systematic review.</text></svg>'}
+function renderPrisma(){const el=$('prismaDiagram');if(el)el.innerHTML=prismaSvg()}
+$('downloadPrismaBtn').addEventListener('click',()=>{const svg=prismaSvg();saveAs(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),'prisma_style_flow.svg')});
+const oaMap=new Map();
+async function checkOA(){const email=$('unpaywallEmail').value.trim();if(!email||!email.includes('@')){$('oaStatus').textContent='Enter a valid email address. Unpaywall requires an email parameter.';return}const doiRecords=records.filter(r=>r.doi);if(!doiRecords.length){$('oaStatus').textContent='No DOI-bearing records found. Import or search records with DOIs first.';return}$('checkOABtn').disabled=true;let done=0,oa=0,errors=0;try{for(const r of doiRecords){if(oaMap.has(r.doi)){done++;continue}try{const res=await fetch('https://api.unpaywall.org/v2/'+encodeURIComponent(r.doi)+'?email='+encodeURIComponent(email));if(!res.ok)throw new Error('HTTP '+res.status);const d=await res.json();const locs=[];if(d.best_oa_location)locs.push(d.best_oa_location);for(const l of d.oa_locations||[])if(l.url_for_pdf&&!locs.some(x=>x.url_for_pdf===l.url_for_pdf))locs.push(l);const chosen=locs.find(x=>x.url_for_pdf)||locs[0]||{};oaMap.set(r.doi,{doi:r.doi,title:r.title,year:r.year,is_oa:!!d.is_oa,oa_status:d.oa_status||'',pdf_url:chosen.url_for_pdf||'',landing_url:chosen.url||d.doi_url||r.url||'',host_type:chosen.host_type||'',license:chosen.license||'',download_status:'Not attempted',download_note:''});if(d.is_oa)oa++}catch(e){oaMap.set(r.doi,{doi:r.doi,title:r.title,year:r.year,is_oa:false,oa_status:'lookup error',pdf_url:'',landing_url:r.url||'',host_type:'',license:'',download_status:'Not attempted',download_note:'Unpaywall lookup failed: '+e.message});errors++}done++;$('oaStatus').textContent='Checking OA metadata: '+done+' / '+doiRecords.length+' DOI records processed. '+oa+' open-access candidate(s); '+errors+' lookup error(s).';await new Promise(resolve=>setTimeout(resolve,120))}render();$('oaStatus').textContent='OA check complete: '+done+' DOI records checked. '+[...oaMap.values()].filter(x=>x.is_oa).length+' marked open access; '+errors+' lookup error(s). Download links are candidates and may not be directly downloadable.'}finally{$('checkOABtn').disabled=false}}
+function oaRows(){return [...oaMap.values()].map(x=>({...x}))}
+function exportOaXlsx(){if(!oaMap.size){$('oaStatus').textContent='Run Check open access first.';return}const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(oaRows()),'Open Access Audit');XLSX.writeFile(wb,'open_access_audit.xlsx')}
+function exportNotDownloaded(){if(!oaMap.size){$('oaStatus').textContent='Run Check open access first.';return}const rows=oaRows().filter(x=>x.download_status!=='Downloaded');const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Not Downloaded');XLSX.writeFile(wb,'not_downloaded_papers.xlsx')}
+$('checkOABtn').addEventListener('click',checkOA);$('downloadOAExcelBtn').addEventListener('click',exportOaXlsx);$('downloadFailedBtn').addEventListener('click',exportNotDownloaded);
+$('downloadPythonBtn').addEventListener('click',async()=>{if(!oaMap.size){$('oaStatus').textContent='Run Check open access first, so the ZIP includes your DOI and OA link list.';return}try{const zip=new JSZip();zip.file('README.txt', 'Open-access PDF downloader\n\nRun: python download_open_access.py --input open_access_manifest.csv --output-dir papers\n\nThis script downloads only PDF URLs supplied in the manifest from Unpaywall. It does not bypass paywalls, logins, CAPTCHAs or access controls. Check publisher terms and local policies. Some links will fail due to server restrictions.\n\nRequires Python 3.9+ and requests. Install with: python -m pip install requests\n');zip.file('open_access_manifest.csv',csvText(oaRows()));zip.file('download_open_access.py',pythonDownloader);const blob=await zip.generateAsync({type:'blob'});saveAs(blob,'open_access_downloader_bundle.zip');$('oaStatus').textContent='ZIP created. It contains the OA manifest, Python downloader and instructions.'}catch(e){$('oaStatus').textContent='Could not create ZIP: '+e.message}});
+function csvText(rows){const cols=['doi','title','year','is_oa','oa_status','pdf_url','landing_url','host_type','license','download_status','download_note'];const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';return [cols.map(q).join(','),...rows.map(r=>cols.map(k=>q(r[k])).join(','))].join('\r\n')}
+const pythonDownloader=String.raw`#!/usr/bin/env python3
+"""Download only OA PDF URLs listed in an Unpaywall-derived CSV manifest."""
+import argparse, csv, os, re, time
+from pathlib import Path
+import requests
+
+def safe_name(s):
+    s = re.sub(r"[^A-Za-z0-9._-]+", "_", s or "paper").strip("._")
+    return (s[:100] or "paper")
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--input", default="open_access_manifest.csv")
+    p.add_argument("--output-dir", default="papers")
+    p.add_argument("--timeout", type=int, default=25)
+    p.add_argument("--delay", type=float, default=1.0)
+    args = p.parse_args()
+    out = Path(args.output_dir); out.mkdir(parents=True, exist_ok=True)
+    rows = list(csv.DictReader(open(args.input, newline="", encoding="utf-8-sig")))
+    session = requests.Session()
+    session.headers.update({"User-Agent": "ResearchScholarToolkit-OA-Downloader/1.0 (respectful academic use)"})
+    results = []
+    for i, row in enumerate(rows, 1):
+        url = (row.get("pdf_url") or "").strip()
+        title = row.get("title") or row.get("doi") or f"paper_{i}"
+        status, note, path = "Not downloaded", "", ""
+        if not url:
+            note = "No direct OA PDF URL supplied; open landing_url manually."
+        else:
+            try:
+                r = session.get(url, timeout=args.timeout, stream=True, allow_redirects=True)
+                ctype = (r.headers.get("Content-Type") or "").lower()
+                if r.status_code != 200:
+                    note = f"HTTP {r.status_code}; server declined request."
+                elif "pdf" not in ctype and not r.url.lower().split("?")[0].endswith(".pdf"):
+                    note = f"Response does not appear to be a PDF (Content-Type: {ctype or 'unknown'})."
+                else:
+                    filename = safe_name(title) + ".pdf"
+                    target = out / filename
+                    n = 1
+                    while target.exists():
+                        target = out / f"{safe_name(title)}_{n}.pdf"; n += 1
+                    with target.open("wb") as f:
+                        for chunk in r.iter_content(chunk_size=1024*64):
+                            if chunk: f.write(chunk)
+                    if target.stat().st_size < 1024:
+                        target.unlink(missing_ok=True)
+                        note = "Downloaded response was too small to trust as a PDF."
+                    else:
+                        status, path = "Downloaded", str(target)
+                r.close()
+            except requests.RequestException as e:
+                note = f"Request failed: {e}"
+            except OSError as e:
+                note = f"File write failed: {e}"
+        results.append({**row, "download_status": status, "download_note": note, "local_path": path})
+        print(f"[{i}/{len(rows)}] {status}: {title} {('- ' + note) if note else ''}")
+        time.sleep(max(0, args.delay))
+    fields = list(dict.fromkeys(k for row in results for k in row.keys()))
+    with (out / "download_report.csv").open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(results)
+    print(f"Finished. Report: {out / 'download_report.csv'}")
+    print("Some OA hosts block automated requests. Open the landing_url in a browser for remaining records.")
+
+if __name__ == "__main__":
+    main()
+`;
+renderPrisma();
 render();
 </script>
 </body></html>
