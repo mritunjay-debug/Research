@@ -120,41 +120,52 @@ async function extractPdfText(file){
  return pages.join('\\n');
 }
 function extractReferenceSection(text){
- const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
- const normalizeHeading=x=>x.toLowerCase().replace(/[\u00a0\u200b]/g,' ').replace(/^\s*(?:(?:\d+(?:\.\d+)*|[ivxlcdm]+)[.)]?\s+)?/i,'').replace(/[\s.:;|0-9]+$/g,'').trim();
- const headingNames=['references','reference','references and notes','reference list','bibliography','literature cited','works cited'];
- const isHeading=line=>{const n=normalizeHeading(line);return headingNames.includes(n)||headingNames.some(h=>n===h+'s')};
+ const raw=text.split(/\r?\n/).map(x=>clean(x)).filter(Boolean);
+ const norm=x=>x.toLowerCase().replace(/[\u00a0\u200b]/g,' ').replace(/^\s*(?:(?:\d+(?:\.\d+)*|[ivxlcdm]+)[.)]?\s+)?/i,'').replace(/[\s.:;|0-9]+$/g,'').trim();
+ const isHeading=x=>['references','reference','bibliography','literature cited','works cited','references and notes','reference list','literature references'].includes(norm(x));
+ // Headings may be extracted as a line with page numbers or a running header.
  let start=-1;
- for(let i=lines.length-1;i>=0;i--){if(isHeading(lines[i])){start=i+1;break}}
- const stop=/^(?:(?:\d+(?:\.\d+)*|[IVXLCDM]+)[.)]?\s+)?(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests|ethics statement|supplementary information|endnotes)\b/i;
- const numbered=/^(?:\[\d{1,4}\]|\(\d{1,4}\)|\d{1,4}[.)])\s+/;
- const authorYear=/^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,?\s+(?:[A-Z](?:\.[A-Z])*\.?|[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+)){0,5}[^\n]{0,160}?(?:\(|,\s*)?(?:19|20)\d{2}[a-z]?\b/;
- const doiStart=/(?:https?:\/\/(?:dx\.)?doi\.org\/|\bdoi\s*:\s*)10\.\d{4,9}\//i;
- const looksLikeStart=line=>numbered.test(line)||authorYear.test(line)||(/\b(?:19|20)\d{2}[a-z]?\b/.test(line)&&/^[A-ZÀ-ÖØ-Þ]/.test(line)&&line.length>35);
+ for(let i=raw.length-1;i>=0;i--){if(isHeading(raw[i])){start=i+1;break}}
+ const stop=/^(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests|ethics statement|supplementary information|endnotes)\b/i;
  let body=[],found=start>=0;
- if(found){for(let i=start;i<lines.length;i++){if(stop.test(lines[i])&&body.length>=2)break;body.push(lines[i])}}
- else{
-  const from=Math.floor(lines.length*.55);let first=-1;
-  for(let i=from;i<lines.length;i++){if(looksLikeStart(lines[i])||doiStart.test(lines[i])){first=i;break}}
-  if(first>=0)body=lines.slice(first).filter(x=>!stop.test(x));
+ if(found){for(let i=start;i<raw.length;i++){if(stop.test(raw[i])&&body.length>=2)break;body.push(raw[i])}}
+ else {
+  // If PDF.js emits the heading as part of a running line, find the last occurrence.
+  let hi=-1;
+  for(let i=raw.length-1;i>=0;i--){if(/\b(references|bibliography|works cited|literature cited)\b/i.test(raw[i])&&raw[i].length<100){hi=i;break}}
+  if(hi>=0){found=true;body=raw.slice(hi+1)}
+  else {const from=Math.floor(raw.length*.55);let first=-1;for(let i=from;i<raw.length;i++){if(/(?:\b(?:19|20)\d{2}\b|https?:\/\/doi\.org\/10\.|doi:\s*10\.)/.test(raw[i])&&/^[A-Z\[(]/.test(raw[i])){first=i;break}}if(first>=0)body=raw.slice(first)}
  }
- const entries=[];let current='';
- for(const line of body){
-  const chunks=line.split(/\s+(?=(?:\[\d{1,4}\]|\(\d{1,4}\)|\d{1,4}[.)])\s+)/);
-  for(const raw of chunks){const part=clean(raw);if(!part)continue;
-   if(looksLikeStart(part)){if(current.trim())entries.push(current.trim());current=part}
-   else if(current)current+=' '+part;
-   else if(doiStart.test(part))current=part;
-  }
+ const numbered=/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s*$/;
+ const numberedInline=/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s+\S/;
+ const doi=/\b10\.\d{4,9}\/[-._;()/:A-Z0-9]+/i;
+ const year=/\b(?:18|19|20|21)\d{2}[a-z]?\b/;
+ const authorYearStart=x=>/^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+/.test(x)&&year.test(x.slice(0,180))&&x.length>30;
+ const entries=[];let current='',expectNumbered=false;
+ const push=()=>{if(current.trim().length>=25)entries.push(clean(current));current=''};
+ for(let i=0;i<body.length;i++){
+  const line=clean(body[i]);if(!line||isHeading(line)||stop.test(line))continue;
+  if(numbered.test(line)){push();expectNumbered=true;continue}
+  if(numberedInline.test(line)){push();current=line.replace(/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s+/,'');expectNumbered=false;continue}
+  const isStart=authorYearStart(line);
+  if(isStart){push();current=line;expectNumbered=false;continue}
+  if(expectNumbered){current=line;expectNumbered=false;continue}
+  // When a DOI is followed by another author-year citation on the same extracted line,
+  // split at the next likely citation start; preserve DOI with its preceding reference.
+  const split=line.split(/(?=\s+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,?\s+[A-Z][A-Za-z.]*){0,3}\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b)/);
+  for(let j=0;j<split.length;j++){const part=clean(split[j]);if(!part)continue;if(j>0&&authorYearStart(part)){push();current=part}else if(current)current+=' '+part;else current=part}
  }
- if(current.trim())entries.push(current.trim());
- let refs=entries.map(clean).filter(x=>x.length>=25&&!isHeading(x)&&!stop.test(x));
+ push();
+ // Secondary segmentation for numbered citation styles whose marker and citation text
+ // were joined or separated inconsistently by PDF text extraction.
+ let refs=entries.map(clean).filter(x=>x.length>=25);
  if(refs.length<=2&&body.length){
-  const boundary=/(?=\s+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*)?\s*\(?\b(?:19|20)\d{2}[a-z]?\b)/g;
-  const split=body.join(' ').split(boundary).map(clean).filter(x=>x.length>=25);
-  if(split.length>refs.length)refs=split;
+  const joined=body.join(' ');
+  const matches=[...joined.matchAll(/(?:^|\s)(?=\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)]\s+[A-Z])|(?=[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*)?\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b)/g)];
+  if(matches.length>refs.length){const cuts=matches.map(m=>m.index).filter((x,i,arr)=>i===0||x>arr[i-1]);const parts=[];for(let k=0;k<cuts.length;k++){const p=clean(joined.slice(cuts[k],cuts[k+1]??joined.length));if(p.length>=25)parts.push(p)}if(parts.length>refs.length)refs=parts}
  }
- return {found,refs,message:!found?'References heading was not detected; entries were inferred from the final part of the document. Review every boundary.':refs.length<3?'Only a few entries were segmented. Check the PDF text layout and preview carefully.':''};
+ refs=refs.filter(x=>!isHeading(x)&&!stop.test(x));
+ return {found,refs,message:!found?'Could not identify a clear References heading; inferred entries need careful review.':refs.length<3?'Few reference entries were detected. Inspect the PDF preview before verification.':''};
 }
 $('extractBtn').addEventListener('click',async()=>{
  const f=$('file').files[0];if(!f){setStatus('Please select a DOCX or PDF file first.');return}
