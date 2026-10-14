@@ -125,7 +125,16 @@ function extractReferenceSection(text){
  const isHeading=x=>['references','reference','bibliography','literature cited','works cited','references and notes','reference list','literature references'].includes(norm(x));
  // Headings may be extracted as a line with page numbers or a running header.
  let start=-1;
- for(let i=raw.length-1;i>=0;i--){if(isHeading(raw[i])){start=i+1;break}}
+ for(let i=raw.length-1;i>=0;i--){
+  // Some publisher PDFs place the References heading after a running header or
+  // the last paragraph on the same extracted line. Accept it only near document end.
+  const suffix=raw[i].match(/(?:^|\\s)(references|bibliography|works cited|literature cited|reference list)\\s*[:.]?\\s*$/i);
+  if(isHeading(raw[i])){start=i+1;break}
+  if(i>=Math.floor(raw.length*.45)&&suffix){
+   start=i+1;
+   break;
+  }
+ }
  const stop=/^(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests|ethics statement|supplementary information|endnotes)\b/i;
  let body=[],found=start>=0;
  if(found){for(let i=start;i<raw.length;i++){if(stop.test(raw[i])&&body.length>=2)break;body.push(raw[i])}}
