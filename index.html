@@ -42,20 +42,56 @@ function titleOf(it){return (it.title||[''])[0]}
 function authorOf(it){return (it.author||[]).map(a=>[a.given,a.family].filter(Boolean).join(' ')).join('; ')}
 function doiOf(it){return (it.DOI||'').replace(/^https?:\/\/(dx\.)?doi\.org\//i,'').replace(/[.,;]+$/,'')}
 function citation(it){const authors=(it.author||[]).map(a=>{const init=(a.given||'').match(/\b\w/g)||[];return (a.family||'')+(init.length?', '+init.map(x=>x+'.').join(' '):'')});let s=(authors.length>8?[...authors.slice(0,6),'…',authors[authors.length-1]]:authors).join(', ');s+=' ('+itemYear(it)+'). '+titleOf(it)+'. '+((it['container-title']||[''])[0]||'');if(it.volume)s+=', '+it.volume;if(it.issue)s+='('+it.issue+')';const pg=it.page||it['article-number'];if(pg)s+=', '+pg;const d=doiOf(it);if(d)s+='. https://doi.org/'+d;return s.trim()}
-async function crossref(params){const url='https://api.crossref.org/works?'+new URLSearchParams(params);const r=await fetch(url,{headers:{'Accept':'application/json'}});if(!r.ok)throw new Error('Crossref returned HTTP '+r.status);return (await r.json()).message?.items||[]}
+const crossrefCache=new Map();
+async function fetchJson(url){
+ let lastError;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const response=await fetch(url,{headers:{'Accept':'application/json'}});
+   if(response.ok)return await response.json();
+   if(response.status!==429&&response.status<500)throw new Error('Crossref returned HTTP '+response.status);
+   lastError=new Error('Crossref returned HTTP '+response.status);
+  }catch(e){lastError=e}
+  if(attempt<2)await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));
+ }
+ throw lastError||new Error('Crossref request failed');
+}
+async function crossref(params){
+ const url='https://api.crossref.org/works?'+new URLSearchParams(params);
+ const key='search:'+url;if(crossrefCache.has(key))return crossrefCache.get(key);
+ const promise=fetchJson(url).then(data=>data.message?.items||[]);crossrefCache.set(key,promise);
+ try{return await promise}catch(e){crossrefCache.delete(key);throw e}
+}
 async function verifyOne(ref){
- const p=parseRef(ref);let candidates=[],method='';if(p.doi){try{candidates=await crossref({filter:'doi:'+p.doi,rows:'3'});method='DOI lookup'}catch(e){method='Crossref request failed'}}
+ const p=parseRef(ref);const cacheKey=(p.doi?'doi:'+p.doi.toLowerCase():'title:'+((p.title||ref).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()));
+ if(crossrefCache.has(cacheKey))return {...await crossrefCache.get(cacheKey),'Original reference':ref};
+ const work=(async()=>{
+ let candidates=[],method='';
+ if(p.doi){
+  try{const data=await fetchJson('https://api.crossref.org/works/'+encodeURIComponent(p.doi));if(data.message)candidates=[data.message];method='Direct DOI lookup'}
+  catch(e){method='DOI lookup unavailable'}
+ }
  if(!candidates.length&&p.title){try{candidates=await crossref({'query.title':p.title,rows:'5'});method='Title search'}catch(e){method='Crossref request failed'}}
  if(!candidates.length){try{candidates=await crossref({'query.bibliographic':ref,rows:'5'});method='Bibliographic search'}catch(e){method='Crossref request failed'}}
  let best=null,bestScore=0;for(const c of candidates){let score=sim(p.title||ref,titleOf(c));if(p.year&&itemYear(c)===p.year.slice(0,4))score=Math.min(1,score+.08);if(p.doi&&doiOf(c).toLowerCase()===p.doi.toLowerCase())score=1;if(score>bestScore){best=c;bestScore=score}}
  if(!best)return {'Original reference':ref,'DOI in reference':p.doi,'Year in reference':p.year,'Parsed title':p.title,'Decision':'MANUAL CORRECTION REQUIRED','Match confidence':'','Match method':method||'No database result','Crossref title':'','Crossref authors':'','Crossref year':'','Journal':'','Crossref DOI':'','Suggested reference':'','Notes':'No Crossref match returned. This is not evidence that the paper is fabricated; verify through the publisher, DOI resolver, or Google Scholar.','Google Scholar search':scholar(p.title||ref)};
  const cdoi=doiOf(best),cyear=itemYear(best),ctitle=titleOf(best),ts=sim(p.title,ctitle),doiMatch=!p.doi||p.doi.toLowerCase()===cdoi.toLowerCase(),yearMatch=!p.year||!cyear||p.year.slice(0,4)===cyear.slice(0,4);const confident=(!!p.doi&&doiMatch&&ts>=.72)||(!p.doi&&ts>=.9&&yearMatch);let notes=[];if(p.doi&&!doiMatch)notes.push('DOI differs from candidate');if(p.title&&ts<.9)notes.push('Title differs from candidate');if(p.year&&cyear&&p.year.slice(0,4)!==cyear.slice(0,4))notes.push('Year differs; check online-first versus issue year');if(!notes.length)notes.push(confident?'Candidate metadata matched the applied threshold':'Candidate found but evidence is insufficient for automatic acceptance');
  return {'Original reference':ref,'DOI in reference':p.doi,'Year in reference':p.year,'Parsed title':p.title,'Decision':confident?'TOTALLY CORRECTED':'MANUAL CORRECTION REQUIRED','Match confidence':Number(ts.toFixed(3)),'Match method':method,'Crossref title':ctitle,'Crossref authors':authorOf(best),'Crossref year':cyear,'Journal':(best['container-title']||[''])[0],'Crossref DOI':cdoi,'Suggested reference':citation(best),'Notes':notes.join('; '),'Google Scholar search':scholar(p.title||ref)};
+ })();
+ crossrefCache.set(cacheKey,work);
+ try{return await work}catch(e){crossrefCache.delete(cacheKey);throw e}
 }
 $('file').addEventListener('change',()=>{$('filename').textContent=$('file').files[0]?.name||'No file selected';$('verifyBtn').disabled=true;refs=[];results=[];$('preview').classList.add('hidden');$('resultsPanel').classList.add('hidden');setStatus('')});
 $('extractBtn').addEventListener('click',async()=>{const f=$('file').files[0];if(!f){setStatus('Please select a DOCX file first.');return}try{setStatus('Reading Word document in your browser…');const ab=await f.arrayBuffer();const out=await mammoth.extractRawText({arrayBuffer:ab});refs=out.value.split(/\r?\n/).map(clean).filter(s=>s&&!/^(references|bibliography|reference list)[: ]*$/i.test(s));if(!refs.length)throw new Error('No text paragraphs found. The document may be scanned or image-only.');$('preview').classList.remove('hidden');$('preview').innerHTML='<h3>Extracted '+refs.length+' reference paragraph(s)</h3><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>'; $('verifyBtn').disabled=false;setStatus('Extraction complete. Check the preview before verification.')}catch(e){setStatus('Could not extract references: '+e.message)}});
 function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-$('verifyBtn').addEventListener('click',async()=>{if(!refs.length)return;results=[];$('verifyBtn').disabled=true;$('resultsPanel').classList.remove('hidden');for(let i=0;i<refs.length;i++){setStatus('Checking reference '+(i+1)+' of '+refs.length+'…');try{results.push(await verifyOne(refs[i]))}catch(e){results.push({'Original reference':refs[i],'Decision':'MANUAL CORRECTION REQUIRED','Notes':'Verification request failed: '+e.message,'Google Scholar search':scholar(refs[i])})}renderResults()}setStatus('Verification finished. Review all suggested matches before use.');$('verifyBtn').disabled=false});
+$('verifyBtn').addEventListener('click',async()=>{
+ if(!refs.length)return;results=new Array(refs.length);$('verifyBtn').disabled=true;$('extractBtn').disabled=true;$('resultsPanel').classList.remove('hidden');
+ let next=0,done=0;const worker=async()=>{while(true){const i=next++;if(i>=refs.length)return;try{results[i]=await verifyOne(refs[i])}catch(e){results[i]={'Original reference':refs[i],'Decision':'MANUAL CORRECTION REQUIRED','Notes':'Verification request failed: '+e.message,'Google Scholar search':scholar(refs[i])}}
+ done++;if(done===1||done%5===0||done===refs.length)setStatus('Checking references: '+done+' of '+refs.length+' completed…');
+ }};
+ try{await Promise.all(Array.from({length:Math.min(4,refs.length)},()=>worker()));renderResults();setStatus('Verification finished: '+results.filter(x=>x.Decision==='TOTALLY CORRECTED').length+' matched at the applied threshold; '+results.filter(x=>x.Decision==='MANUAL CORRECTION REQUIRED').length+' require manual review. Review all suggested matches before use.')}
+ finally{$('verifyBtn').disabled=false;$('extractBtn').disabled=false}
+});
 function renderResults(){$('total').textContent=results.length;$('correct').textContent=results.filter(x=>x.Decision==='TOTALLY CORRECTED').length;$('manual').textContent=results.filter(x=>x.Decision==='MANUAL CORRECTION REQUIRED').length;$('tbody').innerHTML=results.map(r=>'<tr><td>'+escapeHtml(r['Original reference']||'')+'</td><td><span class="pill '+(r.Decision==='TOTALLY CORRECTED'?'good':'review')+'">'+escapeHtml(r.Decision||'MANUAL CORRECTION REQUIRED')+'</span></td><td>'+escapeHtml(r['Suggested reference']||r['Crossref title']||'No candidate')+'</td><td>'+escapeHtml(r.Notes||'')+'</td><td><a href="'+escapeHtml(r['Google Scholar search']||scholar(r['Original reference']||''))+'" target="_blank" rel="noopener">Google Scholar ↗</a></td></tr>').join('')}
 $('excelBtn').addEventListener('click',()=>{const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results),'Full Audit');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results.filter(r=>r.Decision==='MANUAL CORRECTION REQUIRED')),'Manual Review');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results.filter(r=>r.Decision==='TOTALLY CORRECTED')),'Matched');XLSX.writeFile(wb,'citation_verification_audit.xlsx')});
 $('wordBtn').addEventListener('click',async()=>{try{const {Document,Paragraph,Packer,TextRun,HeadingLevel}=docx;const children=[new Paragraph({text:'Citation Verification Report',heading:HeadingLevel.TITLE}),new Paragraph('References checked against Crossref. Review all metadata before publication.')];results.forEach((r,i)=>{const val=r.Decision==='TOTALLY CORRECTED'&&r['Suggested reference']?r['Suggested reference']:r['Original reference'];children.push(new Paragraph({children:[new TextRun({text:(i+1)+'. '+(val||''),break:0})]}));if(r.Decision!=='TOTALLY CORRECTED')children.push(new Paragraph({children:[new TextRun({text:'[MANUAL CORRECTION REQUIRED] '+(r.Notes||''),italics:true})]}))});const d=new Document({sections:[{children}]});saveAs(await Packer.toBlob(d),'citation_verification_report.docx')}catch(e){setStatus('Word export failed: '+e.message)}});
