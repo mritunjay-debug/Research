@@ -98,21 +98,35 @@ async function extractPdfText(file){
 }
 function extractReferenceSection(text){
  const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
- const heading=/^(?:\d+(?:\.\d+)*\s+)?(?:references|bibliography|literature cited|works cited|references and notes)\s*[:.]?$/i;
+ const heading=/^(?:(?:\d+(?:\.\d+)*|[IVXLCDM]+)[.)]?\s+)?(?:references|bibliography|literature cited|works cited|references and notes|reference list)\s*[:.]?\s*$/i;
  let start=-1;
- for(let i=lines.length-1;i>=Math.floor(lines.length*.35);i--){if(heading.test(lines[i])){start=i+1;break}}
- if(start<0)return {found:false,refs:lines.filter(x=>/\b10\.\d{4,9}\//.test(x)||/^\s*(?:\[\d+\]|\d+[.)])\s+/.test(x))};
- const stop=/^(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests)\b/i;
- let body=[];for(let i=start;i<lines.length;i++){if(stop.test(lines[i]))break;body.push(lines[i])}
- const refs=[];let current='';
- const startsEntry=line=>/^(?:\[\d{1,4}\]|\(\d{1,4}\)|\d{1,4}[.)]\s+|[A-ZÀ-ÖØ-Þ][^.!?]{0,100}\b(?:19|20)\d{2}[a-z]?\b[.)]?\s)/.test(line);
+ for(let i=lines.length-1;i>=Math.floor(lines.length*.25);i--){if(heading.test(lines[i])){start=i+1;break}}
+ if(start<0)return {found:false,refs:[],message:'No clear References/Bibliography heading was found.'};
+ const stop=/^(?:(?:\d+(?:\.\d+)*|[IVXLCDM]+)[.)]?\s+)?(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests|ethics statement|supplementary information|endnotes)\b/i;
+ const body=[];for(let i=start;i<lines.length;i++){if(stop.test(lines[i])&&body.length>=2)break;body.push(lines[i])}
+ const numbered=/^(?:\[\d{1,4}\]|\(\d{1,4}\)|\d{1,4}[.)])\s+/;
+ const authorYear=/^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z](?:\.[A-Z])*\.?|\s+[A-Z](?:\.[A-Z])*\.?)?[^.!?]{0,100}?\(?\b(?:19|20)\d{2}[a-z]?\b\)?/;
+ const looksLikeStart=line=>numbered.test(line)||authorYear.test(line);
+ let entries=[],current='';
  for(const line of body){
-  if(startsEntry(line)&&current){refs.push(current.trim());current=line}
-  else if(!current)current=line;
-  else current+=' '+line;
+  // Split references sharing one extracted PDF line only at strong numbered or author-year boundaries.
+  const parts=line.split(/\s+(?=(?:\[\d{1,4}\]|\(\d{1,4}\)|\d{1,4}[.)])\s+)/);
+  for(const raw of parts){
+   const part=clean(raw);if(!part)continue;
+   if(looksLikeStart(part)){if(current.trim())entries.push(current.trim());current=part}
+   else if(current)current+=' '+part;
+   else current=part;
+  }
  }
- if(current.trim())refs.push(current.trim());
- return {found:true,refs:refs.map(clean).filter(x=>x.length>=25&&!heading.test(x))};
+ if(current.trim())entries.push(current.trim());
+ // Fallback for PDFs whose references have no numbered or author-year line starts.
+ if(entries.length<3){
+  const joined=body.join(' ');
+  const doiParts=joined.split(/(?=https?:\/\/(?:dx\.)?doi\.org\/10\.\d{4,9}\/|\bdoi\s*:\s*10\.\d{4,9}\/)/i).map(clean).filter(x=>x.length>=25);
+  if(doiParts.length>entries.length)entries=doiParts;
+ }
+ entries=entries.map(clean).filter(x=>x.length>=25&&!heading.test(x)&&!stop.test(x));
+ return {found:true,refs:entries,message:entries.length<3?'Only a small number of reference entries could be separated confidently. Check the preview carefully.':''};
 }
 $('extractBtn').addEventListener('click',async()=>{
  const f=$('file').files[0];if(!f){setStatus('Please select a DOCX or PDF file first.');return}
@@ -123,9 +137,9 @@ $('extractBtn').addEventListener('click',async()=>{
   let found=true;
   if(f.name.toLowerCase().endsWith('.pdf')){const result=extractReferenceSection(text);found=result.found;refs=result.refs}
   else {const lines=text.split(/\r?\n/).map(clean).filter(Boolean);const result=extractReferenceSection(text);if(result.found&&result.refs.length>=2)refs=result.refs;else refs=lines.filter(x=>! /^(references|bibliography|reference list)[: ]*$/i.test(x))}
-  if(!refs.length)throw new Error('No reference entries could be extracted. If this is a scanned PDF, run OCR first. For a full paper, check that the References/Bibliography heading is selectable text.');
+  if(!refs.length)throw new Error('No reference entries could be segmented reliably. The References heading may not be selectable, or the PDF text layout may be complex. Try a text-based PDF or OCR, or upload the reference list as DOCX.');
   $('preview').classList.remove('hidden');
-  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(found?'A reference section was detected.':'No clear References heading was detected; showing lines that resemble reference entries. Please inspect carefully.')+'</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
+  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(found?'A reference section was detected.':'No clear References heading was detected.')+' Each candidate is shown separately; inspect the preview before verification.</p>'+(refs.length<3?'<div class="notice">Only '+refs.length+' reference entries were separated. Check the preview against the original PDF before proceeding.</div>':'')+'<ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
   $('verifyBtn').disabled=false;setStatus('Extraction complete. Check the preview and remove any non-reference text before verification.');
  }catch(e){setStatus('Could not extract references: '+e.message)}
 });
