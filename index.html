@@ -63,7 +63,7 @@ async function crossref(params){
  try{return await promise}catch(e){crossrefCache.delete(key);throw e}
 }
 async function verifyOne(ref){
- const p=parseRef(ref);const cacheKey=(p.doi?'doi:'+p.doi.toLowerCase():'title:'+((p.title||ref).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()));
+ const p=parseRef(ref);const cacheKey='ref:'+ref.trim().toLowerCase().replace(/\\s+/g,' ');
  if(crossrefCache.has(cacheKey))return {...await crossrefCache.get(cacheKey),'Original reference':ref};
  const work=(async()=>{
  let candidates=[],method='';
