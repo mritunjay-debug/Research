@@ -68,7 +68,7 @@ async function verifyOne(ref){
  const work=(async()=>{
  let candidates=[],method='';
  if(p.doi){
-  try{const data=await fetchJson('https://api.crossref.org/works/'+encodeURIComponent(p.doi));if(data.message)candidates=[data.message];method='Direct DOI lookup'}
+  try{const data=await fetchJson('https://api.crossref.org/works/'+p.doi);if(data.message)candidates=[data.message];method='Direct DOI lookup'}
   catch(e){method='DOI lookup unavailable'}
  }
  if(!candidates.length&&p.title){try{candidates=await crossref({'query.title':p.title,rows:'5'});method='Title search'}catch(e){method='Crossref request failed'}}
