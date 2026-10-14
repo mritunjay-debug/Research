@@ -9,17 +9,18 @@
 @media(max-width:600px){.stats{grid-template-columns:1fr}.panel{padding:16px}.hero{padding:32px 18px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </head>
 <body>
-<header class="hero"><div class="wrap"><div class="eyebrow">Research integrity toolkit</div><h1>Citation Verification Agent</h1><p>Check a Word reference list against Crossref metadata, inspect possible matches, and export a review-ready Excel audit and Word report. Uncertain records are flagged for manual review—not declared fake.</p><span class="tag">Browser-based · GitHub Pages</span></div></header>
+<header class="hero"><div class="wrap"><div class="eyebrow">Research integrity toolkit</div><h1>Citation Verification Agent</h1><p>Check a Word reference list or full PDF paper/report against Crossref metadata, inspect possible matches, and export a review-ready Excel audit and Word report. Uncertain records are flagged for manual review—not declared fake.</p><span class="tag">Browser-based · GitHub Pages</span></div></header>
 <main class="main">
 <section class="panel"><h2>Research Scholar Toolkit</h2><p class="muted">Continue from reference verification to literature discovery and systematic screening.</p><div class="actions"><a href="./literature.html" style="display:inline-block;text-decoration:none;background:#176c72;color:white;font-weight:750;border-radius:9px;padding:11px 16px">Open Literature Search &amp; PRISMA Screening →</a></div></section>
-<section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Upload a DOCX that contains selectable text. The file is read in your browser to extract the references; reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a .docx reference list</strong><br><input type="file" id="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
+<section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Upload a DOCX reference list or a full PDF paper/report. The tool extracts text in your browser and looks for a References/Bibliography section. PDFs must contain selectable text; scanned PDFs need OCR first. Extracted reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a .docx reference list or full .pdf paper/report</strong><br><input type="file" id="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,application/pdf"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
 <section class="panel hidden" id="resultsPanel"><h2>2. Verification results</h2><div class="stats"><div class="stat"><span class="muted">References checked</span><strong id="total">0</strong></div><div class="stat"><span class="muted">TOTALLY CORRECTED</span><strong id="correct">0</strong></div><div class="stat"><span class="muted">MANUAL CORRECTION REQUIRED</span><strong id="manual">0</strong></div></div><div class="actions"><button id="excelBtn">Download Excel audit (.xlsx)</button><button id="wordBtn" class="secondary">Download Word report (.docx)</button></div><p class="muted">A Crossref search result is a candidate, not a guarantee. Review author order, publication year, journal, pages/article number, and DOI before using corrected references in a submission.</p><div class="tablewrap"><table><thead><tr><th>Original reference</th><th>Decision</th><th>Crossref candidate</th><th>Notes</th><th>Search</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
-<section class="panel"><h2>How it works</h2><p class="muted">The app extracts paragraphs from a DOCX reference list, queries Crossref by DOI when present and otherwise by title/bibliographic text, then applies conservative match thresholds. It also gives a Google Scholar search link for manual verification. The Word output is a separate report; it does not edit in-text citations in a full manuscript.</p><div class="notice">Privacy note: file extraction happens in your browser. When you click Verify, reference text/DOIs are sent to the public Crossref API for lookup. Avoid using this public tool for confidential unpublished material.</div></section>
+<section class="panel"><h2>How it works</h2><p class="muted">The app extracts paragraphs from DOCX files or text from PDF pages, locates a likely reference section in full papers/reports, queries Crossref by DOI when present and otherwise by title/bibliographic text, then applies conservative match thresholds. It also gives a Google Scholar search link for manual verification. The Word output is a separate report; it does not edit in-text citations in a full manuscript.</p><div class="notice">Privacy note: file extraction happens in your browser. When you click Verify, reference text/DOIs are sent to the public Crossref API for lookup. Avoid using this public tool for confidential unpublished material.</div></section>
 </main><footer>Built for research reference checking · Always verify metadata before publication</footer>
 <script>
 const $=id=>document.getElementById(id);let refs=[],results=[];
@@ -82,7 +83,52 @@ async function verifyOne(ref){
  try{return await work}catch(e){crossrefCache.delete(cacheKey);throw e}
 }
 $('file').addEventListener('change',()=>{$('filename').textContent=$('file').files[0]?.name||'No file selected';$('verifyBtn').disabled=true;refs=[];results=[];$('preview').classList.add('hidden');$('resultsPanel').classList.add('hidden');setStatus('')});
-$('extractBtn').addEventListener('click',async()=>{const f=$('file').files[0];if(!f){setStatus('Please select a DOCX file first.');return}try{setStatus('Reading Word document in your browser…');const ab=await f.arrayBuffer();const out=await mammoth.extractRawText({arrayBuffer:ab});refs=out.value.split(/\r?\n/).map(clean).filter(s=>s&&!/^(references|bibliography|reference list)[: ]*$/i.test(s));if(!refs.length)throw new Error('No text paragraphs found. The document may be scanned or image-only.');$('preview').classList.remove('hidden');$('preview').innerHTML='<h3>Extracted '+refs.length+' reference paragraph(s)</h3><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>'; $('verifyBtn').disabled=false;setStatus('Extraction complete. Check the preview before verification.')}catch(e){setStatus('Could not extract references: '+e.message)}});
+async function extractPdfText(file){
+ if(!window.pdfjsLib)throw new Error('PDF text reader did not load. Refresh and try again.');
+ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+ const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let pages=[];
+ for(let n=1;n<=pdf.numPages;n++){
+  setStatus('Reading PDF text: page '+n+' of '+pdf.numPages+'…');
+  const page=await pdf.getPage(n),content=await page.getTextContent(),lines=new Map();
+  for(const item of content.items){if(!item.str||!item.str.trim())continue;const y=Math.round(item.transform[5]);const key=String(y);lines.set(key,(lines.get(key)||[]).concat([{x:item.transform[4],text:item.str}]))}
+  const ordered=[...lines.entries()].sort((a,b)=>Number(b[0])-Number(a[0])).map(([,items])=>items.sort((a,b)=>a.x-b.x).map(x=>x.text).join(' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+  pages.push(ordered.join('\n'));
+ }
+ return pages.join('\n');
+}
+function extractReferenceSection(text){
+ const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
+ const heading=/^(?:\d+(?:\.\d+)*\s+)?(?:references|bibliography|literature cited|works cited|references and notes)\s*[:.]?$/i;
+ let start=-1;
+ for(let i=lines.length-1;i>=Math.floor(lines.length*.35);i--){if(heading.test(lines[i])){start=i+1;break}}
+ if(start<0)return {found:false,refs:lines.filter(x=>/\b10\.\d{4,9}\//.test(x)||/^\s*(?:\[\d+\]|\d+[.)])\s+/.test(x))};
+ const stop=/^(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests)\b/i;
+ let body=[];for(let i=start;i<lines.length;i++){if(stop.test(lines[i]))break;body.push(lines[i])}
+ const refs=[];let current='';
+ const startsEntry=line=>/^(?:\[\d{1,4}\]|\(\d{1,4}\)|\d{1,4}[.)]\s+|[A-ZÀ-ÖØ-Þ][^.!?]{0,100}\b(?:19|20)\d{2}[a-z]?\b[.)]?\s)/.test(line);
+ for(const line of body){
+  if(startsEntry(line)&&current){refs.push(current.trim());current=line}
+  else if(!current)current=line;
+  else current+=' '+line;
+ }
+ if(current.trim())refs.push(current.trim());
+ return {found:true,refs:refs.map(clean).filter(x=>x.length>=25&&!heading.test(x))};
+}
+$('extractBtn').addEventListener('click',async()=>{
+ const f=$('file').files[0];if(!f){setStatus('Please select a DOCX or PDF file first.');return}
+ try{
+  setStatus('Extracting text in your browser…');let text;
+  if(f.name.toLowerCase().endsWith('.pdf'))text=await extractPdfText(f);
+  else {const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});text=out.value}
+  let found=true;
+  if(f.name.toLowerCase().endsWith('.pdf')){const result=extractReferenceSection(text);found=result.found;refs=result.refs}
+  else {const lines=text.split(/\r?\n/).map(clean).filter(Boolean);const result=extractReferenceSection(text);if(result.found&&result.refs.length>=2)refs=result.refs;else refs=lines.filter(x=>! /^(references|bibliography|reference list)[: ]*$/i.test(x))}
+  if(!refs.length)throw new Error('No reference entries could be extracted. If this is a scanned PDF, run OCR first. For a full paper, check that the References/Bibliography heading is selectable text.');
+  $('preview').classList.remove('hidden');
+  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(found?'A reference section was detected.':'No clear References heading was detected; showing lines that resemble reference entries. Please inspect carefully.')+'</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
+  $('verifyBtn').disabled=false;setStatus('Extraction complete. Check the preview and remove any non-reference text before verification.');
+ }catch(e){setStatus('Could not extract references: '+e.message)}
+});
 function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 $('verifyBtn').addEventListener('click',async()=>{
  if(!refs.length)return;results=new Array(refs.length);$('verifyBtn').disabled=true;$('extractBtn').disabled=true;$('resultsPanel').classList.remove('hidden');
