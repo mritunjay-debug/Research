@@ -122,59 +122,39 @@ async function extractPdfText(file){
 function extractReferenceSection(text){
  const raw=text.split(/\r?\n/).map(x=>clean(x)).filter(Boolean);
  const norm=x=>x.toLowerCase().replace(/[\u00a0\u200b]/g,' ').replace(/^\s*(?:(?:\d+(?:\.\d+)*|[ivxlcdm]+)[.)]?\s+)?/i,'').replace(/[\s.:;|0-9]+$/g,'').trim();
- const isHeading=x=>['references','reference','bibliography','literature cited','works cited','references and notes','reference list','literature references'].includes(norm(x));
- // Headings may be extracted as a line with page numbers or a running header.
- let start=-1;
+ const headingNames=['references','reference','bibliography','literature cited','works cited','references and notes','reference list','literature references'];
+ const isHeading=x=>headingNames.includes(norm(x));
+ let start=-1,found=false;
+ // A full manuscript must have an identifiable reference-section heading. Do not
+ // guess from author-year citations in the body: those are in-text citations.
  for(let i=raw.length-1;i>=0;i--){
-  // Some publisher PDFs place the References heading after a running header or
-  // the last paragraph on the same extracted line. Accept it only near document end.
-  const suffix=raw[i].match(/(?:^|\\s)(references|bibliography|works cited|literature cited|reference list)\\s*[:.]?\\s*$/i);
-  if(isHeading(raw[i])){start=i+1;break}
-  if(i>=Math.floor(raw.length*.45)&&suffix){
-   start=i+1;
-   break;
+  if(isHeading(raw[i])){start=i+1;found=true;break}
+  if(raw[i].length<100&&/\b(references|bibliography|works cited|literature cited|reference list)\b/i.test(raw[i])){
+   const m=raw[i].match(/\b(?:references|bibliography|works cited|literature cited|reference list)\b/i);
+   if(m){start=i+1;found=true;break}
   }
  }
+ if(!found)return {found:false,refs:[],message:'No distinct References/Bibliography heading was detected. To avoid treating in-text citations as references, extraction stopped. Check that the PDF has selectable text and a visible reference-section heading.'};
  const stop=/^(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests|ethics statement|supplementary information|endnotes)\b/i;
- let body=[],found=start>=0;
- if(found){for(let i=start;i<raw.length;i++){if(stop.test(raw[i])&&body.length>=2)break;body.push(raw[i])}}
- else {
-  // If PDF.js emits the heading as part of a running line, find the last occurrence.
-  let hi=-1;
-  for(let i=raw.length-1;i>=0;i--){if(/\b(references|bibliography|works cited|literature cited)\b/i.test(raw[i])&&raw[i].length<100){hi=i;break}}
-  if(hi>=0){found=true;body=raw.slice(hi+1)}
-  else {const from=Math.floor(raw.length*.55);let first=-1;for(let i=from;i<raw.length;i++){if(/(?:\b(?:19|20)\d{2}\b|https?:\/\/doi\.org\/10\.|doi:\s*10\.)/.test(raw[i])&&/^[A-Z\[(]/.test(raw[i])){first=i;break}}if(first>=0)body=raw.slice(first)}
- }
- const numbered=/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s*$/;
  const numberedInline=/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s+\S/;
- const doi=/\b10\.\d{4,9}\/[-._;()/:A-Z0-9]+/i;
  const year=/\b(?:18|19|20|21)\d{2}[a-z]?\b/;
  const authorYearStart=x=>/^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+/.test(x)&&year.test(x.slice(0,180))&&x.length>30;
- const entries=[];let current='',expectNumbered=false;
- const push=()=>{if(current.trim().length>=25)entries.push(clean(current));current=''};
- for(let i=0;i<body.length;i++){
-  const line=clean(body[i]);if(!line||isHeading(line)||stop.test(line))continue;
-  if(numbered.test(line)){push();expectNumbered=true;continue}
+ const body=[];
+ for(let i=start;i<raw.length;i++){if(stop.test(raw[i])&&body.length>=2)break;body.push(raw[i])}
+ const refs=[];let current='',expectNumbered=false;
+ const push=()=>{if(current.trim().length>=25)refs.push(clean(current));current=''};
+ for(const original of body){
+  const line=clean(original);if(!line||isHeading(line)||stop.test(line))continue;
+  if(/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s*$/.test(line)){push();expectNumbered=true;continue}
   if(numberedInline.test(line)){push();current=line.replace(/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s+/,'');expectNumbered=false;continue}
-  const isStart=authorYearStart(line);
-  if(isStart){push();current=line;expectNumbered=false;continue}
+  if(authorYearStart(line)){push();current=line;expectNumbered=false;continue}
   if(expectNumbered){current=line;expectNumbered=false;continue}
-  // When a DOI is followed by another author-year citation on the same extracted line,
-  // split at the next likely citation start; preserve DOI with its preceding reference.
-  const split=line.split(/(?=\s+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,?\s+[A-Z][A-Za-z.]*){0,3}\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b)/);
+  const split=line.split(/(?=\s+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*)?\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b)/);
   for(let j=0;j<split.length;j++){const part=clean(split[j]);if(!part)continue;if(j>0&&authorYearStart(part)){push();current=part}else if(current)current+=' '+part;else current=part}
  }
  push();
- // Secondary segmentation for numbered citation styles whose marker and citation text
- // were joined or separated inconsistently by PDF text extraction.
- let refs=entries.map(clean).filter(x=>x.length>=25);
- if(refs.length<=2&&body.length){
-  const joined=body.join(' ');
-  const matches=[...joined.matchAll(/(?:^|\s)(?=\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)]\s+[A-Z])|(?=[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*)?\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b)/g)];
-  if(matches.length>refs.length){const cuts=matches.map(m=>m.index).filter((x,i,arr)=>i===0||x>arr[i-1]);const parts=[];for(let k=0;k<cuts.length;k++){const p=clean(joined.slice(cuts[k],cuts[k+1]??joined.length));if(p.length>=25)parts.push(p)}if(parts.length>refs.length)refs=parts}
- }
- refs=refs.filter(x=>!isHeading(x)&&!stop.test(x));
- return {found,refs,message:!found?'Could not identify a clear References heading; inferred entries need careful review.':refs.length<3?'Few reference entries were detected. Inspect the PDF preview before verification.':''};
+ const cleanRefs=refs.filter(x=>x.length>=25&&!isHeading(x)&&!stop.test(x));
+ return {found:true,refs:cleanRefs,message:'Reference section located. Only text after the References/Bibliography heading is considered; review each boundary before verification.'};
 }
 $('extractBtn').addEventListener('click',async()=>{
  const f=$('file').files[0];if(!f){setStatus('Please select a DOCX or PDF file first.');return}
@@ -184,7 +164,7 @@ $('extractBtn').addEventListener('click',async()=>{
   else {const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});text=out.value}
   let found=true;
   let resultMessage=''; if(f.name.toLowerCase().endsWith('.pdf')){const result=extractReferenceSection(text);found=result.found;refs=result.refs;resultMessage=result.message||''}
-  else {const lines=text.split(/\r?\n/).map(clean).filter(Boolean);const result=extractReferenceSection(text);if(result.found&&result.refs.length>=2)refs=result.refs;else refs=lines.filter(x=>! /^(references|bibliography|reference list)[: ]*$/i.test(x))}
+  else {const result=extractReferenceSection(text);found=result.found;resultMessage=result.message||'';if(result.found)refs=result.refs;else {const lines=text.split(/\r?\n/).map(clean).filter(Boolean);const hasHeading=/\b(references|bibliography|works cited|literature cited|reference list)\b/i.test(text);if(!hasHeading&&/reference/i.test(f.name))refs=lines.filter(x=>x.length>=25&&!/^(references|bibliography|reference list)[: ]*$/i.test(x));else refs=[]}}
   if(!refs.length)throw new Error('Could not identify separate reference entries. This PDF may have a non-standard layout or no extractable text. Try OCR or upload the references as DOCX.');
   $('preview').classList.remove('hidden');
   $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(resultMessage|| (found?'A reference section was detected.':'No clear References heading was detected; candidate entries were inferred from the final part of the document.'))+' Review the boundaries before verification.</p>'+(refs.length<3?'<div class="notice">Only '+refs.length+' reference entries were separated. Check the preview against the original PDF before proceeding.</div>':'')+'<ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
