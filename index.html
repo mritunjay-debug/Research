@@ -89,12 +89,35 @@ async function extractPdfText(file){
  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let pages=[];
  for(let n=1;n<=pdf.numPages;n++){
   setStatus('Reading PDF text: page '+n+' of '+pdf.numPages+'…');
-  const page=await pdf.getPage(n),content=await page.getTextContent(),lines=new Map();
-  for(const item of content.items){if(!item.str||!item.str.trim())continue;const y=Math.round(item.transform[5]);const key=String(y);lines.set(key,(lines.get(key)||[]).concat([{x:item.transform[4],text:item.str}]))}
-  const ordered=[...lines.entries()].sort((a,b)=>Number(b[0])-Number(a[0])).map(([,items])=>items.sort((a,b)=>a.x-b.x).map(x=>x.text).join(' ').replace(/\s+/g,' ').trim()).filter(Boolean);
-  pages.push(ordered.join('\n'));
+  const page=await pdf.getPage(n),content=await page.getTextContent(),viewport=page.getViewport({scale:1}),items=[];
+  for(const item of content.items){if(!item.str||!item.str.trim())continue;items.push({x:Number(item.transform[4])||0,y:Number(item.transform[5])||0,w:Math.max(1,Number(item.width)||item.str.length*3),text:item.str})}
+  if(!items.length){pages.push('');continue}
+  // Detect a persistent whitespace gutter. This prevents text from two columns
+  // being merged into the same line, which was corrupting reference boundaries.
+  const width=viewport.width||Math.max(...items.map(i=>i.x+i.w)),bins=120,occupancy=new Array(bins).fill(0);
+  for(const it of items){const lo=Math.max(0,Math.floor(it.x/width*bins)),hi=Math.min(bins-1,Math.floor(Math.min(width,it.x+it.w)/width*bins));for(let k=lo;k<=hi;k++)occupancy[k]++}
+  let best=null;
+  for(let i=Math.floor(bins*.28);i<Math.floor(bins*.68);i++){
+   if(occupancy[i]!==0)continue;let j=i;while(j+1<Math.floor(bins*.72)&&occupancy[j+1]===0)j++;
+   const span=j-i+1;if(span>=3&&(!best||span>best.span))best={lo:i,hi:j,span};i=j;
+  }
+  const split=best&&best.span>=4?((best.lo+best.hi+1)/2/bins*width):null;
+  const lineText=arr=>{
+   const rows=new Map();
+   for(const it of arr){const y=Math.round(it.y*2)/2,key=String(y);if(!rows.has(key))rows.set(key,[]);rows.get(key).push(it)}
+   return [...rows.entries()].sort((a,b)=>Number(b[0])-Number(a[0])).map(([,row])=>row.sort((a,b)=>a.x-b.x).map(it=>it.text).join(' ').replace(/\\s+/g,' ').trim()).filter(Boolean);
+  };
+  let ordered;
+  if(split!==null){
+   const left=items.filter(it=>it.x+it.w/2<split),right=items.filter(it=>it.x+it.w/2>=split);
+   const leftLines=lineText(left),rightLines=lineText(right);
+   // Standard journal reading order is top-to-bottom in the left column,
+   // followed by top-to-bottom in the right column.
+   ordered=leftLines.concat(rightLines);
+  }else ordered=lineText(items);
+  pages.push(ordered.join('\\n'));
  }
- return pages.join('\n');
+ return pages.join('\\n');
 }
 function extractReferenceSection(text){
  const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
