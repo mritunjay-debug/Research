@@ -75,7 +75,8 @@ scripts/data-analysis-core-test.mjs
 ### Phase 4 — Validated core statistics
 - [x] Independent reference tests for descriptive summaries and Welch independent-samples t-test (including t, Welch df, two-sided p-value, 95% CI and standardized effect sizes).
 - [x] Use Student-t critical values for the simple-regression slope interval instead of a fixed normal critical value; group-mean intervals also use Student-t critical values.
-- [ ] Independently validate Pearson correlation and regression outputs, including edge cases and uncertainty.
+- [x] Add Pearson r, pairwise n, two-sided p-values and approximate Fisher-z confidence intervals, with independent reference tests and edge-case coverage.
+- [ ] Independently validate regression coefficient/diagnostic outputs, including edge cases and uncertainty.
 - [ ] Add methods only with correct test statistics, degrees of freedom, p-values, confidence intervals and assumption/design checks.
 - [x] Keep the method guide explicit about tests that are recommendations only and not implemented.
 
