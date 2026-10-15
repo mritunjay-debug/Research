@@ -61,6 +61,21 @@
     for(let i=0;i<80;i++){const mid=(low+high)/2;if(studentTwoSidedP(mid,df)>alpha)low=mid;else high=mid}
     return (low+high)/2;
   }
+  function pearsonCorrelation(xValues,yValues,alpha=.05){
+    if(!Array.isArray(xValues)||!Array.isArray(yValues)||xValues.length!==yValues.length)throw new TypeError('Pearson correlation expects two arrays of equal length.');
+    if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
+    const pairs=xValues.map((x,index)=>[x,yValues[index]]).filter(pair=>Number.isFinite(pair[0])&&Number.isFinite(pair[1])),n=pairs.length,missingPairs=xValues.length-n;
+    if(n<2)return {n,missingPairs,r:null,t:null,df:n-2,pValue:null,alpha,ciLow:null,ciHigh:null};
+    const meanX=pairs.reduce((sum,p)=>sum+p[0],0)/n,meanY=pairs.reduce((sum,p)=>sum+p[1],0)/n;
+    const ssX=pairs.reduce((sum,p)=>sum+(p[0]-meanX)**2,0),ssY=pairs.reduce((sum,p)=>sum+(p[1]-meanY)**2,0);
+    if(!(ssX>0&&ssY>0))return {n,missingPairs,r:null,t:null,df:n-2,pValue:null,alpha,ciLow:null,ciHigh:null};
+    const cross=pairs.reduce((sum,p)=>sum+(p[0]-meanX)*(p[1]-meanY),0),r=Math.max(-1,Math.min(1,cross/Math.sqrt(ssX*ssY)));
+    if(n<3)return {n,missingPairs,r,t:null,df:n-2,pValue:null,alpha,ciLow:null,ciHigh:null};
+    const t=Math.abs(r)===1?Math.sign(r)*Infinity:r*Math.sqrt((n-2)/(1-r*r)),pValue=Math.abs(r)===1?0:studentTwoSidedP(t,n-2);
+    let ciLow=null,ciHigh=null;
+    if(n>3&&Math.abs(r)<1){const z=Math.atanh(r),critical=normalQuantile(1-alpha/2),se=1/Math.sqrt(n-3);ciLow=Math.tanh(z-critical*se);ciHigh=Math.tanh(z+critical*se)}
+    return {n,missingPairs,r,t,df:n-2,pValue,alpha,ciLow,ciHigh};
+  }
   function welchTTest(groupA,groupB,alpha=.05){
     if(!Array.isArray(groupA)||!Array.isArray(groupB))throw new TypeError('Welch test expects two arrays of parsed numeric values.');
     const a=groupA.filter(Number.isFinite),b=groupB.filter(Number.isFinite),nA=a.length,nB=b.length;
@@ -76,7 +91,7 @@
     const pooledSD=Math.sqrt(((nA-1)*varianceA+(nB-1)*varianceB)/(nA+nB-2)),cohensD=pooledSD>0?difference/pooledSD:null,hedgesG=cohensD===null?null:cohensD*(1-3/(4*(nA+nB)-9));
     return {nA,nB,missingA:groupA.length-nA,missingB:groupB.length-nB,meanA,meanB,sdA,sdB,difference,se,t,df,pValue,alpha,ciLow:difference-critical*se,ciHigh:difference+critical*se,cohensD,hedgesG};
   }
-  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,welchTTest};
+  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,welchTTest};
   root.RTDataAnalysisStats=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
