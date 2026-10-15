@@ -172,12 +172,20 @@ $('extractBtn').addEventListener('click',async()=>{
    if(result.found)refs=result.refs;
    else {
     const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
-    const hasHeading=/\b(references|bibliography|works cited|literature cited|reference list)\b/i.test(text);
     const filenameSuggestsList=/(^|[\s._-])(ref|refs|reference|references|bibliography|citations)([\s._-]|$)/i.test(f.name);
-    // A DOCX explicitly named as a reference-list file can contain only reference
-    // paragraphs and therefore legitimately have no "References" heading.
-    if(!hasHeading&&filenameSuggestsList)refs=lines.filter(x=>x.length>=25&&!/^\s*(references|bibliography|reference list)[: ]*$/i.test(x));
-    else refs=[];
+    // The filename is a strong signal that this is a standalone reference list.
+    // Do not reject it merely because a reference title or paragraph contains the
+    // word "references" somewhere in the text.
+    if(filenameSuggestsList){
+     refs=lines.filter(x=>x.length>=25&&!/^\s*(references|bibliography|reference list)[: ]*$/i.test(x));
+     // Some DOCX files store multiple entries in one paragraph. Split only at
+     // common strong entry starts; otherwise preserve the paragraph for review.
+     if(refs.length<=1&&lines.length){
+      const joined=lines.join(' ');
+      const parts=joined.split(/(?=\s+(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)]\s+[A-Z]|[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*)?\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b))/).map(clean).filter(x=>x.length>=25);
+      if(parts.length>refs.length)refs=parts;
+     }
+    }else refs=[];
    }
   }
   if(!refs.length)throw new Error(isPdf
