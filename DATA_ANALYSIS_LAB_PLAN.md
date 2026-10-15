@@ -73,7 +73,7 @@ scripts/data-analysis-core-test.mjs
 - Save figure settings and source-data/run identifiers; verify export formats individually.
 
 ### Phase 4 — Validated core statistics
-- [x] Independent reference tests for descriptive summaries and Welch independent-samples t-test (including t, Welch df, two-sided p-value, 95% CI and standardized effect sizes).
+- [x] Independent reference tests for descriptive summaries, Welch independent-samples, one-sample and paired t-tests (statistics, degrees of freedom, p-values, 95% confidence intervals and supported standardized effect sizes).
 - [x] Use Student-t critical values for the simple-regression slope interval instead of a fixed normal critical value; group-mean intervals also use Student-t critical values.
 - [x] Add Pearson r, pairwise n, two-sided p-values and approximate Fisher-z confidence intervals, with independent reference tests and edge-case coverage.
 - [x] Add a separately tested simple OLS helper for slope/intercept, R², RMSE/MAE, standard errors, t-based confidence intervals and coefficient p-values; use it in the UI and save the model summary/configuration in local analysis history.
