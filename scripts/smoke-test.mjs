@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const htmlFiles = ['index.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'research-tools.html'];
+const standaloneScripts = ['research-tools-cloud-sync.js'];
 const errors = [];
 for (const file of htmlFiles) {
   const fullPath = path.join(root, file);
@@ -22,6 +23,18 @@ for (const file of htmlFiles) {
     }
   }
 }
+for (const file of standaloneScripts) {
+  const fullPath = path.join(root, file);
+  if (!fs.existsSync(fullPath)) {
+    errors.push(`Missing required script: ${file}`);
+    continue;
+  }
+  try {
+    new Function(fs.readFileSync(fullPath, 'utf8'));
+  } catch (error) {
+    errors.push(`${file}: JavaScript syntax error: ${error.message}`);
+  }
+}
 const workspace = fs.existsSync(path.join(root, 'workspace.html'))
   ? fs.readFileSync(path.join(root, 'workspace.html'), 'utf8')
   : '';
@@ -31,7 +44,7 @@ for (const required of ['const TOOL_REGISTRY=', 'id="availableToolCount"', 'id="
 const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
   ? fs.readFileSync(path.join(root, 'research-tools.html'), 'utf8')
   : '';
-for (const required of ['data-tab="analysis"', 'data-tab="journal"', 'data-tab="reviewer"', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()']) {
+for (const required of ['data-tab="analysis"', 'data-tab="journal"', 'data-tab="reviewer"', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud']) {
   if (!utilities.includes(required)) errors.push(`Research utilities are missing required functionality: ${required}`);
 }
 if (errors.length) {
@@ -39,4 +52,4 @@ if (errors.length) {
   for (const error of errors) console.error(`- ${error}`);
   process.exit(1);
 }
-console.log(`Static site checks passed: ${htmlFiles.length} pages inspected; inline JavaScript syntax and required dashboard/tool hooks are valid.`);
+console.log(`Static site checks passed: ${htmlFiles.length} pages and ${standaloneScripts.length} standalone script(s) inspected; inline JavaScript syntax and required dashboard/tool hooks are valid.`);
