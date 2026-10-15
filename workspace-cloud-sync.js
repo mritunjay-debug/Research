@@ -37,7 +37,7 @@
    const projectIdMap=new Map();
    for(const p of state.projects){
     let row=projectByLocal.get(localId(p.id))||(p.cloudId?(remoteProjects||[]).find(r=>r.id===p.cloudId):null);
-    const payload={user_id:userId,title:String(p.title||'Untitled project'),description:String(p.objective||''),research_question:'',status:projectStatus(p),metadata:{local_id:p.id,discipline:p.discipline||'Mining Engineering',stage:p.stage||'Planning',reviewSnapshots:p.reviewSnapshots||[],bibliography:p.bibliography||{}}};
+    const payload={user_id:userId,title:String(p.title||'Untitled project'),description:String(p.objective||''),research_question:'',status:projectStatus(p),metadata:{local_id:p.id,discipline:p.discipline||'Mining Engineering',stage:p.stage||'Planning',reviewSnapshots:p.reviewSnapshots||[]}};
     if(row){const res=await client.from('research_projects').update(payload).eq('id',row.id).select('*').single();if(res.error)throw res.error;row=res.data}
     else {const res=await client.from('research_projects').insert(payload).select('*').single();if(res.error)throw res.error;row=res.data}
     p.cloudId=row.id;projectIdMap.set(String(p.id),row.id);
