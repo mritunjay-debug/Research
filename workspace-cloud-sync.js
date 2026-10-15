@@ -7,15 +7,16 @@
  let client=null, session=null, busy=false;
  const bar=document.getElementById('rt-auth-bar');
  if(!bar)return;
- const wrap=document.createElement('div');
- wrap.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap';
- wrap.innerHTML='<button id="rt-cloud-sync" type="button" class="rt-light" disabled>Sync projects & tasks</button>';
- bar.appendChild(wrap);
+ const btn=$('rt-cloud-sync');
+ if(!btn)return;
+ btn.hidden=false;
+ const syncState=$('rt-cloud-state'),syncLabel=$('rt-cloud-state-label');
  const status=document.createElement('div');
  status.id='rt-cloud-sync-status';
- status.style.cssText='position:sticky;top:55px;z-index:9997;padding:7px 16px;background:#eaf5f4;color:#174e51;font:12px system-ui,sans-serif;display:none';
+ status.style.cssText='padding:8px clamp(14px,2.5vw,32px);background:#edf4ee;color:#245B49;font:12px system-ui,sans-serif;display:none;border-bottom:1px solid #dbe7dc;overflow-wrap:anywhere';
  bar.insertAdjacentElement('afterend',status);
- function say(s,error){status.textContent=s;status.style.display='block';status.style.background=error?'#fff0ee':'#eaf5f4';status.style.color=error?'#8c2822':'#174e51'}
+ function setSyncState(label,state){if(syncLabel)syncLabel.textContent=label;if(syncState)syncState.dataset.state=state||'unknown'}
+ function say(s,error){status.textContent=s;status.style.display='block';status.style.background=error?'#fff0ee':'#edf4ee';status.style.color=error?'#8c2822':'#245B49';setSyncState(error?'Sync failed':'Sync not confirmed',error?'error':'unknown')}
  function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');return {projects:Array.isArray(x.projects)?x.projects:[],tasks:Array.isArray(x.tasks)?x.tasks:[],activeProjectId:x.activeProjectId||null}}catch(e){throw new Error('Could not read the local workspace: '+e.message)}}
  function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
  function localId(v){return String(v||'')}
@@ -27,7 +28,7 @@
  function localProject(row){const meta=row.metadata||{};return {id:meta.local_id||('cloud-'+row.id),cloudId:row.id,title:row.title,discipline:meta.discipline||'Mining Engineering',stage:meta.stage||'Planning',objective:row.description||'',createdAt:row.created_at||new Date().toISOString(),updatedAt:row.updated_at||new Date().toISOString(),...(meta.reviewSnapshots?{reviewSnapshots:meta.reviewSnapshots}:{}),...(meta.bibliography?{bibliography:meta.bibliography}:{})}}
  async function sync(){
   if(busy)return; if(!client||!session||!session.user){say('Sign in first to sync cloud data.',true);return}
-  busy=true;const btn=$('rt-cloud-sync');btn.disabled=true;btn.textContent='Syncing…';
+  busy=true;btn.disabled=true;btn.textContent='Syncing…';setSyncState('Syncing…','syncing');
   try{
    const userId=session.user.id;
    const state=read();
@@ -67,13 +68,14 @@
    }
    save(state);
    if(typeof window.rtRenderWorkspace==='function')window.rtRenderWorkspace();
-   say('Cloud sync complete: '+state.projects.length+' project(s), '+state.tasks.length+' task(s). Browser data was preserved. Bibliography records are not synced yet.');
+   say('Cloud sync complete: '+state.projects.length+' project(s), '+state.tasks.length+' task(s). Browser data was preserved. Bibliography records are not synced yet.',false);setSyncState('Synced just now','synced');
   }catch(e){say('Cloud sync failed: '+(e.message||String(e))+'. Your browser-local data has not been intentionally deleted.',true)}
-  finally{busy=false;btn.disabled=!(client&&session&&session.user);btn.textContent='Sync projects & tasks'}
+  finally{busy=false;btn.disabled=!(client&&session&&session.user);btn.textContent='Sync'}
  }
  $('rt-cloud-sync').addEventListener('click',sync);
- function attach(c,s){client=c;session=s;$('rt-cloud-sync').disabled=!(client&&session&&session.user)}
+ function attach(c,s){client=c;session=s;btn.disabled=!(client&&session&&session.user);btn.title=session&&session.user?'Sync projects and tasks to your signed-in account':'Sign in to enable cloud sync';if(!session||!session.user)setSyncState('Not synced','unknown')}
  window.addEventListener('rt-supabase-ready',e=>{client=e.detail.client;client.auth.getSession().then(({data})=>attach(client,data.session));});
  window.addEventListener('rt-auth-state',e=>attach(client,e.detail.session));
  if(window.rtSupabase){client=window.rtSupabase;client.auth.getSession().then(({data})=>attach(client,data.session))}
+ window.addEventListener('workspace-local-change',()=>{if(session&&session.user)setSyncState('Changes not synced','unknown');else setSyncState('Local only','unknown')});
 })();
