@@ -9,6 +9,7 @@ on:
       - "literature.html"
       - "workspace.html"
       - "manuscript-audit.html"
+      - "thesis-manuscript-studio.html"
       - "research-tools.html"
       - "journal-finder.js"
       - "research-tools-cloud-sync.js"
