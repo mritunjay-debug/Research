@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html'];
-const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js'];
+const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js'];
 const errors = [];
 for (const file of htmlFiles) {
   const fullPath = path.join(root, file);
@@ -41,6 +41,31 @@ const workspace = fs.existsSync(path.join(root, 'workspace.html'))
 for (const required of ['const TOOL_REGISTRY=', 'id="availableToolCount"', 'id="projectCount"', 'id="openCount"', 'id="doneCount"']) {
   if (!workspace.includes(required)) errors.push(`Workspace is missing required dashboard element: ${required}`);
 }
+const accountUi = fs.existsSync(path.join(root, 'supabase-auth.js'))
+  ? fs.readFileSync(path.join(root, 'supabase-auth.js'), 'utf8')
+  : '';
+for (const required of [
+  'id="rt-profile-trigger"',
+  'id="rt-profile-menu"',
+  'aria-haspopup="menu"',
+  'role="menuitem"',
+  'function openProfileMenu()',
+  'function closeProfileMenu(focusTrigger)',
+  'supabase.auth.signOut()',
+  'id="rt-cloud-state"'
+]) {
+  if (!accountUi.includes(required)) errors.push(`Shared account header is missing required accessibility/authentication hook: ${required}`);
+}
+for (const forbidden of ['id="rt-signout" type="button" style="display:none"', 'Research Toolkit · Cloud account']) {
+  if (accountUi.includes(forbidden)) errors.push(`Shared account header still contains outdated UI: ${forbidden}`);
+}
+const cloudSync = fs.existsSync(path.join(root, 'workspace-cloud-sync.js'))
+  ? fs.readFileSync(path.join(root, 'workspace-cloud-sync.js'), 'utf8')
+  : '';
+for (const required of ["setSyncState('Synced just now','synced')", "setSyncState('Changes not synced','unknown')", 'Cloud sync failed:', 'if(syncState)syncState.hidden=false']) {
+  if (!cloudSync.includes(required)) errors.push(`Workspace cloud sync is missing truthful status behavior: ${required}`);
+}
+
 const studio = fs.existsSync(path.join(root, 'thesis-manuscript-studio.html'))
   ? fs.readFileSync(path.join(root, 'thesis-manuscript-studio.html'), 'utf8')
   : '';
