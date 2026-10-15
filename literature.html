@@ -206,9 +206,11 @@ def main():
 if __name__ == "__main__":
     main()
 `;
+window.rtLiteratureCloudBridge={getRecords:()=>records,getRecordId:()=>recordId,setRecords:(next)=>{records=Array.isArray(next)?next:[];recordId=Math.max(recordId,...records.map(r=>Number(r.id)||0))+1;saveWorkspace();render()}};
 updateReviewGuidance();renderPrisma();
 render();
 </script>
 
 <script src="supabase-auth.js"></script>
+<script src="literature-cloud-sync.js"></script>
 </body></html>
