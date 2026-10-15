@@ -44,3 +44,28 @@ html{background:var(--paper);scroll-behavior:smooth}body{background:var(--paper)
 #rt-auth-bar button:disabled{opacity:.65!important;color:#506458!important}
 #rt-auth-bar button:focus-visible{outline:3px solid #e9b69b!important;outline-offset:2px!important}
 @media(max-width:720px){.sidebar .nav{padding-bottom:4px}.sidebar .nav a{min-height:40px}}
+
+/* Green-only accent pass requested for the research workspace */
+:root{--navy:#174638;--forest:#174638;--forest2:#245845;--info:#245845}
+#rt-auth-bar{background:#174638!important;color:#fff!important;border-bottom:2px solid #c56c4c!important}
+#rt-auth-bar .rt-brand,#rt-auth-bar .rt-status{color:#f7f4ec!important}
+#rt-auth-bar button{background:#f7f4ec!important;color:#174638!important;border-color:#d8e3d9!important}
+#rt-auth-bar button.rt-light{background:#dcebe0!important;color:#174638!important;border-color:#dcebe0!important}
+#rt-auth-bar button:hover{background:#fffefa!important;color:#12392e!important}
+.topbar{background:#eae9dd!important;border-bottom-color:#d8dfd3!important}
+.topbar .crumb strong{color:#174638!important}
+.local-badge{background:#e0eee3!important;color:#245845!important;border-color:#c9dfce!important}
+.dashboard-search:focus-within{border-color:#5c8a70!important;box-shadow:0 0 0 2px #dcebe0!important}
+.dashboard-search span{color:#397357!important}
+.dashboard-search input:focus{outline:none!important}
+.tool{border-color:#e0e6dc!important}
+.tool a,.tool a:visited{color:#246044!important;font-weight:650!important}
+.tool a:hover{color:#12392e!important;text-decoration:underline}
+.tool .state:not(.planned){background:#e0eee3!important;color:#245845!important}
+.stat:nth-child(3):before,.stat:nth-child(4):before{background:#e0eee3!important}
+.stat:nth-child(3):after,.stat:nth-child(4):after{color:#246044!important}
+.stat:nth-child(4):before{background:#e8f0e4!important}
+button,button.primary{background:#174638!important;color:#fff!important;border-color:#174638!important}
+button.secondary{background:#f1f0e8!important;color:#174638!important;border-color:#dcded3!important}
+button.secondary:hover{background:#e4ecdf!important}
+a{color:#246044}
