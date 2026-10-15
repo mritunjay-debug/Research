@@ -41,7 +41,7 @@ scripts/data-analysis-core-test.mjs
 - [x] Document implemented versus unimplemented methods.
 - [ ] Verify every release on GitHub Actions and then against the live site.
 
-### Phase 1 — Dataset ingestion and schema foundation (current)
+### Phase 1 — Dataset ingestion and schema foundation (core implemented; browser integration pending)
 - [x] Maintain a separately testable, deterministic browser/Node-compatible ingestion module in `data-analysis-core.js`.
 - [x] Support CSV, TSV and JSON, retaining existing XLS/XLSX worksheet support in the UI.
 - [x] Validate headers, empty files, ragged rows, duplicate headers and resource limits; ragged rows are padded to a rectangular matrix and extra source columns receive generated headers.
@@ -60,12 +60,12 @@ scripts/data-analysis-core-test.mjs
 - [ ] Improve duplicate-row review with source-row identifiers and add more suspicious-value rules.
 - [x] Add a reversible, parameterized numeric derived-column operation with preview/confirm, undo/redo, unit labels, reason, valid/missing counts, and exportable provenance. The original imported matrix is retained in memory; the operation creates a new column and never imputes or deletes rows.
 - [ ] Expand to additional explicit recoding/unit-conversion operations and test transformations against browser UI workflows.
-- Clear original/current dataset distinction and undo/redo.
+- [x] Keep the original imported matrix separate from the working matrix and provide undo/redo for derived-column operations.
 - No automatic deletion or imputation.
 
 ### Phase 3 — Exploratory analysis and figure studio
 - [x] Add a separately tested descriptive-statistics module with valid/missing counts, mean, median, sample SD, min/max, type-7 quartiles and IQR; show missingness rather than silently dropping it from the report.
-- [ ] Independently validate existing Pearson and Welch test implementations before expanding inferential methods.
+- [x] Independently validate Pearson and Welch calculations against reference fixtures before expanding inferential methods.
 - [x] Add frequency tables and categorical cross-tabulations with missing-category counts, percentages/marginals, cardinality guardrails, CSV exports, and report/reproducibility inclusion.
 - [x] Add ECDF and normal Q-Q plot options using the existing Chart.js rendering path and a tested inverse-normal quantile helper.
 - [ ] Add density, box/violin, pair plots and source-point-to-row interaction.
@@ -78,7 +78,7 @@ scripts/data-analysis-core-test.mjs
 - [x] Add Pearson r, pairwise n, two-sided p-values and approximate Fisher-z confidence intervals, with independent reference tests and edge-case coverage.
 - [x] Add a separately tested simple OLS helper for slope/intercept, R², RMSE/MAE, standard errors, t-based confidence intervals and coefficient p-values; use it in the UI and save the model summary/configuration in local analysis history.
 - [ ] Independently validate leverage/Cook’s distance diagnostics and add residual/Q-Q plots tied to the fitted model.
-- [ ] Add methods only with correct test statistics, degrees of freedom, p-values, confidence intervals and assumption/design checks.
+- [ ] Add nonparametric alternatives, ANOVA/post-hoc, chi-square/Fisher tests, multiple-comparison corrections and broader diagnostics only after separate reference tests and design checks.
 - [x] Keep the method guide explicit about tests that are recommendations only and not implemented.
 
 ### Phase 5 — Regression and diagnostics
