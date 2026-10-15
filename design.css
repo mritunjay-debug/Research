@@ -69,3 +69,13 @@ button,button.primary{background:#174638!important;color:#fff!important;border-c
 button.secondary{background:#f1f0e8!important;color:#174638!important;border-color:#dcded3!important}
 button.secondary:hover{background:#e4ecdf!important}
 a{color:#246044}
+
+/* Research tool cards: coherent forest-green surfaces and clear text contrast */
+#researchToolsPanel .tool,.tools .tool{background:#edf4ed!important;border:1px solid #cbdccc!important;border-top:3px solid #3b7258!important;border-radius:8px!important;box-shadow:none!important;transition:background .16s,border-color .16s,transform .16s!important}
+#researchToolsPanel .tool:hover,.tools .tool:hover{background:#e3eee3!important;border-color:#a9c7ad!important;transform:translateY(-2px)!important}
+#researchToolsPanel .tool h3,.tools .tool h3{color:#173f31!important;font-weight:750!important}
+#researchToolsPanel .tool p,.tools .tool p{color:#536b5d!important}
+#researchToolsPanel .tool a,.tools .tool a{color:#15583b!important;font-weight:750!important}
+#researchToolsPanel .tool .state,.tools .tool .state{background:#d5e8d8!important;color:#174b34!important;border:1px solid #bdd7c2!important}
+#researchToolsPanel .tool .state.planned,.tools .tool .state.planned{background:#f2e9d9!important;color:#74552b!important;border-color:#e7d7b9!important}
+.tool-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:#d5e8d8;color:#174b34;margin-bottom:10px}
