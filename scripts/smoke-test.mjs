@@ -1,0 +1,42 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
+const root = process.cwd();
+const htmlFiles = ['index.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'research-tools.html'];
+const errors = [];
+for (const file of htmlFiles) {
+  const fullPath = path.join(root, file);
+  if (!fs.existsSync(fullPath)) {
+    errors.push(`Missing required page: ${file}`);
+    continue;
+  }
+  const html = fs.readFileSync(fullPath, 'utf8');
+  const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
+    .map(match => match[1])
+    .filter(source => source.trim());
+  for (let i = 0; i < scripts.length; i++) {
+    try {
+      new Function(scripts[i]);
+    } catch (error) {
+      errors.push(`${file}: inline script ${i + 1} has a syntax error: ${error.message}`);
+    }
+  }
+}
+const workspace = fs.existsSync(path.join(root, 'workspace.html'))
+  ? fs.readFileSync(path.join(root, 'workspace.html'), 'utf8')
+  : '';
+for (const required of ['const TOOL_REGISTRY=', 'id="availableToolCount"', 'id="projectCount"', 'id="openCount"', 'id="doneCount"']) {
+  if (!workspace.includes(required)) errors.push(`Workspace is missing required dashboard element: ${required}`);
+}
+const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
+  ? fs.readFileSync(path.join(root, 'research-tools.html'), 'utf8')
+  : '';
+for (const required of ['data-tab="analysis"', 'data-tab="journal"', 'data-tab="reviewer"', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()']) {
+  if (!utilities.includes(required)) errors.push(`Research utilities are missing required functionality: ${required}`);
+}
+if (errors.length) {
+  console.error('Static site checks failed:');
+  for (const error of errors) console.error(`- ${error}`);
+  process.exit(1);
+}
+console.log(`Static site checks passed: ${htmlFiles.length} pages inspected; inline JavaScript syntax and required dashboard/tool hooks are valid.`);
