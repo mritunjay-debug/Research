@@ -44,12 +44,12 @@ function sim(a,b){a=(a||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();b=(b
 function itemYear(it){for(const k of ['published-print','published-online','published','issued','created']){const p=it[k]?.['date-parts'];if(p?.[0]?.[0])return String(p[0][0])}return ''}
 function titleOf(it){return (it.title||[''])[0]}
 function authorOf(it){return (it.author||[]).map(a=>[a.given,a.family].filter(Boolean).join(' ')).join('; ')}
-function originalAuthorText(ref){const m=String(ref||'').match(/^(.{3,180}?)\\s*\\(?\\b(?:18|19|20|21)\\d{2}[a-z]?\\b/);return m?m[1].replace(/^\\s*\\[?\\d+\\]?\\.?\\s*/,'').trim():''}
+function originalAuthorText(ref){const m=String(ref||'').match(/^(.{3,180}?)\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b/);return m?m[1].replace(/^\s*\[?\d+\]?\.?\s*/,'').trim():''}
 function authorSimilarity(ref,it){
  const raw=originalAuthorText(ref).toLowerCase().replace(/[^a-z0-9,; &.-]/g,' ');
  const families=(it.author||[]).map(a=>(a.family||'').toLowerCase()).filter(Boolean);
  if(!raw||!families.length)return null;
- const tokens=raw.split(/[;,]/).map(s=>s.trim().replace(/\\b(and|et al|and others)\\b/g,'').replace(/[^a-z0-9.-]/g,'')).filter(s=>s.length>2);
+ const tokens=raw.split(/[;,]/).map(s=>s.trim().replace(/\b(and|et al|and others)\b/g,'').replace(/[^a-z0-9.-]/g,'')).filter(s=>s.length>2);
  if(!tokens.length)return null;
  const hits=families.filter(f=>tokens.some(t=>t===f||t.includes(f)||f.includes(t)));
  return hits.length/Math.min(families.length,Math.max(1,tokens.length));
