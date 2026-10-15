@@ -223,7 +223,9 @@ function renderResults(){
  $('total').textContent=results.length;
  $('correct').textContent=results.filter(x=>x.Decision==='TOTALLY CORRECTED'||x.Decision==='MANUALLY CORRECTED').length;
  $('manual').textContent=results.filter(x=>x.Decision==='MANUAL CORRECTION REQUIRED').length;
- const visible=results.map((r,i)=>({r,i})).filter(({r})=>!manualOnly||r.Decision==='MANUAL CORRECTION REQUIRED');\n $('selectManualBtn').textContent=manualOnly?'Manual-review filter active':'Show manual-review only';\n $('tbody').innerHTML=visible.map(({r,i})=>{
+ const visible=results.map((r,i)=>({r,i})).filter(({r})=>!manualOnly||r.Decision==='MANUAL CORRECTION REQUIRED');
+ $('selectManualBtn').textContent=manualOnly?'Manual-review filter active':'Show manual-review only';
+ $('tbody').innerHTML=visible.map(({r,i})=>{
   const manual=r.Decision==='MANUAL CORRECTION REQUIRED';
   const candidate=r['Suggested reference']||r['Crossref title']||'No candidate';
   return '<tr class="'+(r.Decision==='MANUALLY CORRECTED'?'manually-corrected':'')+'"><td><input type="checkbox" class="row-select" data-index="'+i+'" '+(r.selected?'checked':'')+' aria-label="Select reference '+(i+1)+'"></td><td>'+escapeHtml(r['Original reference']||'')+'</td><td><span class="pill '+(r.Decision==='TOTALLY CORRECTED'||r.Decision==='MANUALLY CORRECTED'?'good':'review')+'">'+escapeHtml(r.Decision||'MANUAL CORRECTION REQUIRED')+'</span></td><td><div>'+escapeHtml(candidate)+'</div>'+(manual?'<button class="secondary find-candidates" data-index="'+i+'">Find best match</button><div id="candidateBox'+i+'"></div>':'')+'</td><td>'+escapeHtml(r.Notes||'')+'</td><td><a href="'+escapeHtml(r['Google Scholar search']||scholar(r['Original reference']||''))+'" target="_blank" rel="noopener">Google Scholar ↗</a></td></tr>'
