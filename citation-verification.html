@@ -281,7 +281,10 @@ let dedupDecisions=[];
 function normaliseTitle(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/https?:\/\/(?:dx\.)?doi\.org\//g,' ').replace(/\bdoi\s*:\s*/g,' ').replace(/\b10\.\d{4,9}\/[^\s,;]+/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim()}
 function titleCandidate(ref){
  const p=parseRef(ref),raw=String(ref||'');
- if(p.title&&p.title.length>=8)return p.title;
+ if(p.title&&p.title.length>=8){
+  const candidate=p.title.split(/[.!?]\\s+(?=[A-Z])/)[0].replace(/[.?! ]+$/,'').trim();
+  if(candidate.length>=8)return candidate;
+ }
  const q=raw.match(/[“"]([^”"]{12,})[”"]/);if(q)return q[1];
  const year=raw.search(/\b(?:18|19|20|21)\d{2}[a-z]?\b/);
  if(year>=0){const tail=raw.slice(year).replace(/^\b(?:18|19|20|21)\d{2}[a-z]?\b[ .,:()\-]*/,'');const m=tail.match(/^(.{12,}?)(?:\.\s+[A-Z][a-z]+,|\.\s+[A-Z][a-z]+\.|,\s*(?:vol\.|volume|pp\.|pages)|$)/);if(m)return m[1].trim()}
