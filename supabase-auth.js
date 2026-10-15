@@ -97,11 +97,13 @@
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
+    window.rtSupabase = supabase;
+    window.dispatchEvent(new CustomEvent('rt-supabase-ready', { detail: { client: supabase } }));
     supabase.auth.getSession().then(({ data, error }) => {
       if (error) { $('rt-auth-status').textContent = 'Session check failed: ' + error.message; return; }
       showSession(data.session);
     });
-    supabase.auth.onAuthStateChange((_event, session) => showSession(session));
+    supabase.auth.onAuthStateChange((_event, session) => { showSession(session); window.dispatchEvent(new CustomEvent('rt-auth-state', { detail: { session } })); });
   }
   const lib = document.createElement('script');
   lib.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
