@@ -11,7 +11,7 @@ for (const file of htmlFiles) {
     continue;
   }
   const html = fs.readFileSync(fullPath, 'utf8');
-  const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
+  const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
     .map(match => match[1])
     .filter(source => source.trim());
   for (let i = 0; i < scripts.length; i++) {
