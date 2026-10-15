@@ -163,9 +163,26 @@ $('extractBtn').addEventListener('click',async()=>{
   if(f.name.toLowerCase().endsWith('.pdf'))text=await extractPdfText(f);
   else {const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});text=out.value}
   let found=true;
-  let resultMessage=''; if(f.name.toLowerCase().endsWith('.pdf')){const result=extractReferenceSection(text);found=result.found;refs=result.refs;resultMessage=result.message||''}
-  else {const result=extractReferenceSection(text);found=result.found;resultMessage=result.message||'';if(result.found)refs=result.refs;else {const lines=text.split(/\r?\n/).map(clean).filter(Boolean);const hasHeading=/\b(references|bibliography|works cited|literature cited|reference list)\b/i.test(text);if(!hasHeading&&/reference/i.test(f.name))refs=lines.filter(x=>x.length>=25&&!/^(references|bibliography|reference list)[: ]*$/i.test(x));else refs=[]}}
-  if(!refs.length)throw new Error('Could not identify separate reference entries. This PDF may have a non-standard layout or no extractable text. Try OCR or upload the references as DOCX.');
+  const isPdf=f.name.toLowerCase().endsWith('.pdf');
+  let resultMessage='';
+  if(isPdf){
+   const result=extractReferenceSection(text);found=result.found;refs=result.refs;resultMessage=result.message||'';
+  }else{
+   const result=extractReferenceSection(text);found=result.found;resultMessage=result.message||'';
+   if(result.found)refs=result.refs;
+   else {
+    const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
+    const hasHeading=/\b(references|bibliography|works cited|literature cited|reference list)\b/i.test(text);
+    const filenameSuggestsList=/(^|[\s._-])(ref|refs|reference|references|bibliography|citations)([\s._-]|$)/i.test(f.name);
+    // A DOCX explicitly named as a reference-list file can contain only reference
+    // paragraphs and therefore legitimately have no "References" heading.
+    if(!hasHeading&&filenameSuggestsList)refs=lines.filter(x=>x.length>=25&&!/^\s*(references|bibliography|reference list)[: ]*$/i.test(x));
+    else refs=[];
+   }
+  }
+  if(!refs.length)throw new Error(isPdf
+   ? 'No separate reference entries were identified in this PDF. Confirm it has selectable text and a recognisable References/Bibliography heading; scanned PDFs need OCR.'
+   : 'No separate reference entries were identified. For a DOCX containing only references, include a References heading or name the file ref.docx/references.docx. For a full manuscript, ensure the reference section heading is present.');
   $('preview').classList.remove('hidden');
   $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(resultMessage|| (found?'A reference section was detected.':'No clear References heading was detected; candidate entries were inferred from the final part of the document.'))+' Review the boundaries before verification.</p>'+(refs.length<3?'<div class="notice">Only '+refs.length+' reference entries were separated. Check the preview against the original PDF before proceeding.</div>':'')+'<ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
   $('verifyBtn').disabled=false;setStatus('Extraction complete. Check the preview and remove any non-reference text before verification.');
