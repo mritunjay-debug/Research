@@ -7,6 +7,7 @@ on:
       - "index.html"
       - "literature.html"
       - "workspace.html"
+      - "manuscript-audit.html"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
