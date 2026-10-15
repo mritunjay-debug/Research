@@ -10,9 +10,9 @@ const liveFunctions = html.slice(start, end);
 const context = {
   parseRef(ref) {
     const text = String(ref || '');
-    const m = text.match(/\\b(?:18|19|20|21)\\d{2}[a-z]?\\b/);
+    const m = text.match(/\b(?:18|19|20|21)\d{2}[a-z]?\b/);
     const tail = m ? text.slice(m.index + m[0].length).replace(/^[ .,:()]+/, '') : '';
-    const title = tail.split(/\\.\\s+(?=[A-Z])/)[0].replace(/[. ]+$/, '');
+    const title = tail.split(/\\.\s+(?=[A-Z])/)[0].replace(/[. ]+$/, '');
     return {title, year: m ? m[0] : ''};
   },
   originalAuthorText(ref) {
