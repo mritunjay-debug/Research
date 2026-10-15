@@ -7,10 +7,10 @@
   const SUPABASE_URL = 'https://zvhknguwpbgjiltgswip.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_xMFFEDyMSiriZ1FNCTqlzg_PWSpvrqL';
   const css = `
-  #rt-auth-bar{position:sticky;top:0;z-index:9998;background:#10283f;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 8px #0002;font:14px system-ui,sans-serif}
+  #rt-auth-bar{position:sticky;top:0;z-index:9998;background:#244c3c;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 8px #0002;font:14px system-ui,sans-serif}
   #rt-auth-bar .rt-brand{font-weight:800}#rt-auth-bar .rt-status{font-size:12px;color:#d6e5ec}
-  #rt-auth-bar button{border:0;border-radius:8px;padding:9px 13px;font-weight:700;cursor:pointer;background:#176c72;color:#fff}
-  #rt-auth-bar button.rt-light{background:#fff;color:#10283f}
+  #rt-auth-bar button{border:0;border-radius:8px;padding:9px 13px;font-weight:700;cursor:pointer;background:#f5f1e8;color:#244c3c}
+  #rt-auth-bar button.rt-light{background:#dbe5d8;color:#1f4435}
   #rt-auth-modal{position:fixed;inset:0;z-index:10000;background:#071827aa;display:none;align-items:center;justify-content:center;padding:18px;font:14px system-ui,sans-serif}
   #rt-auth-modal.rt-open{display:flex}#rt-auth-modal .rt-card{width:min(430px,100%);background:#fff;color:#17202a;border-radius:16px;padding:24px;box-shadow:0 20px 70px #0004}
   #rt-auth-modal h2{margin:0 0 6px;font-size:23px}#rt-auth-modal p{color:#5e6d79;line-height:1.5}
