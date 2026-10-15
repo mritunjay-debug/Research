@@ -86,7 +86,17 @@
     if(!validCount)throw new Error('The selected source column contains no valid numeric values.');
     return {rows:output,validCount,missingCount,sourceIndex:index,newColumnIndex:checked.columnCount,newColumnName:name,multiplier:scale,offset:shift};
   }
-  const api={DEFAULT_LIMITS,detectDelimiter,parseDelimited,parseJSON,normaliseRows,inferType,profileRows,previewRows,deriveNumericColumn};
+  function validateNumericRange(rows,columnIndex,minValue,maxValue){
+    const checked=normaliseRows(rows),index=Number(columnIndex),min=minValue===null||minValue===undefined||minValue===''?null:Number(minValue),max=maxValue===null||maxValue===undefined||maxValue===''?null:Number(maxValue);
+    if(!Number.isInteger(index)||index<0||index>=checked.columnCount)throw new Error('Choose a valid variable for range validation.');
+    if(min===null&&max===null)throw new Error('Enter a minimum, a maximum, or both.');
+    if(min!==null&&!Number.isFinite(min)||max!==null&&!Number.isFinite(max))throw new Error('Range bounds must be finite numbers.');
+    if(min!==null&&max!==null&&min>max)throw new Error('Minimum cannot be greater than maximum.');
+    const outOfRange=[];let missingCount=0,validCount=0;
+    checked.rows.slice(1).forEach((row,i)=>{const raw=String(row[index]??'').trim(),value=raw===''?null:Number(raw);if(value===null||!Number.isFinite(value)){missingCount++;return}validCount++;if(min!==null&&value<min)outOfRange.push({sourceRow:i+1,value,direction:'below minimum'});else if(max!==null&&value>max)outOfRange.push({sourceRow:i+1,value,direction:'above maximum'})});
+    return {variable:checked.headers[index],columnIndex:index,min,max,rowsChecked:checked.rowCount,validCount,missingCount,outOfRange};
+  }
+  const api={DEFAULT_LIMITS,detectDelimiter,parseDelimited,parseJSON,normaliseRows,inferType,profileRows,previewRows,deriveNumericColumn,validateNumericRange};
   root.RTDataAnalysisCore=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
