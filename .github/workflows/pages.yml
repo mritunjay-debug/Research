@@ -11,6 +11,7 @@ on:
       - "manuscript-audit.html"
       - "thesis-manuscript-studio.html"
       - "research-tools.html"
+      - "data-analysis-figure.js"
       - "research-planning.html"
       - "research-library.html"
       - "journal-finder.js"
@@ -54,6 +55,8 @@ jobs:
         run: node scripts/data-analysis-core-test.mjs
       - name: Test descriptive statistics against reference fixtures
         run: node scripts/data-analysis-stats-test.mjs
+      - name: Test publication figure engine conversion
+        run: node scripts/data-analysis-figure-test.mjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
