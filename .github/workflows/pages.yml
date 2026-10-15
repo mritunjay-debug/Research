@@ -10,6 +10,7 @@ on:
       - "manuscript-audit.html"
       - "research-tools.html"
       - "research-tools-cloud-sync.js"
+      - "literature-cloud-sync.js"
       - "supabase/migrations/**"
       - "design.css"
       - "supabase-auth.js"
