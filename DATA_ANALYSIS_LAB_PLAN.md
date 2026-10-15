@@ -6,18 +6,18 @@
 - Repository: `mritunjay-debug/Research`.
 - Hosting: static site deployed by GitHub Pages through `.github/workflows/pages.yml`; no `package.json`, Next.js configuration, TypeScript configuration, or Vercel configuration exists at the repository root.
 - UI entry point: `research-tools.html`, with a large inline browser script and shared `design.css`.
-- Existing browser dependencies: Chart.js 4.4.8, SheetJS/XLSX 0.18.5, Mammoth 1.8.0, and the shared Supabase browser client/auth UI.
+- Existing browser dependencies: Plotly.js 2.35.2 for interactive figure rendering and vector/raster export, SheetJS/XLSX 0.18.5, Mammoth 1.8.0, and the shared Supabase browser client/auth UI. The figure engine adapter is pure JavaScript and unit-tested independently.
 - Existing analysis code is client-side. Current dataset state is an in-memory matrix of strings; filtering and cleaning notes are kept in page state. Raw dataset values are not sent by the research-tools cloud-sync module.
 - Existing cloud persistence: `research_artifacts` stores user-owned journal, reviewer-response and analysis-summary payloads under Supabase RLS. It is not a raw-dataset file store.
 - Current ingestion: CSV/TSV/JSON parsing and XLS/XLSX worksheet selection are present. The pure core detects common delimiters, strips a UTF-8 BOM, supports quoted delimiters and escaped quotes, normalizes duplicate/blank headers, enforces row/column/cell limits, infers heuristic types, and profiles missingness, unique values, numeric ranges and duplicate rows. The analysis UI has a bounded read-only preview with search across rows, sortable columns, visible-column selection, and pagination. A synthetic teaching dataset is available and explicitly labelled as non-empirical. Multiple simultaneous datasets and a full multi-dataset project model are not implemented.
-- Current analysis: descriptive numeric summaries, Pearson correlations/heatmap with pair counts, simple linear regression, basic regression diagnostics, Welch two-group test, group comparison, data-quality checks, Chart.js figures, CSV and HTML reports, and a reproducibility JSON record. Method selection is a guide for several unimplemented tests; it must not be described as implemented inference.
+- Current analysis: descriptive numeric summaries, Pearson correlations/heatmap with pair counts, simple linear regression, basic regression diagnostics, Welch two-group test, group comparison, data-quality checks, Plotly.js figures with high-resolution PNG and vector SVG export, CSV and HTML reports, and a reproducibility JSON record. Method selection is a guide for several unimplemented tests; it must not be described as implemented inference.
 - Existing limits: regression intervals use a normal critical-value approximation, and diagnostics are limited to a simple one-predictor model. No validated multi-predictor regression, logistic regression, ANOVA suite, nonparametric suite, ML pipeline, or time-series forecasting engine was found in the current Data Analysis Lab.
 
 ### Dependency map
 ```
 research-tools.html
   ├── data-analysis-core.js (new, deterministic ingestion/schema/profile layer)
-  ├── Chart.js (existing charts)
+  ├── Plotly.js (interactive figure rendering and PNG/SVG export; pinned CDN version)\n  ├── data-analysis-figure.js (tested Chart.js-style config → Plotly trace/layout adapter)
   ├── SheetJS/XLSX (existing spreadsheet import/export library)
   ├── research-tools-cloud-sync.js (metadata/summary sync only; no raw data)
   ├── supabase-auth.js (existing sign-in UI)
@@ -68,7 +68,7 @@ scripts/data-analysis-core-test.mjs
 - [x] Independently validate Pearson and Welch calculations against reference fixtures before expanding inferential methods.
 - [x] Add frequency tables and categorical cross-tabulations with missing-category counts, percentages/marginals, cardinality guardrails, CSV exports, and report/reproducibility inclusion.
 - [x] Add ECDF and normal Q-Q plot options using the existing Chart.js rendering path and a tested inverse-normal quantile helper.
-- [ ] Add density, box/violin, pair plots and source-point-to-row interaction.
+- [x] Upgrade the figure renderer to Plotly.js with responsive hover/zoom, consistent publication typography, high-resolution PNG and vector SVG export. The plotting adapter is separately reference-tested for scatter, line/ECDF, bar, pie, axis labels, source-row hover metadata and export configuration.\n- [ ] Add density, box/violin, pair plots and stronger source-point-to-row interaction.
 - Grouping, variable selection, source-row identification and accessible plot configuration.
 - Save figure settings and source-data/run identifiers; verify export formats individually.
 
@@ -129,7 +129,7 @@ scripts/data-analysis-core-test.mjs
 - [ ] Exported records match visible results and include method/settings/limitations.
 
 ### Release and UX
-- [ ] Node test suite and site smoke checks pass.
+- [ ] Node test suite and site smoke checks pass, including the Plotly figure-adapter tests.
 - [ ] GitHub Pages deploy job completes.
 - [ ] Live critical-page smoke test confirms deployment.
 - [ ] Mobile layout, keyboard access, empty/error/loading states and browser-console errors checked.
