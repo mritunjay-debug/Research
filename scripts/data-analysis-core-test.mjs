@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync(new URL('../data-analysis-core.js',import.meta.url),'utf8');
+const context={module:{exports:{}},exports:{}};
+vm.createContext(context);vm.runInContext(source,context);
+const core=context.module.exports;
+let passed=0;function check(name,fn){fn();passed++;console.log('PASS '+name)}
+check('detects comma CSV',()=>assert.equal(core.detectDelimiter('a,b\n1,2\n3,4'),','));
+check('detects TSV',()=>assert.equal(core.detectDelimiter('a\tb\n1\t2\n3\t4'),'\t'));
+check('parses quoted commas and escaped quotes',()=>assert.deepEqual(JSON.parse(JSON.stringify(core.parseDelimited('name,note\nA,"value, with ""quotes"""').rows)),[['name','note'],['A','value, with "quotes"']]));
+check('parses CRLF and UTF-8 BOM',()=>assert.deepEqual(JSON.parse(JSON.stringify(core.parseDelimited('\uFEFFx,y\r\n1,2\r\n').rows)),[['x','y'],['1','2']]));
+check('rejects unclosed quoted field',()=>assert.throws(()=>core.parseDelimited('a,b\n"broken,2'),/unclosed quoted field/i));
+check('parses JSON object arrays and unions keys',()=>assert.deepEqual(JSON.parse(JSON.stringify(core.parseJSON('[{"a":1},{"b":2,"a":null}]'))),[['a','b'],['1',''],['','2']]));
+check('rejects JSON primitives and empty arrays',()=>{assert.throws(()=>core.parseJSON('[1,2]'),/array item must be an object/i);assert.throws(()=>core.parseJSON('[]'),/empty/i)});
+check('normalises ragged rows and duplicate headers with warnings',()=>{const x=core.normaliseRows([['x','x',''],['1','2'],['3','4','5']]);assert.deepEqual(JSON.parse(JSON.stringify(x.rows)),[['x','x (2)','Column 3'],['1','2',''],['3','4','5']]);assert.equal(x.warnings.length,2)});
+check('rejects too many rows and columns',()=>{assert.throws(()=>core.normaliseRows([['x'],['1'],['2']],{maxRows:1}),/exceeds/i);assert.throws(()=>core.normaliseRows([['a','b'],['1','2']],{maxColumns:1}),/exceeds/i)});
+check('infers numeric, date-like, boolean-like and empty columns',()=>{assert.equal(core.inferType(['1','2.5']),'numeric');assert.equal(core.inferType(['2024-01-01','2024-02-01']),'date-like');assert.equal(core.inferType(['yes','no']),'boolean-like');assert.equal(core.inferType(['','  ']),'empty')});
+check('profiles missingness, unique values and duplicate rows',()=>{const p=core.profileRows([['x','group'],['1','A'],['1','A'],['','B']]);assert.equal(p.rowCount,3);assert.equal(p.missingCells,1);assert.equal(p.duplicateRows,1);assert.equal(p.variables[0].unique,1)});
+check('preview is bounded and does not mutate source rows',()=>{const rows=[['x'],['1'],['2']];const out=core.previewRows(rows,2);out[0][0]='changed';assert.equal(rows[0][0],'x');assert.equal(out.length,2)});
+console.log('Data analysis core tests passed: '+passed+' checks.');
