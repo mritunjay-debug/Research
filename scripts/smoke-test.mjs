@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
@@ -18,7 +19,7 @@ for (const file of htmlFiles) {
     .filter(source => source.trim());
   for (let i = 0; i < scripts.length; i++) {
     try {
-      new Function(scripts[i]);
+      new vm.Script(scripts[i], { filename: `${file} inline script ${i + 1}` });
     } catch (error) {
       errors.push(`${file}: inline script ${i + 1} has a syntax error: ${error.message}`);
     }
