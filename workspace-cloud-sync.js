@@ -11,6 +11,7 @@
  if(!btn)return;
  btn.hidden=false;
  const syncState=$('rt-cloud-state'),syncLabel=$('rt-cloud-state-label');
+ if(syncState)syncState.hidden=false;
  const status=document.createElement('div');
  status.id='rt-cloud-sync-status';
  status.style.cssText='padding:8px clamp(14px,2.5vw,32px);background:#edf4ee;color:#245B49;font:12px system-ui,sans-serif;display:none;border-bottom:1px solid #dbe7dc;overflow-wrap:anywhere';
