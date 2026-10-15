@@ -18,6 +18,41 @@ body{background:#f7f9fb;color:#182b3a;line-height:1.5}.hero{padding:30px 20px 24
 @media(max-width:760px){.wrap,.main{width:100%!important;max-width:100%!important}.hero{padding:24px 14px!important}.hero h1{font-size:clamp(26px,7vw,36px)!important;line-height:1.15;overflow-wrap:anywhere}.hero p{font-size:14px!important}.main{margin:14px auto!important;padding:0 10px 30px!important}.panel{padding:13px!important;min-width:0}.grid,.grid2{grid-template-columns:minmax(0,1fr)!important}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.metric{min-width:0;padding:10px!important}.metric strong{font-size:clamp(18px,5vw,25px)!important;overflow-wrap:anywhere}.stepnav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}.stepnav a{min-width:0;justify-content:flex-start!important;white-space:normal;overflow-wrap:anywhere;padding:9px!important}.actions{display:flex;flex-direction:column;align-items:stretch}.actions button{width:100%;min-height:44px}.field input,.field select,.field textarea{width:100%;min-width:0;font-size:16px!important}.tablewrap{width:100%;max-width:100%;overflow:auto!important;-webkit-overflow-scrolling:touch}.tablewrap table{display:table!important;width:max-content;min-width:760px;max-width:none}.tablewrap th,.tablewrap td{min-width:100px;overflow-wrap:anywhere}.tablewrap td.title{min-width:220px}.prisma-layout{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}.prisma-diagram{width:100%;max-width:100%;overflow:auto}.prisma-diagram svg{min-width:340px}.status{overflow-wrap:anywhere}}
 @media(max-width:420px){.main{padding-left:8px!important;padding-right:8px!important}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.stepnav a{font-size:11px!important}.panel{padding:11px!important}}
 </style>
+<style id="fieldnotes-theme-consistency">
+/* Fieldnotes visual consistency pass: shared dashboard palette, existing workflows preserved */
+:root{--fn-paper:#f5f1e8;--fn-ink:#202d27;--fn-forest:#244c3c;--fn-leaf:#dbe5d8;--fn-rust:#c56c4c;--fn-rule:#d8d2c5;--fn-card:#fffdf8}
+html{background:var(--fn-paper)!important;color:var(--fn-ink)!important}
+body{background:var(--fn-paper)!important;color:var(--fn-ink)!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important;line-height:1.55}
+.hero{background:var(--fn-forest)!important;color:#fff!important;border-bottom:4px solid var(--fn-rust)!important}
+.hero h1{font-family:Georgia,"Times New Roman",serif!important;font-weight:500!important;letter-spacing:-.04em!important}
+.hero p{color:#e2e9df!important}
+.eyebrow,.section-kicker{color:#d6dfc6!important}
+.main{color:var(--fn-ink)!important}
+.panel{background:var(--fn-card)!important;border:1px solid var(--fn-rule)!important;border-radius:5px!important;box-shadow:3px 3px 0 #e5dfd2!important}
+.panel h2,.panel h3{color:var(--fn-ink)!important}
+.muted,.helper{color:#68756b!important}
+.field label,label{color:#44584b}
+.field input,.field select,.field textarea,input,select,textarea{border-color:#c9c6b9!important;border-radius:4px!important;background:#fffdf8!important;color:var(--fn-ink)!important}
+input:focus,select:focus,textarea:focus{outline:2px solid #7e9c7c!important;outline-offset:1px}
+button{background:var(--fn-forest)!important;color:#fff!important;border:1px solid var(--fn-forest)!important;border-radius:4px!important;box-shadow:none!important}
+button:hover{background:#315d49!important;color:#fff!important;transform:translateY(-1px)!important;box-shadow:none!important}
+button.alt,button.secondary{background:#eee9de!important;color:var(--fn-forest)!important;border:1px solid #d8d2c5!important}
+button.alt:hover,button.secondary:hover{background:#e1e8dc!important;color:#173c2e!important}
+.notice{background:#f4e5cb!important;color:#624a2d!important;border-left:4px solid var(--fn-rust)!important;border-radius:2px!important}
+.status{color:#526357!important}
+.metric,.stat{background:#f7f4ec!important;border:1px solid #e3ded2!important;border-radius:4px!important}
+.metric strong,.stat strong{color:var(--fn-forest)!important}
+th{background:#eae5d9!important;color:#283d31!important}
+td,th{border-bottom-color:#e3ded2!important}
+.tablewrap{border-color:#d8d2c5!important;border-radius:4px!important}
+.stepnav a{background:#244c3c!important;border:1px solid #426b55!important;border-radius:4px!important;color:#fff!important}
+.stepnav a span{background:#dbe5d8!important;color:#244c3c!important}
+.tag{border-color:#72917d!important;color:#e2e9df!important;border-radius:4px!important}
+a{color:#245845!important;text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:3px solid #c56c4c!important;outline-offset:2px!important}
+footer{color:#68756b!important}
+@media(max-width:760px){.panel{box-shadow:2px 2px 0 #e5dfd2!important}.actions button{min-height:42px}}
+</style>
 </head>
 <body>
 <nav class="site-nav" aria-label="Main navigation"><a class="nav-brand" href="./">Fieldnotes <span style="font:inherit;color:#c56c4c">/</span> Research</a><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-links">Menu ☰</button><div class="nav-links" id="primary-links"><a href="workspace.html">Workspace</a><a href="literature.html" aria-current="page">Literature &amp; PRISMA</a><a href="citation-verification.html">Citation verification</a><a href="manuscript-audit.html">Manuscript audit</a></div></nav><script>(function(){const n=document.querySelector('.site-nav'),b=n&&n.querySelector('.nav-toggle');if(b)b.addEventListener('click',()=>{const open=n.classList.toggle('open');b.setAttribute('aria-expanded',String(open));b.textContent=open?'Close ×':'Menu ☰'});})();</script>
