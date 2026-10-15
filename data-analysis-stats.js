@@ -150,6 +150,40 @@
     const pValue=Math.max(0,Math.min(1,normalErfc(Math.abs(z)/Math.SQRT2)));
     return {nA,nB,missingA:groupA.length-nA,missingB:groupB.length-nB,uA,uB,u:Math.min(uA,uB),meanU,rankSumA,rankBiserial:2*uA/(nA*nB)-1,z,pValue,tieGroups,tieCorrection,variance,continuityCorrection:true,method:'Asymptotic normal approximation with tie correction and continuity correction'};
   }
+  function wilcoxonSignedRank(beforeValues,afterValues,alpha=.05){
+    if(!Array.isArray(beforeValues)||!Array.isArray(afterValues)||beforeValues.length!==afterValues.length)throw new TypeError('Wilcoxon signed-rank expects equal-length paired arrays.');
+    if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
+    const pairs=beforeValues.map((before,index)=>({before,after:afterValues[index]})).filter(pair=>Number.isFinite(pair.before)&&Number.isFinite(pair.after));
+    const differences=pairs.map(pair=>pair.after-pair.before),zeroDifferences=differences.filter(value=>value===0).length;
+    const nonzero=differences.map((difference,index)=>({difference,index,absolute:Math.abs(difference)})).filter(row=>row.absolute>0).sort((a,b)=>a.absolute-b.absolute);
+    const n=nonzero.length,missingPairs=beforeValues.length-pairs.length;
+    if(n<2)throw new Error('At least two non-zero complete paired differences are required.');
+    let positiveRankSum=0,negativeRankSum=0;const tieGroups=[];
+    for(let start=0;start<n;){let end=start+1;while(end<n&&nonzero[end].absolute===nonzero[start].absolute)end++;const size=end-start,rank=((start+1)+end)/2;if(size>1)tieGroups.push(size);for(let i=start;i<end;i++){if(nonzero[i].difference>0)positiveRankSum+=rank;else negativeRankSum+=rank}start=end}
+    const tieCorrection=tieGroups.reduce((sum,t)=>sum+t*t*t-t,0);
+    const variance=n*(n+1)*(2*n+1)/24-tieCorrection/48;
+    if(!(variance>0))throw new Error('Signed-rank variance is zero; inference is undefined.');
+    const difference=positiveRankSum-negativeRankSum,corrected=Math.max(0,Math.abs(difference)-.5),z=(difference===0?0:Math.sign(difference)*corrected/Math.sqrt(variance));
+    const pValue=Math.max(0,Math.min(1,normalErfc(Math.abs(z)/Math.SQRT2)));
+    return {method:'Wilcoxon signed-rank test (two-sided asymptotic normal approximation)',n,completePairs:pairs.length,missingPairs,zeroDifferences,positiveRankSum,negativeRankSum,statistic:Math.min(positiveRankSum,negativeRankSum),z,pValue,alpha,tieGroups,tieCorrection,variance,continuityCorrection:true,zeroMethod:'Wilcox: zero differences excluded before ranking',differences};
+  }
+  function kruskalWallis(groups,alpha=.05){
+    if(!Array.isArray(groups)||groups.length<2)throw new TypeError('Kruskal–Wallis expects at least two independent groups.');
+    if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
+    const clean=groups.map((group,index)=>{if(!Array.isArray(group.values))throw new TypeError('Each Kruskal–Wallis group must have a values array.');const values=group.values.filter(Number.isFinite);if(values.length<1)throw new Error('Each group requires at least one valid numeric observation.');return {label:String(group.label??('Group '+(index+1))),values,n:values.length,missing:group.values.length-values.length}});
+    const combined=clean.flatMap((group,groupIndex)=>group.values.map((value,index)=>({value,groupIndex,index}))).sort((a,b)=>a.value-b.value),N=combined.length,k=clean.length,rankSums=Array(k).fill(0),tieGroups=[];
+    for(let start=0;start<N;){let end=start+1;while(end<N&&combined[end].value===combined[start].value)end++;const size=end-start,rank=((start+1)+end)/2;if(size>1)tieGroups.push(size);for(let i=start;i<end;i++)rankSums[combined[i].groupIndex]+=rank;start=end}
+    const rawH=12/(N*(N+1))*rankSums.reduce((sum,rankSum,index)=>sum+rankSum*rankSum/clean[index].n,0)-3*(N+1),tieTerm=tieGroups.reduce((sum,t)=>sum+t*t*t-t,0),tieCorrection=1-tieTerm/(N*N*N-N);
+    if(!(tieCorrection>0))throw new Error('All pooled observations are tied; the Kruskal–Wallis tie correction is zero.');
+    const H=rawH/tieCorrection,df=k-1,pValue=regularizedGammaQ(df/2,H/2),epsilonSquared=Math.max(0,(H-k+1)/(N-k));
+    return {method:'Kruskal–Wallis H test (tie-corrected chi-square approximation)',k,N,missing:clean.reduce((sum,group)=>sum+group.missing,0),groups:clean.map((group,index)=>({label:group.label,n:group.n,missing:group.missing,median:quantile(group.values.slice().sort((a,b)=>a-b),.5),rankSum:rankSums[index],meanRank:rankSums[index]/group.n})),rankSums,rawH,H,df,pValue,alpha,tieGroups,tieCorrection,epsilonSquared};
+  }
+  function benjaminiHochberg(pValues){
+    if(!Array.isArray(pValues))throw new TypeError('Benjamini–Hochberg adjustment expects an array of p-values.');
+    const sorted=pValues.map((p,index)=>{if(!Number.isFinite(p)||p<0||p>1)throw new RangeError('Every p-value must be finite and between 0 and 1.');return {p,index}}).sort((a,b)=>a.p-b.p);
+    const adjusted=new Array(sorted.length);let running=1;for(let i=sorted.length-1;i>=0;i--){running=Math.min(running,sorted[i].p*sorted.length/(i+1));adjusted[sorted[i].index]=Math.min(1,running)}
+    return adjusted;
+  }
   function oneWayAnova(groups,alpha=.05){
     if(!Array.isArray(groups)||groups.length<2)throw new TypeError('One-way ANOVA expects at least two groups.');
     if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
@@ -206,7 +240,7 @@
     const oddsDenominator=b*c,oddsRatio=oddsDenominator===0?(a*d===0?null:Infinity):(a*d)/oddsDenominator;
     return {method:'Fisher exact test (two-sided probability ordering)',a,b,c,d,N,pValue:Math.min(1,p),oddsRatio,alpha:.05,alternative:'two-sided',supportTables:upper-lower+1};
   }
-  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest,mannWhitneyU,oneWayAnova,holmAdjust,pairwiseWelchPostHoc,regularizedGammaQ,chiSquareIndependence,fisherExact2x2};
+  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest,mannWhitneyU,wilcoxonSignedRank,kruskalWallis,oneWayAnova,holmAdjust,benjaminiHochberg,pairwiseWelchPostHoc,regularizedGammaQ,chiSquareIndependence,fisherExact2x2};
   root.RTDataAnalysisStats=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
