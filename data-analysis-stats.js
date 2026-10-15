@@ -171,7 +171,42 @@
     const comparisons=[];for(let i=0;i<groups.length;i++)for(let j=i+1;j<groups.length;j++){const result=welchTTest(groups[i].values,groups[j].values,alpha);comparisons.push({groupA:String(groups[i].label??('Group '+(i+1))),groupB:String(groups[j].label??('Group '+(j+1))),...result})}
     const adjusted=holmAdjust(comparisons.map(row=>row.pValue));return comparisons.map((row,index)=>({...row,pAdjustedHolm:adjusted[index],significantAfterHolm:adjusted[index]<alpha,adjustment:'Holm step-down correction'}));
   }
-  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest,mannWhitneyU,oneWayAnova,holmAdjust,pairwiseWelchPostHoc};
+  function regularizedGammaQ(a,x){
+    if(!(a>0)||x<0||!Number.isFinite(a)||!Number.isFinite(x))throw new RangeError('Incomplete gamma requires a > 0 and x >= 0.');
+    if(x===0)return 1;
+    const gln=logGamma(a),eps=3e-14,max=10000,floor=1e-300;
+    if(x<a+1){
+      let ap=a,term=1/a,sum=term;
+      for(let n=1;n<=max;n++){ap++;term*=x/ap;sum+=term;if(Math.abs(term)<Math.abs(sum)*eps)break}
+      const p=sum*Math.exp(-x+a*Math.log(x)-gln);
+      return Math.max(0,Math.min(1,1-p));
+    }
+    let b=x+1-a,c=1/floor,d=1/Math.max(Math.abs(b),floor)*(b<0?-1:1),h=d;
+    for(let i=1;i<=max;i++){const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<floor)d=floor;c=b+an/c;if(Math.abs(c)<floor)c=floor;d=1/d;const delta=d*c;h*=delta;if(Math.abs(delta-1)<eps)break}
+    return Math.max(0,Math.min(1,Math.exp(-x+a*Math.log(x)-gln)*h));
+  }
+  function chiSquareIndependence(matrix,alpha=.05){
+    if(!Array.isArray(matrix)||matrix.length<2||!matrix.every(row=>Array.isArray(row)&&row.length===matrix[0].length)||matrix[0].length<2)throw new TypeError('Chi-square independence test requires a rectangular contingency table with at least two rows and two columns.');
+    if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
+    const observed=matrix.map(row=>row.map(value=>{if(!Number.isInteger(value)||value<0||!Number.isFinite(value))throw new RangeError('Contingency table values must be non-negative integer counts.');return value}));
+    const rows=observed.length,cols=observed[0].length,rowTotals=observed.map(row=>row.reduce((sum,v)=>sum+v,0)),colTotals=Array.from({length:cols},(_,j)=>observed.reduce((sum,row)=>sum+row[j],0)),N=rowTotals.reduce((sum,v)=>sum+v,0);
+    if(N===0||rowTotals.some(v=>v===0)||colTotals.some(v=>v===0))throw new Error('Every contingency-table row and column must have a positive marginal total.');
+    let statistic=0,lowExpected=0,minExpected=Infinity;const expected=observed.map((row,i)=>row.map((value,j)=>{const e=rowTotals[i]*colTotals[j]/N;minExpected=Math.min(minExpected,e);if(e<5)lowExpected++;statistic+=(value-e)**2/e;return e}));
+    const df=(rows-1)*(cols-1),pValue=regularizedGammaQ(df/2,statistic/2),cramersV=Math.sqrt(statistic/(N*Math.min(rows-1,cols-1)));
+    return {method:'Pearson chi-square test of independence',observed,expected,rowTotals,columnTotals:colTotals,N,rows,cols,df,statistic,pValue,alpha,cramersV,lowExpected,minExpected,expectedCountWarning:lowExpected>0};
+  }
+  function fisherExact2x2(a,b,c,d){
+    const values=[a,b,c,d];if(!values.every(value=>Number.isInteger(value)&&value>=0&&Number.isFinite(value)))throw new RangeError('Fisher exact test requires four non-negative integer cell counts.');
+    const N=a+b+c+d;if(N===0)throw new Error('The 2×2 table cannot be empty.');
+    if(N>100000)throw new Error('Exact Fisher calculation is limited to a total of 100,000 observations; use a validated alternative for larger tables.');
+    const r1=a+b,c1=a+c,c2=b+d,lower=Math.max(0,r1-c2),upper=Math.min(r1,c1);
+    const logChoose=(n,k)=>k<0||k>n?-Infinity:logGamma(n+1)-logGamma(k+1)-logGamma(n-k+1);
+    const logDenom=logChoose(N,r1),logProbability=x=>logChoose(c1,x)+logChoose(c2,r1-x)-logDenom,observedLog=logProbability(a);
+    let p=0;for(let x=lower;x<=upper;x++){const lp=logProbability(x);if(lp<=observedLog+1e-12)p+=Math.exp(lp)}
+    const oddsDenominator=b*c,oddsRatio=oddsDenominator===0?(a*d===0?null:Infinity):(a*d)/oddsDenominator;
+    return {method:'Fisher exact test (two-sided probability ordering)',a,b,c,d,N,pValue:Math.min(1,p),oddsRatio,alpha:.05,alternative:'two-sided',supportTables:upper-lower+1};
+  }
+  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest,mannWhitneyU,oneWayAnova,holmAdjust,pairwiseWelchPostHoc,regularizedGammaQ,chiSquareIndependence,fisherExact2x2};
   root.RTDataAnalysisStats=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
