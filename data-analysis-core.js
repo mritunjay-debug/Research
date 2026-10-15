@@ -68,7 +68,25 @@
     return {rowCount:n,columnCount:clean.columnCount,missingCells:variables.reduce((s,v)=>s+v.missing,0),duplicateRows,variables,warnings:clean.warnings};
   }
   function previewRows(rows,limit){return rows.slice(0,Math.max(1,Math.min(100,Number(limit)||20))).map(row=>row.slice())}
-  const api={DEFAULT_LIMITS,detectDelimiter,parseDelimited,parseJSON,normaliseRows,inferType,profileRows,previewRows};
+  function deriveNumericColumn(rows,sourceIndex,newName,multiplier,offset){
+    const checked=normaliseRows(rows),index=Number(sourceIndex),name=String(newName??'').trim(),scale=Number(multiplier),shift=Number(offset);
+    if(!Number.isInteger(index)||index<0||index>=checked.columnCount)throw new Error('Choose a valid source column.');
+    if(!name)throw new Error('Enter a name for the derived column.');
+    if(checked.headers.some(header=>header.toLocaleLowerCase()===name.toLocaleLowerCase()))throw new Error('A column with this name already exists.');
+    if(!Number.isFinite(scale)||!Number.isFinite(shift))throw new Error('Multiplier and offset must be finite numbers.');
+    let validCount=0,missingCount=0;
+    const output=checked.rows.map((row,rowIndex)=>{
+      if(rowIndex===0)return [...row,name];
+      const raw=String(row[index]??'').trim(),value=raw===''?null:Number(raw);
+      if(value===null||!Number.isFinite(value)){missingCount++;return [...row,'']}
+      const result=value*scale+shift;
+      if(!Number.isFinite(result))throw new Error('The transformation produced a non-finite value at source row '+rowIndex+'. Check multiplier and offset.');
+      validCount++;return [...row,String(result)];
+    });
+    if(!validCount)throw new Error('The selected source column contains no valid numeric values.');
+    return {rows:output,validCount,missingCount,sourceIndex:index,newColumnIndex:checked.columnCount,newColumnName:name,multiplier:scale,offset:shift};
+  }
+  const api={DEFAULT_LIMITS,detectDelimiter,parseDelimited,parseJSON,normaliseRows,inferType,profileRows,previewRows,deriveNumericColumn};
   root.RTDataAnalysisCore=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
