@@ -163,7 +163,7 @@
     const tieCorrection=tieGroups.reduce((sum,t)=>sum+t*t*t-t,0);
     const variance=n*(n+1)*(2*n+1)/24-tieCorrection/48;
     if(!(variance>0))throw new Error('Signed-rank variance is zero; inference is undefined.');
-    const difference=positiveRankSum-negativeRankSum,corrected=Math.max(0,Math.abs(difference)-.5),z=(difference===0?0:Math.sign(difference)*corrected/Math.sqrt(variance));
+    const difference=positiveRankSum-n*(n+1)/4,corrected=Math.max(0,Math.abs(difference)-.5),z=(difference===0?0:Math.sign(difference)*corrected/Math.sqrt(variance));
     const pValue=Math.max(0,Math.min(1,normalErfc(Math.abs(z)/Math.SQRT2)));
     return {method:'Wilcoxon signed-rank test (two-sided asymptotic normal approximation)',n,completePairs:pairs.length,missingPairs,zeroDifferences,positiveRankSum,negativeRankSum,statistic:Math.min(positiveRankSum,negativeRankSum),z,pValue,alpha,tieGroups,tieCorrection,variance,continuityCorrection:true,zeroMethod:'Wilcox: zero differences excluded before ranking',differences};
   }
