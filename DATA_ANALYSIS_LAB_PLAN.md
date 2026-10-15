@@ -79,7 +79,7 @@ scripts/data-analysis-core-test.mjs
 - [x] Add a separately tested simple OLS helper for slope/intercept, R², RMSE/MAE, standard errors, t-based confidence intervals and coefficient p-values; use it in the UI and save the model summary/configuration in local analysis history.
 - [x] Add residual-versus-fitted and residual normal Q-Q plots tied to the selected simple OLS model; residual plot points expose source-row positions.
 - [ ] Independently validate leverage/Cook’s distance diagnostics and heteroscedasticity tests.
-- [ ] Add nonparametric alternatives, ANOVA/post-hoc, chi-square/Fisher tests, multiple-comparison corrections and broader diagnostics only after separate reference tests and design checks.
+- [x] Add Mann–Whitney U for two independent groups with average ranks for ties, tie-corrected variance, continuity correction, two-sided asymptotic p-value, missing-value accounting and directional rank-biserial effect size; verify against independent SciPy fixtures.\n- [ ] Add Wilcoxon signed-rank, Kruskal–Wallis, ANOVA/post-hoc, chi-square/Fisher tests, multiple-comparison corrections and broader diagnostics only after separate reference tests and design checks.
 - [x] Keep the method guide explicit about tests that are recommendations only and not implemented.
 
 ### Phase 5 — Regression and diagnostics
