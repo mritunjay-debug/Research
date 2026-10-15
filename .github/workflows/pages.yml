@@ -11,6 +11,7 @@ on:
       - "manuscript-audit.html"
       - "thesis-manuscript-studio.html"
       - "research-tools.html"
+      - "research-planning.html"
       - "journal-finder.js"
       - "research-tools-cloud-sync.js"
       - "literature-cloud-sync.js"
