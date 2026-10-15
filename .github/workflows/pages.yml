@@ -50,6 +50,8 @@ jobs:
         run: node scripts/smoke-test.mjs
       - name: Test reference deduplication logic
         run: node scripts/reference-dedup-regression-test.mjs
+      - name: Test data analysis ingestion and profiling
+        run: node scripts/data-analysis-core-test.mjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
