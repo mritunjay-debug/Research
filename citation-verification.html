@@ -282,7 +282,7 @@ function normaliseTitle(s){return String(s||'').toLowerCase().normalize('NFKD').
 function titleCandidate(ref){
  const p=parseRef(ref),raw=String(ref||'');
  if(p.title&&p.title.length>=8){
-  const candidate=p.title.split(/[.!?]\\s+(?=[A-Z])/)[0].replace(/[.?! ]+$/,'').trim();
+  const candidate=p.title.split(/[.!?]\s+(?=[A-Z])/)[0].replace(/[.?! ]+$/,'').trim();
   if(candidate.length>=8)return candidate;
  }
  const q=raw.match(/[“"]([^”"]{12,})[”"]/);if(q)return q[1];
