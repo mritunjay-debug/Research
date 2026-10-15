@@ -26,8 +26,17 @@
 .analysis-extra-tools{border:1px solid #e0e7dc;background:#fbfcf8;border-radius:8px;padding:15px;margin:16px 0}.analysis-extra-tools h3{font-size:15px;color:#174638;margin:0 0 12px}.analysis-extra-tools .fields{margin:10px 0}.analysis-extra-tools .result{max-height:none;overflow:auto}.analysis-extra-tools hr{border:0;border-top:1px solid #e5e1d7;margin:20px 0}
 @media(max-width:700px){.analysis-extra-tools{padding:11px!important;min-width:0}.analysis-extra-tools .fields{grid-template-columns:minmax(0,1fr)!important}.analysis-extra-tools .utility-actions{display:flex;flex-direction:column}.analysis-extra-tools .utility-actions button{width:100%;min-height:44px}.analysis-extra-tools .result{overflow-wrap:anywhere}}
 </style>
+<style id="utility-topbar-fix">
+.utility-topbar{position:relative;z-index:20;background:#174638!important;color:#fff!important;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:2px solid #c56f4e}
+.utility-topbar a,.utility-topbar a:link,.utility-topbar a:visited,.utility-topbar a:hover,.utility-topbar a:active{color:#fff!important;-webkit-text-fill-color:#fff!important;text-decoration:none!important;visibility:visible!important;opacity:1!important}
+.utility-topbar .utility-brand{font-weight:800!important}
+.utility-topbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.utility-topbar-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 12px;border:1px solid #8fb4a3!important;border-radius:7px;background:#174638!important;font-weight:700!important;white-space:nowrap}
+.utility-topbar-actions a:hover{background:#245845!important;border-color:#fff!important}
+@media(max-width:480px){.utility-topbar{padding:10px 12px;align-items:flex-start}.utility-topbar-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.utility-topbar-actions a{width:100%;box-sizing:border-box}}
+</style>
 </head><body>
-<div id="rt-auth-bar" style="position:sticky;top:0;z-index:10;background:#174638;color:#fff;padding:10px 16px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap"><a href="./" aria-label="Back to Fieldnotes Research home" style="color:#fff;text-decoration:none;font-weight:800">Fieldnotes for Research</a><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><a href="./" style="color:#fff;text-decoration:none;border:1px solid #8aa99a;border-radius:5px;padding:7px 10px">← Home</a><a href="workspace.html" style="color:#fff;text-decoration:none;border:1px solid #8aa99a;border-radius:5px;padding:7px 10px">Workspace →</a></div></div>
+<div id="utility-topbar" class="utility-topbar"><a class="utility-brand" href="./" aria-label="Back to Fieldnotes Research home">Fieldnotes for Research</a><div class="utility-topbar-actions"><a href="./">← Home</a><a href="workspace.html">Workspace →</a></div></div>
 <main class="utility-wrap"><div class="utility-head"><div><div class="eyebrow">RESEARCH UTILITIES / FIELD TOOLS</div><h1>Tools for the work behind the paper.</h1><p>Browser-based research utilities for exploratory data analysis, manuscript-based journal discovery, and manuscript structure. Your inputs stay in this browser unless you export them.</p></div></div>
 <nav class="utility-nav" role="tablist" aria-label="Research utilities">
 <button role="tab" aria-selected="true" data-tab="analysis">Data analysis</button><button role="tab" aria-selected="false" data-tab="journal-finder">Journal Finder</button><button role="tab" aria-selected="false" data-tab="manuscript">Manuscript studio</button>
