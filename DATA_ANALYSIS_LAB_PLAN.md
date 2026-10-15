@@ -94,6 +94,7 @@ scripts/data-analysis-core-test.mjs
 - Evaluate browser-side libraries and separate compute workers only after requirements and workload are measured.
 
 ### Phase 7 — Reproducibility and reports
+- [x] Clear visible results after dataset/filter changes and mark the active saved analysis run stale; full dependency-graph invalidation and result comparison remain pending.
 - Versioned analysis configurations, dataset fingerprints, provenance, stale-output detection and rerun comparison.
 - CSV/XLSX/JSON/HTML exports, then DOCX/PDF only with tested rendering paths.
 - Reports populated exclusively from computed result objects; no fabricated outputs.
@@ -102,7 +103,7 @@ scripts/data-analysis-core-test.mjs
 - Keep external AI off by default and optional.
 - Convert prompts into validated structured configurations; never execute arbitrary supplied code.
 - Disclose when data leaves the browser and cite actual result IDs.
-- This phase must respect the current repository's non-AI product commitment unless that product decision is explicitly revised.
+- The current master specification explicitly requests optional AI assistance. Keep it off by default, use deterministic in-browser method recommendations first, and require explicit consent before any external AI service receives data.
 
 ## Acceptance-test checklist
 
