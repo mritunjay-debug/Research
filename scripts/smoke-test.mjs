@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html'];
+const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html'];
 const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js'];
 const errors = [];
 for (const file of htmlFiles) {
@@ -138,6 +138,22 @@ for (const required of [
   'no AI API configuration'
 ]) {
   if (!planning.includes(required)) errors.push(`Research Planning Workbench is missing required feature or data-safety hook: ${required}`);
+}
+
+
+const library = fs.existsSync(path.join(root, 'research-library.html'))
+  ? fs.readFileSync(path.join(root, 'research-library.html'), 'utf8')
+  : '';
+for (const required of [
+  'id="noteForm"',
+  'id="outputForm"',
+  'id="addQuestion"',
+  'id="statsList"',
+  'fieldnotes-research-library/v1',
+  'api.crossref.org/works/',
+  'Export JSON backup'
+]) {
+  if (!library.includes(required)) errors.push(`Research Library & Methods is missing required feature or provenance hook: ${required}`);
 }
 
 if (errors.length) {
