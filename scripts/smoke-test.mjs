@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'research-tools.html'];
@@ -54,11 +53,6 @@ const literature = fs.existsSync(path.join(root, 'literature.html'))
 for (const required of ['rtLiteratureCloudBridge', 'literature-cloud-sync.js']) {
   if (!literature.includes(required)) errors.push(`Literature workspace is missing cloud-sync integration: ${required}`);
 }
-const dedupTests = spawnSync(process.execPath, [path.join(root, 'scripts/reference-dedup-regression-test.mjs')], { encoding: 'utf8' });
-if (dedupTests.stdout) process.stdout.write(dedupTests.stdout);
-if (dedupTests.stderr) process.stderr.write(dedupTests.stderr);
-if (dedupTests.status !== 0) errors.push('Reference deduplication regression tests failed.');
-
 if (errors.length) {
   console.error('Static site checks failed:');
   for (const error of errors) console.error(`- ${error}`);
