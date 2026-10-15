@@ -274,16 +274,16 @@ let originalReferenceList=null;
 let cleanedReferenceList=null;
 let dedupGroups=[];
 let dedupDecisions=[];
-function normaliseTitle(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/https?:\\/\\/(?:dx\\.)?doi\\.org\\//g,' ').replace(/\\bdoi\\s*:\\s*/g,' ').replace(/\\b10\\.\\d{4,9}\\/[^\\s,;]+/g,' ').replace(/[^\\p{L}\\p{N}]+/gu,' ').replace(/\\s+/g,' ').trim()}
+function normaliseTitle(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/https?:\/\/(?:dx\.)?doi\.org\//g,' ').replace(/\bdoi\s*:\s*/g,' ').replace(/\b10\.\d{4,9}\/[^\s,;]+/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim()}
 function titleCandidate(ref){
  const p=parseRef(ref),raw=String(ref||'');
  if(p.title&&p.title.length>=8)return p.title;
  const q=raw.match(/[“"]([^”"]{12,})[”"]/);if(q)return q[1];
- const year=raw.search(/\\b(?:18|19|20|21)\\d{2}[a-z]?\\b/);
- if(year>=0){const tail=raw.slice(year).replace(/^\\b(?:18|19|20|21)\\d{2}[a-z]?\\b[ .,:()\\-]*/,'');const m=tail.match(/^(.{12,}?)(?:\\.\\s+[A-Z][a-z]+,|\\.\\s+[A-Z][a-z]+\\.|,\\s*(?:vol\\.|volume|pp\\.|pages)|$)/);if(m)return m[1].trim()}
+ const year=raw.search(/\b(?:18|19|20|21)\d{2}[a-z]?\b/);
+ if(year>=0){const tail=raw.slice(year).replace(/^\b(?:18|19|20|21)\d{2}[a-z]?\b[ .,:()\-]*/,'');const m=tail.match(/^(.{12,}?)(?:\.\s+[A-Z][a-z]+,|\.\s+[A-Z][a-z]+\.|,\s*(?:vol\.|volume|pp\.|pages)|$)/);if(m)return m[1].trim()}
  return '';
 }
-function doiCandidate(ref){const m=String(ref||'').match(/(?:https?:\\/\\/(?:dx\\.)?doi\\.org\\/|\\bdoi\\s*:\\s*)(10\\.\\d{4,9}\\/[^\\s<>]+)/i);return m?m[1].replace(/[.,;)]+$/,'').toLowerCase():''}
+function doiCandidate(ref){const m=String(ref||'').match(/(?:https?:\/\/(?:dx\.)?doi\.org\/|\bdoi\s*:\s*)(10\.\d{4,9}\/[^\s<>]+)/i);return m?m[1].replace(/[.,;)]+$/,'').toLowerCase():''}
 function levenshteinSimilarity(a,b){
  if(!a||!b)return 0;if(a===b)return 1;
  let prev=Array.from({length:b.length+1},(_,i)=>i);
@@ -291,7 +291,7 @@ function levenshteinSimilarity(a,b){
  return 1-prev[b.length]/Math.max(a.length,b.length);
 }
 function findDuplicateCandidates(list){
- const records=list.map((raw,i)=>({id:'ref-'+(i+1),index:i+1,raw,doi:doiCandidate(raw),title:normaliseTitle(titleCandidate(raw)||''),titleRaw:titleCandidate(raw),year:((raw.match(/\\b(?:18|19|20|21)\\d{2}\\b/)||[])[0]||''),author:(typeof originalAuthorText==='function'?(originalAuthorText(raw)||''):'').toLowerCase().replace(/[^a-z0-9]/g,'')}));
+ const records=list.map((raw,i)=>({id:'ref-'+(i+1),index:i+1,raw,doi:doiCandidate(raw),title:normaliseTitle(titleCandidate(raw)||''),titleRaw:titleCandidate(raw),year:((raw.match(/\b(?:18|19|20|21)\d{2}\b/)||[])[0]||''),author:(typeof originalAuthorText==='function'?(originalAuthorText(raw)||''):'').toLowerCase().replace(/[^a-z0-9]/g,'')}));
  const candidates=[];
  for(let i=0;i<records.length;i++)for(let j=i+1;j<records.length;j++){
   const a=records[i],b=records[j];let type='',score=0,evidence='';
@@ -314,11 +314,6 @@ function buildDedupGroups(a){
  const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
  const union=(x,y)=>{const rx=find(x),ry=find(y);if(rx!==ry)parent[ry]=rx};
  a.candidates.forEach(c=>union(c.a.index,c.b.index));
- const map=new Map();
- a.candidates.forEach(c=>{const root=find(c.a.index);if(!map.has(root))map.set(root,{id:'group-'+root,records:[],candidates:[],decision:'Needs review',primary:c.a.index})});
- for(const g of map.values()){
-  const idx=new Set();g.candidates=a.candidates.filter(c=>find(c.a.index)===find(g.candidates[0]?.a.index||c.a.index));
- }
  // Rebuild by root without relying on pair ordering.
  const grouped=new Map();
  a.candidates.forEach(c=>{const root=find(c.a.index);if(!grouped.has(root))grouped.set(root,{id:'group-'+root,records:[],candidates:[],decision:'Needs review',primary:null});const g=grouped.get(root);g.candidates.push(c);g.records.push(c.a,c.b)});
@@ -328,7 +323,7 @@ function renderDedupWorkflow(){
  const a=duplicateAudit;
  if(!a){$('duplicateResults').classList.add('hidden');return}
  const groupHtml=dedupGroups.map((g,gi)=>{
-  const rows=g.records.map(r=>'<div class="dedup-record"><label><input type="radio" name="primary-'+gi+'" data-primary-group="'+gi+'" value="'+r.index+'" '+(Number(g.primary)===r.index?'checked':'')+' '+(g.decision==='Confirmed duplicate'?'':'disabled')+'> <strong>Reference '+r.index+'</strong></label><div class="dedup-ref">'+escapeHtml(r.raw)+'</div><div class="muted">DOI: '+escapeHtml(doiCandidate(r.raw)||'Not detected')+' · Year: '+escapeHtml(((r.raw.match(/\\b(?:18|19|20|21)\\d{2}\\b/)||[])[0]||'Not detected'))+'</div></div>').join('');
+  const rows=g.records.map(r=>'<div class="dedup-record"><label><input type="radio" name="primary-'+gi+'" data-primary-group="'+gi+'" value="'+r.index+'" '+(Number(g.primary)===r.index?'checked':'')+' '+(g.decision==='Confirmed duplicate'?'':'disabled')+'> <strong>Reference '+r.index+'</strong></label><div class="dedup-ref">'+escapeHtml(r.raw)+'</div><div class="muted">DOI: '+escapeHtml(doiCandidate(r.raw)||'Not detected')+' · Year: '+escapeHtml(((r.raw.match(/\b(?:18|19|20|21)\d{2}\b/)||[])[0]||'Not detected'))+'</div></div>').join('');
   const pairs=g.candidates.map(c=>'<li><strong>'+escapeHtml(c.type)+'</strong> · '+Math.round(c.score*100)+'% indicator<br>'+escapeHtml(c.evidence)+'</li>').join('');
   return '<article class="dedup-group"><h3>Candidate group '+(gi+1)+' · '+g.records.length+' records</h3><label for="group-decision-'+gi+'">Group decision</label><select id="group-decision-'+gi+'" data-group-decision="'+gi+'">'+['Needs review','Confirmed duplicate','Distinct records'].map(v=>'<option'+(g.decision===v?' selected':'')+'>'+v+'</option>').join('')+'</select><h4>Records and retained-primary choice</h4>'+rows+'<h4>Detection evidence</h4><ul>'+pairs+'</ul></article>';
  }).join('');
@@ -454,6 +449,7 @@ $('extractBtn').addEventListener('click',async()=>{
    }
   }
   if(!refs.length)throw new Error('No reference entries were identified. Check the file format and ensure it contains a reference list.');
+  originalReferenceList=refs.slice();cleanedReferenceList=null;duplicateAudit=null;dedupGroups=[];$('cleanedExports').classList.add('hidden');$('duplicateResults').classList.add('hidden');$('dedupCounts').innerHTML='';$('duplicateStatus').textContent='New reference list prepared. Run duplicate detection to review candidates.';
   $('preview').classList.remove('hidden');
   $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">Imported from '+escapeHtml(ext.toUpperCase())+'. Check field mapping and confirm that each entry is a separate reference.</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
   $('verifyBtn').disabled=false;setStatus('Import complete. Check the preview before verification.');
@@ -465,7 +461,7 @@ $('usePastedReferences').addEventListener('click',()=>{
  const entries=/\n\s*\n+/.test(raw)?blocks:raw.split(/\r?\n/).map(clean).filter(x=>x.length>=25);
  const unique=[],seen=new Set();for(const entry of entries){const key=entry.toLowerCase().replace(/\s+/g,' ');if(!seen.has(key)){seen.add(key);unique.push(entry)}}
  if(!unique.length){setStatus('No reference entries identified. Use one complete reference per line or separate wrapped references with blank lines.');return}
- refs=unique;results=[];manualOnly=false;$('resultsPanel').classList.add('hidden');$('preview').classList.remove('hidden');
+ refs=unique;originalReferenceList=refs.slice();cleanedReferenceList=null;duplicateAudit=null;dedupGroups=[];$('cleanedExports').classList.add('hidden');$('duplicateResults').classList.add('hidden');$('dedupCounts').innerHTML='';$('duplicateStatus').textContent='Pasted reference list prepared. Run duplicate detection to review candidates.';results=[];manualOnly=false;$('resultsPanel').classList.add('hidden');$('preview').classList.remove('hidden');
  $('preview').innerHTML='<h3>Prepared '+refs.length+' reference(s)</h3><p class="muted">Review entry boundaries before verification. Exact duplicate pasted entries were removed; similar but non-identical entries were retained.</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
  $('verifyBtn').disabled=false;setStatus('Pasted references prepared. Check the preview before verification.');
 });
