@@ -194,13 +194,49 @@ $('extractBtn').addEventListener('click',async()=>{
    const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});text=out.value;
   }else text=await f.text();
   let imported=[];
-  if(['ris'].includes(ext)){
+  if(ext==='ris'){
    const blocks=text.split(/(?=^TY  - )/m).filter(x=>/^TY  - /m.test(x));
-   imported=blocks.map(block=>{const get=tag=>[...block.matchAll(new RegExp('^'+tag+'  - (.*)
+   imported=blocks.map(block=>{
+    const get=tag=>[...block.matchAll(new RegExp('^'+tag+'  - (.*)$','gm'))].map(m=>m[1].trim());
+    const title=get('TI')[0]||get('T1')[0]||'',authors=get('AU').join('; ');
+    const year=(get('PY')[0]||get('Y1')[0]||'').match(/(?:18|19|20|21)\d{2}/)?.[0]||'';
+    const journal=get('JO')[0]||get('JF')[0]||get('T2')[0]||'',doi=get('DO')[0]||'';
+    return [authors,year,title,journal,doi].filter(Boolean).join('. ');
+   }).filter(Boolean);
+  }else if(ext==='bib'||ext==='bibtex'){
+   const entries=text.match(/@[A-Za-z]+\s*\{[\s\S]*?(?=\n@|$)/g)||[];
+   imported=entries.map(block=>{
+    const get=key=>{const m=block.match(new RegExp('\\b'+key+'\\s*=\\s*[{" ]([\\s\\S]*?)[}"]\\s*[,}]','i'));return m?m[1].replace(/[{}]/g,'').replace(/\\\\&/g,'&').replace(/\\\\_/g,'_').trim():''};
+    const author=get('author'),year=get('year'),title=get('title'),journal=get('journal')||get('booktitle'),doi=get('doi');
+    return [author,year,title,journal,doi].filter(Boolean).join('. ');
+   }).filter(Boolean);
+  }else if(ext==='csv'){
+   if(!window.XLSX)throw new Error('CSV reader did not load. Refresh and try again.');
+   const wb=XLSX.read(text,{type:'string'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
+   imported=rows.map(row=>{
+    const pick=keys=>{for(const k of keys){const found=Object.keys(row).find(x=>x.trim().toLowerCase()===k);if(found&&String(row[found]).trim())return String(row[found]).trim()}return ''};
+    const doi=pick(['doi','dc.identifier','identifier']),title=pick(['title','article title','work title']),authors=pick(['author','authors','creator','dc.creator']),year=pick(['year','publication year','date','publication date']),journal=pick(['journal','source title','container-title','publication name']),reference=pick(['reference','citation','formatted citation','bibliographic reference']);
+    return reference||[authors,year,title,journal,doi].filter(Boolean).join('. ');
+   }).filter(x=>x.trim());
+  }else{
+   imported=text.split(/\r?\n/).map(clean).filter(Boolean);
+  }
+  if(imported.length){refs=imported.map(clean).filter(x=>x.length>=8)}
+  else{
+   const result=extractReferenceSection(text);
+   if(result.found)refs=result.refs;
+   else{
+    const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
+    const filenameSuggestsList=/(ref|reference|bibliograph|citation)/i.test(f.name);
+    const citationLike=lines.filter(x=>x.length>=25&&(/\b(?:18|19|20|21)\d{2}[a-z]?\b/.test(x)||/\bdoi\s*:\s*10\.|https?:\/\/doi\.org\/10\./i.test(x)||/\b(?:journal|proceedings|vol\.?|pp?\.?\s*\d|university|press)\b/i.test(x)));
+    const hasManyReferenceParagraphs=lines.length>=3&&citationLike.length/Math.max(1,lines.length)>=0.45;
+    refs=(filenameSuggestsList||hasManyReferenceParagraphs)?lines.filter(x=>x.length>=25&&!/^\s*(references|bibliography|reference list)[: ]*$/i.test(x)):[];
+   }
+  }
   if(!refs.length)throw new Error('No reference entries were identified. Check the file format and ensure it contains a reference list.');
   $('preview').classList.remove('hidden');
-  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(resultMessage||'Reference list prepared.')+' Review the boundaries before verification.</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
-  $('verifyBtn').disabled=false;setStatus('Import complete. Check the preview and confirm that each entry is a separate reference before verification.');
+  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">Imported from '+escapeHtml(ext.toUpperCase())+'. Check field mapping and confirm that each entry is a separate reference.</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
+  $('verifyBtn').disabled=false;setStatus('Import complete. Check the preview before verification.');
  }catch(e){setStatus('Could not prepare references: '+e.message)}
 });
 $('verifyBtn').addEventListener('click',async()=>{
