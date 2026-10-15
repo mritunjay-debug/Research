@@ -8,6 +8,7 @@
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_xMFFEDyMSiriZ1FNCTqlzg_PWSpvrqL';
   const css = `
   #rt-auth-bar{position:sticky;top:0;z-index:9998;min-height:64px;background:#173F35;color:#fff;padding:10px clamp(14px,2.5vw,32px);display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:2px solid #D96C4F;font:14px Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  #rt-auth-bar [hidden]{display:none!important}
   #rt-auth-bar .rt-brand-wrap{display:flex;align-items:center;gap:11px;min-width:0}
   #rt-auth-bar .rt-logo{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border-radius:9px;background:#245B49;color:#fff;font-weight:850;font-size:13px;letter-spacing:-.04em;border:1px solid #477663}
   #rt-auth-bar .rt-brand{font-weight:780;font-size:16px;letter-spacing:-.02em;color:#fff;white-space:nowrap}
