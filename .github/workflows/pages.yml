@@ -11,6 +11,8 @@ on:
       - "manuscript-audit.html"
       - "thesis-manuscript-studio.html"
       - "research-tools.html"
+      - "data-analysis-core.js"
+      - "data-analysis-stats.js"
       - "data-analysis-figure.js"
       - "research-planning.html"
       - "research-library.html"
