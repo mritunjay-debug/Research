@@ -97,6 +97,10 @@ const dataCore = fs.existsSync(path.join(root, 'data-analysis-core.js'))
 for (const required of ['parseDelimited', 'parseJSON', 'normaliseRows', 'profileRows', 'previewRows', 'deriveNumericColumn', 'validateNumericRange', 'frequencyTable', 'crossTabulate']) {
   if (!dataCore.includes(required)) errors.push(`Data analysis ingestion core is missing required function: ${required}`);
 }
+const statsCore = fs.existsSync(path.join(root, 'data-analysis-stats.js')) ? fs.readFileSync(path.join(root, 'data-analysis-stats.js'), 'utf8') : '';
+for (const required of ['summariseNumeric', 'normalQuantile', 'welchTTest', 'studentTCritical']) {
+  if (!statsCore.includes(required)) errors.push(`Data analysis statistics module is missing required function: ${required}`);
+}
 const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
   ? fs.readFileSync(path.join(root, 'research-tools.html'), 'utf8')
   : '';
