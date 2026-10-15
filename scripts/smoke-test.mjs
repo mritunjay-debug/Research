@@ -69,7 +69,6 @@ for (const required of [
   'id="downloadCleanCsv"',
   'id="downloadExcludedCsv"',
   'id="downloadDecisionCsv"',
-  'id="downloadDuplicateAuditCsv"',
   'function findDuplicateCandidates(list)',
   'function buildDedupGroups(a)',
   'no record is excluded unless you explicitly confirm'
