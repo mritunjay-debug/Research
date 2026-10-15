@@ -108,7 +108,7 @@ footer{color:#8a929a!important}
 <div class="side-note">Projects and tasks are saved in this browser and can be synced to your account. Literature records and uploaded documents are not included in this sync yet.</div>
 </aside>
 <div class="main">
-<header class="topbar"><div class="crumb">Workspace&nbsp; / &nbsp;<strong>Overview</strong></div><div class="dashboard-search"><span aria-hidden="true">⌕</span><input id="dashboardSearch" type="search" placeholder="Search projects, tasks, and research tools…" aria-label="Search dashboard"></div><span class="local-badge" title="Projects and tasks can be synced; literature records are still local">PROJECTS &amp; TASKS SYNC</span></header>
+<header class="topbar"><div class="crumb">Workspace&nbsp; / &nbsp;<strong>Overview</strong></div><div class="dashboard-search"><span aria-hidden="true">⌕</span><input id="dashboardSearch" type="search" placeholder="Search projects, tasks, and research tools…" aria-label="Search dashboard"></div></header>
 <main class="content" id="dashboard">
 <section class="welcome"><div><h1>Your research, in focus.</h1><p>Keep projects, data, papers and tasks together. Use the tools you need, when you need them.</p></div><div class="actions"><button id="newProjectBtn">＋ New project</button><button class="secondary" id="exportBtn">Export workspace JSON</button></div></section>
 <div class="notice"><strong>Storage note:</strong> projects and tasks can be synced to your signed-in account. Other research records and files are not included in that sync yet. Keep independent backups of important work.</div>
@@ -182,7 +182,7 @@ const TOOL_REGISTRY=[
 let state={projects:[],tasks:[],activeProjectId:null};
 function id(){return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function load(){try{const raw=localStorage.getItem(KEY);if(raw){const x=JSON.parse(raw);if(x&&Array.isArray(x.projects)&&Array.isArray(x.tasks))state={projects:x.projects,tasks:x.tasks,activeProjectId:x.activeProjectId||null}}}catch(e){announce('projectStatus','Could not read saved browser data. Existing data was not overwritten. Error: '+e.message)}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch(e){announce('exportStatus','Save failed: '+e.message+'. Export your workspace JSON and check browser storage settings.');return false}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));window.dispatchEvent(new CustomEvent('workspace-local-change'));return true}catch(e){announce('exportStatus','Save failed: '+e.message+'. Export your workspace JSON and check browser storage settings.');return false}}
 function announce(target,msg){const el=$(target);if(el)el.textContent=msg}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function dateLabel(s){if(!s)return 'No due date';const d=new Date(s+'T12:00:00');return Number.isNaN(d.getTime())?s:d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})}
@@ -306,6 +306,67 @@ load();render();readHandoff();
   .topbar .local-badge{font-size:9px!important}
 }
 @media(prefers-reduced-motion:reduce){.sidebar #workspaceNavigation{scroll-behavior:auto!important}}
+
+/* Dashboard account/workspace shell refinement */
+:root{--rt-forest:#173F35;--rt-green:#245B49;--rt-paper:#F7F5EF;--rt-card:#FFFFFF;--rt-ink:#172334;--rt-muted:#64748B;--rt-coral:#D96C4F}
+html,body{background:var(--rt-paper)!important;color:var(--rt-ink)!important}
+.layout{grid-template-columns:252px minmax(0,1fr)!important;align-items:start!important;overflow:clip}
+.sidebar{position:sticky!important;top:64px!important;height:calc(100vh - 64px)!important;min-height:420px;overflow-y:auto!important;overscroll-behavior:contain;background:var(--rt-forest)!important;border-right:2px solid var(--rt-coral)!important;padding:22px 15px!important}
+.sidebar .brand{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-size:19px!important;letter-spacing:-.03em!important}
+.sidebar .nav a,.sidebar .nav a:link,.sidebar .nav a:visited{min-height:40px;align-items:center;color:#f5f7f3!important;border:1px solid transparent!important;border-radius:7px!important}
+.sidebar .nav a.active,.sidebar .nav a:hover,.sidebar .nav a:focus-visible{background:#245B49!important;color:#fff!important;border-color:#477663!important}
+.sidebar .nav a:focus-visible{outline:3px solid #F0B49C!important;outline-offset:2px}
+.main{min-width:0!important;max-width:100%!important}
+.topbar{position:sticky!important;top:64px!important;z-index:20!important;min-height:54px!important;height:auto!important;background:#fff!important;border-bottom:1px solid #e4e8e1!important;padding:9px clamp(14px,2.3vw,30px)!important;gap:18px!important}
+.crumb{color:var(--rt-muted)!important;white-space:nowrap}.crumb strong{color:var(--rt-ink)!important;font-weight:700}
+.dashboard-search{width:min(460px,52%)!important;min-width:150px!important;min-height:36px!important;border-radius:7px!important;border-color:#e0e5dd!important;background:#F7F5EF!important;padding:7px 11px!important}
+.dashboard-search input{font-size:13px!important;color:var(--rt-ink)!important}
+.content{max-width:1500px!important;padding:26px clamp(16px,2.3vw,30px) 40px!important}
+.welcome{align-items:center!important;gap:18px!important;margin-bottom:22px!important}
+.welcome h1{color:var(--rt-ink)!important;font-size:clamp(28px,2.7vw,40px)!important}
+.welcome p{color:var(--rt-muted)!important;font-size:14px!important}
+.welcome .actions{justify-content:flex-end;flex:0 0 auto}
+button{background:var(--rt-forest)!important;border:1px solid var(--rt-forest)!important;color:#fff!important;border-radius:7px!important;box-shadow:none!important;min-height:38px}
+button:hover{background:var(--rt-green)!important;border-color:var(--rt-green)!important;transform:none!important;box-shadow:none!important}
+button.secondary{background:#fff!important;color:var(--rt-forest)!important;border-color:#d7e0d7!important}
+button.secondary:hover{background:#edf4ee!important;color:var(--rt-forest)!important}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #D96C4F!important;outline-offset:2px!important}
+.grid{gap:12px!important}
+.stat,.panel,.tool{background:var(--rt-card)!important;border:1px solid #e4e8e1!important;border-radius:10px!important;box-shadow:0 2px 7px #17233408!important}
+.stat{min-height:120px!important;padding:17px!important}
+.stat:before{border-radius:9px!important;background:#e5efe7!important}
+.stat:after{color:var(--rt-forest)!important}
+.stat span,.stat small{color:var(--rt-muted)!important}
+.stat strong{color:var(--rt-ink)!important}
+.panel{padding:19px!important}
+.panel h2{color:var(--rt-ink)!important;font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;font-weight:720!important;letter-spacing:-.02em!important}
+.panel-head{align-items:center!important}
+.project{border:1px solid #e5e9e2!important;border-radius:8px!important;background:#fff!important;box-shadow:none!important}
+.project.current{border-color:#a9c9b1!important;background:#f4f8f3!important}
+.empty{border:1px dashed #b7cbb9!important;background:#f8faf7!important;color:#53675a!important;border-radius:8px!important;box-shadow:none!important}
+.notice{background:#edf4ee!important;border-left:3px solid var(--rt-green)!important;border-radius:7px!important;color:#345748!important}
+.local-badge{display:none!important}
+footer{color:#718096!important}
+@media(max-width:1050px){.layout{grid-template-columns:220px minmax(0,1fr)!important}.sidebar{padding:18px 12px!important}.content{padding:22px 18px 32px!important}.welcome{align-items:flex-start!important}.welcome .actions{max-width:260px}}
+@media(max-width:720px){
+ .layout{display:flex!important;flex-direction:column!important;overflow:visible!important}
+ .sidebar{position:relative!important;top:auto!important;height:auto!important;min-height:0!important;overflow:visible!important;width:100%!important;max-width:100%!important;padding:12px!important}
+ .main{width:100%!important;max-width:100%!important}
+ .topbar{position:relative!important;top:auto!important;display:flex!important;flex-wrap:wrap!important;gap:9px!important;padding:10px 12px!important;min-height:0!important}
+ .crumb{flex:1 1 100%;white-space:normal;font-size:12px!important}
+ .dashboard-search{order:2!important;flex:1 1 100%!important;width:100%!important;max-width:100%!important;min-width:0!important;min-height:42px!important}
+ .content{padding:18px 12px 30px!important}
+ .welcome{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:14px!important}
+ .welcome .actions{display:flex!important;flex-wrap:wrap!important;max-width:none!important;justify-content:flex-start!important}
+ .welcome .actions button{flex:1 1 160px;min-height:42px}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ .stat{min-width:0!important;min-height:108px!important;padding:12px!important}
+ .stat span,.stat strong,.stat small{overflow-wrap:anywhere}
+ .cols,.dashboard-lower{grid-template-columns:minmax(0,1fr)!important}
+ .panel{padding:14px!important}
+}
+@media(max-width:390px){.content{padding-left:9px!important;padding-right:9px!important}.grid{grid-template-columns:minmax(0,1fr)!important}.welcome .actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important}.welcome .actions button{width:100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
