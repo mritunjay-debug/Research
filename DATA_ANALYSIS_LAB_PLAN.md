@@ -76,7 +76,8 @@ scripts/data-analysis-core-test.mjs
 - [x] Independent reference tests for descriptive summaries and Welch independent-samples t-test (including t, Welch df, two-sided p-value, 95% CI and standardized effect sizes).
 - [x] Use Student-t critical values for the simple-regression slope interval instead of a fixed normal critical value; group-mean intervals also use Student-t critical values.
 - [x] Add Pearson r, pairwise n, two-sided p-values and approximate Fisher-z confidence intervals, with independent reference tests and edge-case coverage.
-- [ ] Independently validate regression coefficient/diagnostic outputs, including edge cases and uncertainty.
+- [x] Add a separately tested simple OLS helper for slope/intercept, R², RMSE/MAE, standard errors, t-based confidence intervals and coefficient p-values; use it in the UI and save the model summary/configuration in local analysis history.
+- [ ] Independently validate leverage/Cook’s distance diagnostics and add residual/Q-Q plots tied to the fitted model.
 - [ ] Add methods only with correct test statistics, degrees of freedom, p-values, confidence intervals and assumption/design checks.
 - [x] Keep the method guide explicit about tests that are recommendations only and not implemented.
 
