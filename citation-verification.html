@@ -28,6 +28,7 @@
 <section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Import a reference list from DOCX, TXT, RIS, BibTeX, or CSV. Do not upload a full paper or PDF. Check the extracted preview before verification. Reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a reference-list file (.docx, .txt, .ris, .bib, .csv)</strong><br><input type="file" id="file" accept=".docx,.txt,.ris,.bib,.bibtex,.csv,text/plain,text/csv,application/x-research-info-systems,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div>
 <div style="margin-top:18px"><label for="pastedReferences" style="display:block;font-weight:750;margin-bottom:7px">Or paste references directly</label><textarea id="pastedReferences" rows="7" style="width:100%;padding:12px;border:1px solid #cbd7e1;border-radius:10px;font:inherit;line-height:1.5" placeholder="Paste references here. Separate wrapped references with a blank line, or put one complete reference on each line."></textarea><p class="muted">For references wrapped across lines, separate entries with a blank line. If each reference is on one line, paste one per line. Exact duplicate entries are removed; similar entries are retained for review.</p><div class="actions"><button id="usePastedReferences" class="secondary" type="button">Prepare pasted references</button></div></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
 <section class="panel hidden" id="resultsPanel"><h2>2. Verification results</h2><div class="stats"><div class="stat"><span class="muted">References checked</span><strong id="total">0</strong></div><div class="stat"><span class="muted">TOTALLY CORRECTED</span><strong id="correct">0</strong></div><div class="stat"><span class="muted">MANUAL CORRECTION REQUIRED</span><strong id="manual">0</strong></div></div><div class="actions"><button id="selectManualBtn" class="secondary">Show manual-review only</button><button id="showAllBtn" class="secondary">Show all references</button><button id="clearSelectionBtn" class="secondary">Clear selection</button><button id="fullscreenBtn" class="secondary">Expand results table ⛶</button><button id="excelBtn">Download Excel audit (.xlsx)</button><button id="wordBtn" class="secondary">Download corrected reference list (.docx)</button></div><p class="muted">Select manual-review references to focus the list. Use “Find best match” to retrieve one relevance-ranked Crossref candidate, inspect title, authors, year and DOI, and apply it only if it is the same paper. Manually corrected references are highlighted in the Word output.</p><p class="muted">A Crossref search result is a candidate, not a guarantee. Review author order, publication year, journal, pages/article number, and DOI before using corrected references in a submission.</p><div class="tablewrap"><table><thead><tr><th>Select</th><th>Original reference</th><th>Decision</th><th>Candidate / correction</th><th>Notes</th><th>Search</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+<section class="panel" id="duplicateAuditPanel"><h2>3. Duplicate Reference Detection</h2><p class="muted">Find exact and probable duplicates in the prepared reference list. Candidates are not merged automatically; review the evidence and confirm each group yourself.</p><div class="actions"><button id="runDuplicateAudit" type="button">Find duplicate candidates</button><button id="exportDuplicateAudit" class="secondary" type="button">Export duplicate audit CSV</button></div><div id="duplicateStatus" class="status" role="status">Prepare a reference list above first.</div><div id="duplicateResults" class="hidden"></div></section>
 <section class="panel" id="citationConsistencyPanel"><h2>3. In-text citation & reference-list consistency</h2><p class="muted">Compare a manuscript's detected in-text citation markers with the currently prepared reference list. This is a heuristic screening aid: author styles, et al. rules, group authors, and numbered citation styles can produce ambiguous matches.</p><div class="drop"><strong>Select manuscript text (.txt or .docx)</strong><br><input type="file" id="consistencyManuscript" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></div><div class="actions"><button id="runConsistency" type="button">Check citation consistency</button><button id="exportConsistency" class="secondary" type="button">Export consistency CSV</button></div><div id="consistencyStatus" class="status" role="status">Prepare a reference list above, then select the manuscript.</div><div id="consistencyResults" class="hidden"></div></section>
 <section class="panel"><h2>How it works</h2><p class="muted">The app extracts paragraphs from DOCX files or text from PDF pages, locates a likely reference section in full papers/reports, queries Crossref by DOI when present and otherwise by title/bibliographic text, then applies conservative match thresholds. It also gives a Google Scholar search link for manual verification. The Word output is a separate report; it does not edit in-text citations in a full manuscript.</p><div class="notice">Privacy note: file extraction happens in your browser. When you click Verify, reference text/DOIs are sent to the public Crossref API for lookup. Avoid using this public tool for confidential unpublished material.</div></section>
 </main><footer>Built for research reference checking · Always verify metadata before publication</footer>
@@ -245,6 +246,57 @@ $('exportConsistency').addEventListener('click',()=>{
  const a=consistencyAudit;
  const rows=[['Record type','Citation / reference','Screening result','Candidate references / details'],...a.authorChecks.map(x=>['Author–date citation',x.marker,x.status,x.matches.map(i=>'Reference '+i).join('; ')]),...a.numberChecks.map(x=>['Numbered citation',x.marker,x.status,'']),...a.uncited.map(x=>['Potentially uncited reference','Reference '+x.index,'Manual review required',x.raw]),['Method note', '', a.note,'']];
  download('citation_consistency_audit.csv',csvOut(rows));
+});
+
+let duplicateAudit=null;
+function normaliseTitle(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/https?:\/\/(?:dx\.)?doi\.org\//g,' ').replace(/\bdoi\s*:\s*/g,' ').replace(/\b10\.\d{4,9}\/[^\s,;]+/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim()}
+function titleCandidate(ref){
+ const p=parseRef(ref),raw=String(ref||'');
+ if(p.title&&p.title.length>=8)return p.title;
+ const q=raw.match(/[“"]([^”"]{12,})[”"]/);if(q)return q[1];
+ const year=raw.search(/\b(?:18|19|20|21)\d{2}[a-z]?\b/);
+ if(year>=0){const tail=raw.slice(year).replace(/^\b(?:18|19|20|21)\d{2}[a-z]?\b[ .,:()\-]*/,'');const m=tail.match(/^(.{12,}?)(?:\.\s+[A-Z][a-z]+,|\.\s+[A-Z][a-z]+\.|,\s*(?:vol\.|volume|pp\.|pages)|$)/);if(m)return m[1].trim()}
+ return '';
+}
+function doiCandidate(ref){const m=String(ref||'').match(/(?:https?:\/\/(?:dx\.)?doi\.org\/|\bdoi\s*:\s*)(10\.\d{4,9}\/[^\s<>]+)/i);return m?m[1].toLowerCase().replace(/[.,;)]+$/,''):''}
+function levenshteinSimilarity(a,b){
+ if(!a||!b)return 0;if(a===b)return 1;
+ let prev=Array.from({length:b.length+1},(_,i)=>i);
+ for(let i=1;i<=a.length;i++){const curr=[i];for(let j=1;j<=b.length;j++)curr[j]=Math.min(curr[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));prev=curr}
+ return 1-prev[b.length]/Math.max(a.length,b.length);
+}
+function findDuplicateCandidates(list){
+ const records=list.map((raw,i)=>({index:i+1,raw,doi:doiCandidate(raw),title:normaliseTitle(titleCandidate(raw)||raw),titleRaw:titleCandidate(raw),year:((raw.match(/\b(?:18|19|20|21)\d{2}\b/)||[])[0]||''),author:(originalAuthorText(raw)||'').toLowerCase().replace(/[^a-z0-9]/g,'')}));
+ const candidates=[];
+ for(let i=0;i<records.length;i++)for(let j=i+1;j<records.length;j++){
+  const a=records[i],b=records[j];let type='',score=0,evidence='';
+  if(a.doi&&b.doi&&a.doi===b.doi){type='Exact DOI match';score=1;evidence='Normalised DOI strings are identical.'}
+  else if(a.title&&b.title&&a.title===b.title){type='Exact normalised title';score=.98;evidence='Titles are identical after punctuation, case, and diacritic normalisation.'}
+  else if(a.title&&b.title){
+   const simScore=levenshteinSimilarity(a.title,b.title);
+   const yearCompatible=!a.year||!b.year||a.year===b.year;
+   const authorCompatible=!a.author||!b.author||a.author===b.author||a.author.includes(b.author)||b.author.includes(a.author);
+   if(simScore>=.91&&yearCompatible&&(authorCompatible||simScore>=.97)){type='Probable duplicate';score=simScore;evidence='High title similarity ('+Math.round(simScore*100)+'%); year '+(yearCompatible?'compatible':'differs')+'; author text '+(authorCompatible?'compatible':'not clearly matching')+'.'}
+  }
+  if(type)candidates.push({a,b,type,score,evidence,decision:'Needs review'});
+ }
+ return {generatedAt:new Date().toISOString(),count:list.length,candidates};
+}
+function renderDuplicateAudit(a){
+ const groups=a.candidates.map((x,i)=>'<tr><td><input type="checkbox" data-dup-confirm="'+i+'" '+(x.decision==='Confirmed duplicate'?'checked':'')+' aria-label="Confirm duplicate candidate '+(i+1)+'"></td><td>'+x.a.index+'<br>'+escapeHtml(x.a.raw)+'</td><td>'+x.b.index+'<br>'+escapeHtml(x.b.raw)+'</td><td>'+escapeHtml(x.type)+' · '+Math.round(x.score*100)+'%</td><td>'+escapeHtml(x.evidence)+'</td><td><select data-dup-decision="'+i+'">'+['Needs review','Confirmed duplicate','Distinct records'].map(s=>'<option'+(x.decision===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td></tr>').join('');
+ $('duplicateResults').classList.remove('hidden');
+ $('duplicateResults').innerHTML='<p><strong>'+a.candidates.length+'</strong> candidate pair(s) found across '+a.count+' reference entries. No records have been removed or merged.</p><div class="tablewrap"><table><thead><tr><th>Confirm</th><th>Reference A</th><th>Reference B</th><th>Detection</th><th>Evidence</th><th>Your decision</th></tr></thead><tbody>'+groups+'</tbody></table></div><p class="notice">Similar titles can refer to distinct papers, preprints, corrections, or conference and journal versions. Confirm identity before deduplicating.</p>';
+ $('duplicateResults').querySelectorAll('[data-dup-decision]').forEach(el=>el.addEventListener('change',()=>{const x=a.candidates[Number(el.dataset.dupDecision)];if(x){x.decision=el.value;renderDuplicateAudit(a)}}));
+ $('duplicateResults').querySelectorAll('[data-dup-confirm]').forEach(el=>el.addEventListener('change',()=>{const x=a.candidates[Number(el.dataset.dupConfirm)];if(x){x.decision=el.checked?'Confirmed duplicate':'Needs review';renderDuplicateAudit(a)}}));
+}
+$('runDuplicateAudit').addEventListener('click',()=>{
+ if(!refs.length){$('duplicateStatus').textContent='Prepare or import a reference list above first.';return}
+ duplicateAudit=findDuplicateCandidates(refs);renderDuplicateAudit(duplicateAudit);
+ $('duplicateStatus').textContent='Duplicate scan complete. '+duplicateAudit.candidates.length+' candidate pair(s) need inspection.';
+});
+$('exportDuplicateAudit').addEventListener('click',()=>{
+ if(!duplicateAudit){alert('Run duplicate detection first.');return}
+ download('duplicate_reference_audit.csv',csvOut([['Reference A number','Reference A text','Reference B number','Reference B text','Detection type','Similarity score','Evidence','Decision'],...duplicateAudit.candidates.map(x=>[x.a.index,x.a.raw,x.b.index,x.b.raw,x.type,Math.round(x.score*100)+'%',x.evidence,x.decision])]));
 });
 $('extractBtn').addEventListener('click',async()=>{
  const f=$('file').files[0];
