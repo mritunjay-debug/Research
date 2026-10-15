@@ -9,7 +9,7 @@
 - Existing browser dependencies: Chart.js 4.4.8, SheetJS/XLSX 0.18.5, Mammoth 1.8.0, and the shared Supabase browser client/auth UI.
 - Existing analysis code is client-side. Current dataset state is an in-memory matrix of strings; filtering and cleaning notes are kept in page state. Raw dataset values are not sent by the research-tools cloud-sync module.
 - Existing cloud persistence: `research_artifacts` stores user-owned journal, reviewer-response and analysis-summary payloads under Supabase RLS. It is not a raw-dataset file store.
-- Current ingestion: CSV and XLS/XLSX with worksheet selection. The CSV parser is comma-specific; TSV and JSON imports, encoding/delimiter detection, a dedicated row preview, multiple simultaneous datasets, and large-file resource guards are not implemented.
+- Current ingestion: CSV/TSV/JSON parsing and XLS/XLSX worksheet selection are present. The pure core detects common delimiters, strips a UTF-8 BOM, supports quoted delimiters and escaped quotes, normalizes duplicate/blank headers, enforces row/column/cell limits, infers heuristic types, and profiles missingness, unique values, numeric ranges and duplicate rows. The analysis UI has a bounded read-only preview. Multiple simultaneous datasets, row-level sorting/search/pagination, and a full multi-dataset project model are not implemented.
 - Current analysis: descriptive numeric summaries, Pearson correlations/heatmap with pair counts, simple linear regression, basic regression diagnostics, Welch two-group test, group comparison, data-quality checks, Chart.js figures, CSV and HTML reports, and a reproducibility JSON record. Method selection is a guide for several unimplemented tests; it must not be described as implemented inference.
 - Existing limits: regression intervals use a normal critical-value approximation, and diagnostics are limited to a simple one-predictor model. No validated multi-predictor regression, logistic regression, ANOVA suite, nonparametric suite, ML pipeline, or time-series forecasting engine was found in the current Data Analysis Lab.
 
@@ -42,13 +42,15 @@ scripts/data-analysis-core-test.mjs
 - [ ] Verify every release on GitHub Actions and then against the live site.
 
 ### Phase 1 — Dataset ingestion and schema foundation (current)
-- [ ] Add a separately testable, deterministic browser/Node-compatible data ingestion module.
-- [ ] Support CSV, TSV and JSON, retain existing XLS/XLSX worksheet support.
-- [ ] Validate headers, empty files, ragged rows, duplicate headers and resource limits.
-- [ ] Detect common delimiter and UTF-8 BOM; explain assumptions and malformed input.
-- [ ] Show a row preview and schema/profile summary before running analysis.
-- [ ] Keep imported data in browser memory; do not silently upload raw values.
-- [ ] Add known-fixture and edge-case tests and wire them into deployment validation.
+- [x] Maintain a separately testable, deterministic browser/Node-compatible ingestion module in `data-analysis-core.js`.
+- [x] Support CSV, TSV and JSON, retaining existing XLS/XLSX worksheet support in the UI.
+- [x] Validate headers, empty files, ragged rows, duplicate headers and resource limits; ragged rows are padded to a rectangular matrix and extra source columns receive generated headers.
+- [x] Detect common delimiters and UTF-8 BOM; report malformed quoting and heuristic type assumptions.
+- [x] Show a bounded read-only row preview and schema/profile summary in the existing UI.
+- [x] Keep imported data in browser memory; do not silently upload raw values.
+- [x] Add known-fixture and edge-case tests and wire them into deployment validation.
+- [x] Regression fix (2026-10-15): corrected a mismatch where ragged-row warnings claimed padding but rows remained short; numeric range profiling no longer spreads a potentially large column into function arguments.
+- [ ] Verify worksheet import, browser preview, and export round-trip in a real browser; Node tests do not substitute for browser integration testing.
 
 ### Phase 2 — Cleaning and data-quality controls
 - Missingness and duplicate-row reports with row identifiers.
