@@ -27,6 +27,7 @@ const $=id=>document.getElementById(id);let refs=[],results=[];
 const scholar=q=>'https://scholar.google.com/scholar?q='+encodeURIComponent(q);
 function setStatus(s){$('status').textContent=s}
 function clean(s){return (s||'').replace(/\\([.,&])/g,'$1').replace(/\s+/g,' ').trim()}
+function escapeHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 function parseRef(ref){
  const doiMatch=ref.match(/(?:https?:\/\/(?:dx\.)?doi\.org\/|\bdoi\s*:\s*)(10\.\d{4,9}\/[^\s<>]+)/i);
  const doi=doiMatch?doiMatch[1].replace(/[.,;)]+$/,''):'';
