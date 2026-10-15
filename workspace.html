@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Research Scholar Workspace: organize projects, tasks, literature and research workflows.">
+<title>Research Scholar Workspace</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#17202a;background:#f3f6f9;--navy:#10283f;--teal:#176c72;--line:#dfe7ed;--muted:#617182}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:10px 14px;background:var(--teal);color:#fff;font-weight:750}button.secondary{background:#e8eff4;color:#1b3446}button.danger{background:#9f3434}button:disabled{opacity:.5;cursor:not-allowed}a{color:#176c72}.layout{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}.sidebar{background:var(--navy);color:white;padding:24px 16px}.brand{font-weight:850;font-size:19px;line-height:1.25;margin:0 8px 5px}.brand-sub{color:#b7cbd6;font-size:12px;margin:0 8px 24px}.nav-label{color:#9db6c4;font-size:10px;letter-spacing:.13em;font-weight:800;margin:22px 8px 8px;text-transform:uppercase}.nav a{display:flex;gap:10px;align-items:center;color:#e1eaf0;text-decoration:none;padding:10px;border-radius:8px;font-size:13px;margin:3px 0}.nav a.active,.nav a:hover{background:#23465e;color:#fff}.nav .disabled{opacity:.5;cursor:not-allowed}.side-note{font-size:11px;line-height:1.5;color:#b7cbd6;margin:26px 8px}.main{min-width:0}.topbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;gap:16px}.crumb{font-size:13px;color:var(--muted)}.local-badge{font-size:11px;padding:6px 9px;border-radius:20px;background:#fff2d7;color:#765411;font-weight:800}.content{max-width:1280px;margin:auto;padding:28px}.welcome{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:22px}.welcome h1{font-size:clamp(26px,3vw,36px);letter-spacing:-.035em;margin:0 0 8px}.welcome p{color:var(--muted);margin:0;line-height:1.55;max-width:720px}.actions{display:flex;gap:8px;flex-wrap:wrap}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.stat,.panel,.tool{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px #10283f08}.stat{padding:16px}.stat span{font-size:12px;color:var(--muted)}.stat strong{display:block;font-size:27px;margin-top:6px}.stat small{font-size:11px;color:var(--muted)}.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:14px;margin-top:14px}.panel{padding:20px;margin-bottom:14px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.panel h2{font-size:17px;margin:0}.muted{font-size:12px;line-height:1.5;color:var(--muted)}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:750;margin-bottom:5px;color:#445566}.field input,.field select,.field textarea{width:100%;border:1px solid #cbd6df;border-radius:8px;padding:10px;background:#fff;color:#17202a}.field textarea{min-height:76px;resize:vertical}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.project-list,.task-list{display:grid;gap:9px}.project{border:1px solid var(--line);border-radius:10px;padding:13px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.project.current{border-color:#77b9b2;background:#f4fbfa}.project h3{font-size:14px;margin:0 0 5px}.project p{font-size:12px;color:var(--muted);margin:0;line-height:1.45}.project .meta{font-size:11px;color:var(--muted);margin-top:7px}.task{display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid #edf1f4;padding:10px 0}.task:last-child{border-bottom:0}.task input{margin-top:4px}.task-main{flex:1;min-width:0}.task-title{font-size:13px;font-weight:700;overflow-wrap:anywhere}.task.done .task-title{text-decoration:line-through;color:#82909b}.task-meta{font-size:11px;color:var(--muted);margin-top:4px}.task-actions{display:flex;gap:5px}.task-actions button{padding:5px 8px;font-size:11px}.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tool{padding:14px}.tool h3{font-size:13px;margin:0 0 6px}.tool p{font-size:12px;color:var(--muted);line-height:1.45;margin:0 0 12px}.tool .state{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#1b6c46}.tool .state.planned{color:#8b681b}.tool a{font-size:12px;font-weight:750}.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed #cbd6df;border-radius:10px}.notice{padding:12px 14px;background:#fff5dc;border-radius:10px;color:#705313;font-size:12px;line-height:1.5;margin:0 0 14px}.status{font-size:12px;line-height:1.5;margin-top:9px;white-space:pre-wrap;color:var(--muted)}.hidden{display:none!important}footer{padding:10px 0 25px;color:#81909c;font-size:11px;text-align:center}@media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:1fr}}@media(max-width:720px){.layout{grid-template-columns:1fr}.sidebar{padding:14px}.nav{display:flex;overflow:auto;gap:4px}.nav a{white-space:nowrap}.nav-label,.side-note,.brand-sub{display:none}.brand{margin:0 8px 10px}.topbar{padding:0 16px}.content{padding:18px 14px}.welcome{display:block}.welcome .actions{margin-top:14px}.tools{grid-template-columns:1fr}.formrow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<div class="brand">Research Scholar<br>Workspace</div><div class="brand-sub">Research workflow hub</div>
+<nav class="nav">
+<div class="nav-label">Workspace</div>
+<a class="active" href="#dashboard">▦ &nbsp;Dashboard</a>
+<a href="#projects">▣ &nbsp;My projects</a>
+<a href="#planner">☷ &nbsp;Planner & milestones</a>
+<div class="nav-label">Research tools</div>
+<a href="literature.html">⌕ &nbsp;Literature & PRISMA</a>
+<a href="index.html">✓ &nbsp;Citation verification</a>
+<a class="disabled" href="#roadmap" aria-disabled="true">▤ &nbsp;Thesis & manuscript</a>
+<a class="disabled" href="#roadmap" aria-disabled="true">◫ &nbsp;Data analysis lab</a>
+<a class="disabled" href="#roadmap" aria-disabled="true">◎ &nbsp;Journal finder</a>
+<a class="disabled" href="#roadmap" aria-disabled="true">↩ &nbsp;Reviewer responses</a>
+<div class="nav-label">Management</div>
+<a href="#exports">⇩ &nbsp;Export centre</a>
+<a href="#roadmap">⚙ &nbsp;Settings & roadmap</a>
+</nav>
+<div class="side-note">Browser-local workspace. Projects and tasks are saved in this browser only. This is not cloud sync or a backup.</div>
+</aside>
+<div class="main">
+<header class="topbar"><div class="crumb">Research workspace / <strong>Dashboard</strong></div><span class="local-badge">LOCAL STORAGE ONLY</span></header>
+<main class="content" id="dashboard">
+<section class="welcome"><div><h1>Your research, organised.</h1><p>Keep projects and milestones together, then open the research tools that are already available. This first release is a functional project-and-planner foundation—not a claim that every planned module is complete.</p></div><div class="actions"><button id="newProjectBtn">＋ New project</button><button class="secondary" id="exportBtn">Export workspace JSON</button></div></section>
+<div class="notice"><strong>Storage limitation:</strong> project details and tasks are saved in this browser's local storage. Clearing browser data can remove them. Do not treat this as secure storage for confidential manuscripts or as a backup system.</div>
+<section class="grid" aria-label="Workspace summary">
+<div class="stat"><span>Projects</span><strong id="projectCount">0</strong><small>Saved in this browser</small></div>
+<div class="stat"><span>Open tasks</span><strong id="openCount">0</strong><small>Across all projects</small></div>
+<div class="stat"><span>Completed tasks</span><strong id="doneCount">0</strong><small>Marked complete</small></div>
+<div class="stat"><span>Research tools</span><strong>2</strong><small>Available now in this repository</small></div>
+</section>
+<div class="cols">
+<section id="projects" class="panel">
+<div class="panel-head"><div><h2>My research projects</h2><div class="muted">Create a project record and connect tasks to it.</div></div><button class="secondary" id="showProjectForm">Add project</button></div>
+<form id="projectForm" class="hidden">
+<div class="field"><label for="projectTitle">Project title *</label><input id="projectTitle" required maxlength="180" placeholder="e.g., Stability assessment of underground marble pillars"></div>
+<div class="formrow"><div class="field"><label for="discipline">Discipline</label><select id="discipline"><option>Mining Engineering</option><option>Geology</option><option>Civil Engineering</option><option>Environmental Science</option><option>Computer Science</option><option>Medicine</option><option>Social Science</option><option>Other</option></select></div><div class="field"><label for="projectStage">Stage</label><select id="projectStage"><option>Planning</option><option>Literature review</option><option>Data collection</option><option>Analysis</option><option>Writing</option><option>Revision</option><option>Completed</option></select></div></div>
+<div class="field"><label for="projectObjective">Research problem / objective</label><textarea id="projectObjective" maxlength="2000" placeholder="Briefly record the research objective."></textarea></div>
+<div class="actions"><button type="submit">Save project</button><button type="button" class="secondary" id="cancelProject">Cancel</button></div><div class="status" id="projectStatus" role="status"></div>
+</form>
+<div id="projectList" class="project-list"></div>
+</section>
+<section class="panel" id="planner">
+<div class="panel-head"><div><h2>Research planner</h2><div class="muted">Tasks, due dates, and project-linked milestones.</div></div></div>
+<form id="taskForm">
+<div class="field"><label for="taskTitle">Task or milestone *</label><input id="taskTitle" required maxlength="180" placeholder="e.g., Complete sensitivity analysis"></div>
+<div class="formrow"><div class="field"><label for="taskProject">Project</label><select id="taskProject"><option value="">General / unassigned</option></select></div><div class="field"><label for="taskDue">Due date</label><input type="date" id="taskDue"></div></div>
+<div class="field"><label for="taskType">Type</label><select id="taskType"><option>Task</option><option>Milestone</option><option>Supervisor meeting</option><option>Submission deadline</option><option>Seminar / defence</option></select></div>
+<button type="submit">Add to planner</button><div class="status" id="taskStatus" role="status"></div>
+</form>
+<div class="panel-head" style="margin-top:20px"><h2>Upcoming and open items</h2><select id="taskFilter" aria-label="Filter tasks"><option value="open">Open tasks</option><option value="all">All tasks</option><option value="done">Completed</option></select></div>
+<div id="taskList" class="task-list"></div>
+</section>
+</div>
+<section class="panel">
+<div class="panel-head"><div><h2>Available research tools</h2><div class="muted">Open existing tools; roadmap items are clearly marked as not yet implemented.</div></div></div>
+<div class="tools">
+<article class="tool"><h3>Literature Search & PRISMA</h3><p>Import bibliographic records, manage screening, review duplicates, and work with PRISMA-related outputs.</p><span class="state">Available</span><p style="margin-top:10px"><a href="literature.html">Open literature tool →</a></p></article>
+<article class="tool"><h3>Citation Verification Agent</h3><p>Check reference metadata against Crossref, inspect candidate matches, and export review documents.</p><span class="state">Available</span><p style="margin-top:10px"><a href="index.html">Open citation checker →</a></p></article>
+<article class="tool" id="roadmap"><h3>Thesis & Manuscript Studio</h3><p>Scientific consistency audit, document editing, cross-reference checks, and thesis assembly.</p><span class="state planned">Not implemented</span></article>
+<article class="tool"><h3>Data Analysis Lab</h3><p>Data-quality checks, statistical calculations, reproducible analyses, and figure exports.</p><span class="state planned">Not implemented</span></article>
+<article class="tool"><h3>Journal Finder & Publication Assistant</h3><p>Evidence-based journal matching and current publisher/indexing checks.</p><span class="state planned">Not implemented</span></article>
+<article class="tool"><h3>Reviewer Response Assistant</h3><p>Reviewer-by-reviewer response matrix with revision evidence and DOCX/XLSX exports.</p><span class="state planned">Not implemented</span></article>
+</div>
+</section>
+<section class="panel" id="exports">
+<div class="panel-head"><div><h2>Export centre</h2><div class="muted">Export the project and planner data currently stored in this browser.</div></div></div>
+<p class="muted">The JSON export includes projects, tasks, the active project ID, and an export timestamp. It does not bundle uploaded papers or data from the separate literature/citation tools.</p>
+<div class="actions"><button id="exportBtn2">Export workspace JSON</button><button class="secondary" id="importBtn">Import workspace JSON</button><input id="importFile" type="file" accept=".json,application/json" class="hidden"></div><div id="exportStatus" class="status" role="status"></div>
+</section>
+<footer>Research Scholar Workspace · Static GitHub Pages release · No cloud account or server-side persistence is configured.</footer>
+</main>
+</div>
+</div>
+<script>
+(function(){
+'use strict';
+const KEY='research-scholar-workspace-v1';
+const $=id=>document.getElementById(id);
+let state={projects:[],tasks:[],activeProjectId:null};
+function id(){return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){const x=JSON.parse(raw);if(x&&Array.isArray(x.projects)&&Array.isArray(x.tasks))state={projects:x.projects,tasks:x.tasks,activeProjectId:x.activeProjectId||null}}}catch(e){announce('projectStatus','Could not read saved browser data. Existing data was not overwritten. Error: '+e.message)}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch(e){announce('exportStatus','Save failed: '+e.message+'. Export your workspace JSON and check browser storage settings.');return false}}
+function announce(target,msg){const el=$(target);if(el)el.textContent=msg}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function dateLabel(s){if(!s)return 'No due date';const d=new Date(s+'T12:00:00');return Number.isNaN(d.getTime())?s:d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})}
+function render(){
+$('projectCount').textContent=state.projects.length;
+$('openCount').textContent=state.tasks.filter(t=>!t.done).length;
+$('doneCount').textContent=state.tasks.filter(t=>t.done).length;
+const list=$('projectList');
+if(!state.projects.length)list.innerHTML='<div class="empty">No projects yet. Add a project to start organising your research.</div>';
+else list.innerHTML=state.projects.map(p=>'<article class="project '+(p.id===state.activeProjectId?'current':'')+'"><div><h3>'+esc(p.title)+'</h3><p>'+esc(p.objective||'No objective recorded.')+'</p><div class="meta">'+esc(p.discipline)+' · '+esc(p.stage)+' · '+state.tasks.filter(t=>t.projectId===p.id&&!t.done).length+' open task(s)</div></div><div class="task-actions"><button class="secondary" data-action="activate" data-id="'+esc(p.id)+'">'+(p.id===state.activeProjectId?'Selected':'Select')+'</button><button class="secondary" data-action="edit-project" data-id="'+esc(p.id)+'">Edit</button><button class="danger" data-action="delete-project" data-id="'+esc(p.id)+'">Delete</button></div></article>').join('');
+const select=$('taskProject'),old=select.value;select.innerHTML='<option value="">General / unassigned</option>'+state.projects.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title)+'</option>').join('');
+select.value=state.projects.some(p=>p.id===old)?old:(state.projects.some(p=>p.id===state.activeProjectId)?state.activeProjectId:'');
+const filter=$('taskFilter').value;
+let tasks=state.tasks.filter(t=>filter==='all'?true:filter==='done'?t.done:!t.done);
+tasks.sort((a,b)=>(a.done-b.done)||((a.due||'9999-12-31').localeCompare(b.due||'9999-12-31')));
+const taskList=$('taskList');
+if(!tasks.length)taskList.innerHTML='<div class="empty">No tasks match this filter.</div>';
+else taskList.innerHTML=tasks.map(t=>'<div class="task '+(t.done?'done':'')+'"><input type="checkbox" aria-label="Mark '+esc(t.title)+' complete" data-action="toggle-task" data-id="'+esc(t.id)+'" '+(t.done?'checked':'')+'><div class="task-main"><div class="task-title">'+esc(t.title)+'</div><div class="task-meta">'+esc(t.type)+' · '+esc(state.projects.find(p=>p.id===t.projectId)?.title||'General / unassigned')+' · '+esc(dateLabel(t.due))+'</div></div><div class="task-actions"><button class="danger" data-action="delete-task" data-id="'+esc(t.id)+'">Remove</button></div></div>').join('');
+}
+function download(){const payload={schema:'research-scholar-workspace/v1',exportedAt:new Date().toISOString(),storage:'browser-local',projects:state.projects,tasks:state.tasks,activeProjectId:state.activeProjectId,limitations:['This export includes only workspace projects and planner items.','It does not contain source files or data from the separate literature and citation tools.']};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='research_workspace_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);announce('exportStatus','Workspace JSON export generated in this browser. Check your downloads folder.')}
+function showForm(edit){$('projectForm').classList.remove('hidden');if(edit){$('projectTitle').value=edit.title;$('discipline').value=edit.discipline;$('projectStage').value=edit.stage;$('projectObjective').value=edit.objective||'';$('projectForm').dataset.editId=edit.id}else{$('projectForm').reset();$('projectForm').dataset.editId=''}$('projectTitle').focus()}
+$('newProjectBtn').addEventListener('click',()=>showForm(null));$('showProjectForm').addEventListener('click',()=>showForm(null));$('cancelProject').addEventListener('click',()=>{$('projectForm').classList.add('hidden');$('projectForm').reset();$('projectForm').dataset.editId='';announce('projectStatus','')});
+$('projectForm').addEventListener('submit',e=>{e.preventDefault();const title=$('projectTitle').value.trim();if(!title)return;const editId=$('projectForm').dataset.editId;const record={id:editId||id(),title,discipline:$('discipline').value,stage:$('projectStage').value,objective:$('projectObjective').value.trim(),updatedAt:new Date().toISOString()};if(editId){const i=state.projects.findIndex(p=>p.id===editId);if(i<0){announce('projectStatus','Project could not be found; refresh and try again.');return}state.projects[i]={...state.projects[i],...record}}else{record.createdAt=record.updatedAt;state.projects.unshift(record);state.activeProjectId=record.id}if(!save())return;$('projectForm').classList.add('hidden');$('projectForm').reset();$('projectForm').dataset.editId='';announce('projectStatus','Project saved to this browser.');render()});
+$('taskForm').addEventListener('submit',e=>{e.preventDefault();const title=$('taskTitle').value.trim();if(!title)return;state.tasks.push({id:id(),title,projectId:$('taskProject').value||null,due:$('taskDue').value||'',type:$('taskType').value,done:false,createdAt:new Date().toISOString()});if(!save())return;$('taskTitle').value='';$('taskDue').value='';announce('taskStatus','Task added to the planner.');render()});
+$('taskFilter').addEventListener('change',render);
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action,recordId=b.dataset.id;if(action==='activate'){state.activeProjectId=recordId;save();render()}else if(action==='edit-project'){const p=state.projects.find(x=>x.id===recordId);if(p)showForm(p)}else if(action==='delete-project'){const p=state.projects.find(x=>x.id===recordId);if(!p)return;if(!confirm('Delete project "'+p.title+'"? Its tasks will become unassigned.'))return;state.projects=state.projects.filter(x=>x.id!==recordId);state.tasks=state.tasks.map(t=>t.projectId===recordId?{...t,projectId:null}:t);if(state.activeProjectId===recordId)state.activeProjectId=null;save();render()}else if(action==='delete-task'){if(!confirm('Remove this task?'))return;state.tasks=state.tasks.filter(t=>t.id!==recordId);save();render()}});
+document.addEventListener('change',e=>{const b=e.target.closest('[data-action="toggle-task"]');if(!b)return;const t=state.tasks.find(x=>x.id===b.dataset.id);if(t){t.done=b.checked;save();render()}});
+$('exportBtn').addEventListener('click',download);$('exportBtn2').addEventListener('click',download);
+$('importBtn').addEventListener('click',()=>$('importFile').click());
+$('importFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;try{const x=JSON.parse(await f.text());if(!x||x.schema!=='research-scholar-workspace/v1'||!Array.isArray(x.projects)||!Array.isArray(x.tasks))throw new Error('File is not a supported workspace JSON export.');if(!confirm('Import '+x.projects.length+' project(s) and '+x.tasks.length+' task(s)? This replaces current browser workspace data. Export the current workspace first if you need a backup.'))return;state={projects:x.projects,tasks:x.tasks,activeProjectId:x.activeProjectId||null};if(!save())return;render();announce('exportStatus','Workspace import completed and saved in this browser.')}catch(err){announce('exportStatus','Import failed. '+err.message)}finally{e.target.value=''}});
+$('projects').addEventListener('keydown',e=>{if(e.key==='Escape'){$('projectForm').classList.add('hidden')}});
+load();render();
+})();
+</script>
+</body>
+</html>
