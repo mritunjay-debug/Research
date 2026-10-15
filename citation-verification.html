@@ -25,7 +25,7 @@
 <header class="hero"><div class="wrap"><div class="eyebrow">Research integrity toolkit</div><h1>Citation Verification Agent</h1><p>Check a Word reference list or full PDF paper/report against Crossref metadata, inspect possible matches, and export a review-ready Excel audit and Word report. Uncertain records are flagged for manual review—not declared fake.</p><span class="tag">Browser-based · GitHub Pages</span></div></header>
 <main class="main">
 <section class="panel"><h2>Research Scholar Toolkit</h2><p class="muted">Continue from reference verification to literature discovery and systematic screening.</p><div class="actions"><a href="./literature.html" style="display:inline-block;text-decoration:none;background:#176c72;color:white;font-weight:750;border-radius:9px;padding:11px 16px">Open Literature Search &amp; PRISMA Screening →</a></div></section>
-<section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Upload a DOCX file containing only your reference list. Do not upload a full paper or PDF. Check the extracted preview before verification. Reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a .docx file containing references only</strong><br><input type="file" id="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
+<section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Import a reference list from DOCX, TXT, RIS, BibTeX, or CSV. Do not upload a full paper or PDF. Check the extracted preview before verification. Reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a reference-list file (.docx, .txt, .ris, .bib, .csv)</strong><br><input type="file" id="file" accept=".docx,.txt,.ris,.bib,.bibtex,.csv,text/plain,text/csv,application/x-research-info-systems,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
 <section class="panel hidden" id="resultsPanel"><h2>2. Verification results</h2><div class="stats"><div class="stat"><span class="muted">References checked</span><strong id="total">0</strong></div><div class="stat"><span class="muted">TOTALLY CORRECTED</span><strong id="correct">0</strong></div><div class="stat"><span class="muted">MANUAL CORRECTION REQUIRED</span><strong id="manual">0</strong></div></div><div class="actions"><button id="selectManualBtn" class="secondary">Show manual-review only</button><button id="showAllBtn" class="secondary">Show all references</button><button id="clearSelectionBtn" class="secondary">Clear selection</button><button id="fullscreenBtn" class="secondary">Expand results table ⛶</button><button id="excelBtn">Download Excel audit (.xlsx)</button><button id="wordBtn" class="secondary">Download corrected reference list (.docx)</button></div><p class="muted">Select manual-review references to focus the list. Use “Find best match” to retrieve one relevance-ranked Crossref candidate, inspect title, authors, year and DOI, and apply it only if it is the same paper. Manually corrected references are highlighted in the Word output.</p><p class="muted">A Crossref search result is a candidate, not a guarantee. Review author order, publication year, journal, pages/article number, and DOI before using corrected references in a submission.</p><div class="tablewrap"><table><thead><tr><th>Select</th><th>Original reference</th><th>Decision</th><th>Candidate / correction</th><th>Notes</th><th>Search</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
 <section class="panel"><h2>How it works</h2><p class="muted">The app extracts paragraphs from DOCX files or text from PDF pages, locates a likely reference section in full papers/reports, queries Crossref by DOI when present and otherwise by title/bibliographic text, then applies conservative match thresholds. It also gives a Google Scholar search link for manual verification. The Word output is a separate report; it does not edit in-text citations in a full manuscript.</p><div class="notice">Privacy note: file extraction happens in your browser. When you click Verify, reference text/DOIs are sent to the public Crossref API for lookup. Avoid using this public tool for confidential unpublished material.</div></section>
 </main><footer>Built for research reference checking · Always verify metadata before publication</footer>
@@ -186,29 +186,105 @@ function extractReferenceSection(text){
 }
 $('extractBtn').addEventListener('click',async()=>{
  const f=$('file').files[0];
- if(!f){setStatus('Please upload a DOCX file containing references only.');return}
+ if(!f){setStatus('Please upload a reference list file.');return}
  try{
-  if(!f.name.toLowerCase().endsWith('.docx'))throw new Error('Please upload a DOCX reference list only.');
-  setStatus('Extracting reference list from DOCX…');
-  const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});
-  const text=out.value;
-  const result=extractReferenceSection(text);
-  let found=result.found,resultMessage=result.message||'';
-  if(result.found)refs=result.refs;
-  else{
+  setStatus('Reading reference list locally…');
+  const ext=(f.name.split('.').pop()||'').toLowerCase();let text='';
+  if(ext==='docx'){
+   const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});text=out.value;
+  }else text=await f.text();
+  let imported=[];
+  if(['ris'].includes(ext)){
+   const blocks=text.split(/(?=^TY  - )/m).filter(x=>/^TY  - /m.test(x));
+   imported=blocks.map(block=>{const get=tag=>[...block.matchAll(new RegExp('^'+tag+'  - (.*)
+  if(!refs.length)throw new Error('No reference entries were identified. Check the file format and ensure it contains a reference list.');
+  $('preview').classList.remove('hidden');
+  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(resultMessage||'Reference list prepared.')+' Review the boundaries before verification.</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
+  $('verifyBtn').disabled=false;setStatus('Import complete. Check the preview and confirm that each entry is a separate reference before verification.');
+ }catch(e){setStatus('Could not prepare references: '+e.message)}
+});
+$('verifyBtn').addEventListener('click',async()=>{
+ if(!refs.length)return;results=new Array(refs.length);$('verifyBtn').disabled=true;$('extractBtn').disabled=true;$('resultsPanel').classList.remove('hidden');
+ let next=0,done=0;const worker=async()=>{while(true){const i=next++;if(i>=refs.length)return;try{results[i]=await verifyOne(refs[i])}catch(e){results[i]={'Original reference':refs[i],'Decision':'MANUAL CORRECTION REQUIRED','Notes':'Verification request failed: '+e.message,'Google Scholar search':scholar(refs[i])}}
+ done++;if(done===1||done%5===0||done===refs.length)setStatus('Checking references: '+done+' of '+refs.length+' completed…');
+ }};
+ try{await Promise.all(Array.from({length:Math.min(4,refs.length)},()=>worker()));renderResults();setStatus('Verification finished: '+results.filter(x=>x.Decision==='TOTALLY CORRECTED').length+' matched at the applied threshold; '+results.filter(x=>x.Decision==='MANUAL CORRECTION REQUIRED').length+' require manual review. Review all suggested matches before use.')}
+ finally{$('verifyBtn').disabled=false;$('extractBtn').disabled=false}
+});
+function renderResults(){
+ $('total').textContent=results.length;
+ $('correct').textContent=results.filter(x=>x.Decision==='TOTALLY CORRECTED'||x.Decision==='MANUALLY CORRECTED').length;
+ $('manual').textContent=results.filter(x=>x.Decision==='MANUAL CORRECTION REQUIRED').length;
+ const visible=results.map((r,i)=>({r,i})).filter(({r})=>!manualOnly||r.Decision==='MANUAL CORRECTION REQUIRED');
+ $('selectManualBtn').textContent=manualOnly?'Manual-review filter active':'Show manual-review only';
+ $('tbody').innerHTML=visible.map(({r,i})=>{
+  const manual=r.Decision==='MANUAL CORRECTION REQUIRED';
+  const candidate=r['Suggested reference']||r['Crossref title']||'No candidate';
+  return '<tr class="'+(r.Decision==='MANUALLY CORRECTED'?'manually-corrected':'')+'"><td><input type="checkbox" class="row-select" data-index="'+i+'" '+(r.selected?'checked':'')+' aria-label="Select reference '+(i+1)+'"></td><td>'+escapeHtml(r['Original reference']||'')+'</td><td><span class="pill '+(r.Decision==='TOTALLY CORRECTED'||r.Decision==='MANUALLY CORRECTED'?'good':'review')+'">'+escapeHtml(r.Decision||'MANUAL CORRECTION REQUIRED')+'</span></td><td><div>'+escapeHtml(candidate)+'</div>'+(manual?'<button class="secondary find-candidates" data-index="'+i+'">Find best match</button><div id="candidateBox'+i+'"></div>':'')+'</td><td>'+escapeHtml(r.Notes||'')+'</td><td><a href="'+escapeHtml(r['Google Scholar search']||scholar(r['Original reference']||''))+'" target="_blank" rel="noopener">Google Scholar ↗</a></td></tr>'
+ }).join('');
+ if(manualOnly&&visible.length===0)$('tbody').innerHTML='<tr><td colspan="6">No references currently require manual correction.</td></tr>';
+}
+$('selectManualBtn').addEventListener('click',()=>{manualOnly=true;results.forEach(r=>r.selected=r.Decision==='MANUAL CORRECTION REQUIRED');renderResults()});
+$('showAllBtn').addEventListener('click',()=>{manualOnly=false;renderResults()});
+$('fullscreenBtn').addEventListener('click',async()=>{const el=$('resultsPanel').querySelector('.tablewrap');try{if(!document.fullscreenElement){await el.requestFullscreen();$('fullscreenBtn').textContent='Exit full screen ⤢'}else{await document.exitFullscreen();$('fullscreenBtn').textContent='Expand results table ⛶'}}catch(e){el.style.maxHeight='calc(100vh - 180px)';el.style.height='calc(100vh - 180px)';setStatus('Expanded table view enabled.')}});
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)$('fullscreenBtn').textContent='Expand results table ⛶'});
+$('clearSelectionBtn').addEventListener('click',()=>{results.forEach(r=>r.selected=false);renderResults()});
+$('tbody').addEventListener('change',e=>{if(e.target.classList.contains('row-select')){const i=Number(e.target.dataset.index);if(results[i])results[i].selected=e.target.checked}});
+$('tbody').addEventListener('click',async e=>{
+ const btn=e.target.closest('.find-candidates');if(!btn)return;
+ const i=Number(btn.dataset.index),r=results[i];if(!r)return;
+ const box=$('candidateBox'+i);btn.disabled=true;btn.textContent='Searching Crossref…';
+ try{
+  const p=parseRef(r['Original reference']||'');let items=[];
+  if(p.title)items=await crossref({'query.title':p.title,rows:'10'});
+  if(items.length<5){const more=await crossref({'query.bibliographic':r['Original reference']||'',rows:'10'});items=items.concat(more)}
+  const seen=new Set();items=items.filter(x=>{const key=(x.DOI||x.title?.[0]||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true});
+  const scored=items.map(x=>{const ts=sim(p.title||r['Original reference'],titleOf(x)),ys=p.year&&itemYear(x)?(p.year.slice(0,4)===itemYear(x).slice(0,4)?1:0):.5,as=authorSimilarity(r['Original reference'],x),doi=p.doi&&doiOf(x).toLowerCase()===p.doi.toLowerCase();return {item:x,score:doi?1:.78*ts+.12*ys+.10*(as===null?.5:as),titleScore:ts,authorScore:as,yearScore:ys,doi}}).sort((a,b)=>b.score-a.score);
+  const best=scored[0];
+  if(!best||best.score<.48||best.titleScore<.35){box.innerHTML='<p class="muted">No sufficiently relevant Crossref match found. We are not showing unrelated options. Use the Google Scholar link or search the publisher site manually.</p>';return}
+  const x=best.item;
+  box.innerHTML='<div class="notice" style="margin:8px 0"><strong>Best available match</strong> · relevance '+Math.round(best.score*100)+'% (heuristic, not a probability)<br><strong>'+escapeHtml(titleOf(x)||'Untitled')+'</strong><br>'+escapeHtml(authorOf(x)||'Authors not listed')+' · '+escapeHtml(itemYear(x)||'Year unavailable')+' · '+escapeHtml((x['container-title']||['Journal not listed'])[0])+'<br>DOI: '+escapeHtml(doiOf(x)||'not listed')+'<br>'+((best.titleScore<.88)?'Title differs. ':'')+((best.authorScore!==null&&best.authorScore<.35)?'Author list may differ. ':'')+((p.year&&itemYear(x)&&p.year.slice(0,4)!==itemYear(x).slice(0,4))?'Year differs. ':'')+'Review the original publisher record before applying.</div><button class="apply-candidate" data-index="'+i+'">Apply this match</button>';
+  box._candidateItems=[x];
+ }catch(err){box.innerHTML='<p class="muted">Candidate search failed: '+escapeHtml(err.message)+'</p>'}
+ finally{btn.disabled=false;btn.textContent='Find candidates'}
+});
+$('tbody').addEventListener('click',e=>{
+ const btn=e.target.closest('.apply-candidate');if(!btn)return;
+ const i=Number(btn.dataset.index),box=$('candidateBox'+i),r=results[i],items=box?box._candidateItems:[];
+ if(!r||!items||!items[0]){setStatus('No reliable candidate is available to apply.');return}
+ const paper=items[0];
+ r['Suggested reference']=citation(paper);r['Crossref title']=(paper.title||[''])[0];r['Crossref authors']=authorOf(paper);r['Crossref year']=((paper.published?.['date-parts']||paper['published-print']?.['date-parts']||paper['published-online']?.['date-parts']||[['']])[0][0]);r['Journal']=(paper['container-title']||[''])[0];r['Crossref DOI']=paper.DOI||'';r['Decision']='MANUALLY CORRECTED';r['Notes']='Candidate selected manually by user; verify all metadata before publication.';r['selected']=true;
+ renderResults();setStatus('Candidate applied to reference '+(i+1)+'. The corrected entry will be highlighted in the Word reference list.');
+});
+$('excelBtn').addEventListener('click',()=>{const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results),'Full Audit');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results.filter(r=>r.Decision==='MANUAL CORRECTION REQUIRED')),'Manual Review');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results.filter(r=>r.Decision==='TOTALLY CORRECTED'||r.Decision==='MANUALLY CORRECTED')),'Matched');XLSX.writeFile(wb,'citation_verification_audit.xlsx')});
+$('wordBtn').addEventListener('click',async()=>{try{const {Document,Paragraph,Packer,TextRun,HeadingLevel}=docx;const children=[new Paragraph({text:'Citation Verification Report',heading:HeadingLevel.TITLE}),new Paragraph('References checked against Crossref. Review all metadata before publication.')];results.forEach((r,i)=>{const corrected=(r.Decision==='TOTALLY CORRECTED'||r.Decision==='MANUALLY CORRECTED')&&r['Suggested reference'];const val=corrected?r['Suggested reference']:r['Original reference'];children.push(new Paragraph({children:[new TextRun({text:(i+1)+'. '+(val||''),highlight:r.Decision==='MANUALLY CORRECTED'?'yellow':undefined,bold:r.Decision==='MANUALLY CORRECTED'})]}));if(!corrected)children.push(new Paragraph({children:[new TextRun({text:'[MANUAL CORRECTION REQUIRED] '+(r.Notes||''),italics:true})]}))});const d=new Document({sections:[{children}]});saveAs(await Packer.toBlob(d),'corrected_reference_list_highlighted.docx')}catch(e){setStatus('Word export failed: '+e.message)}});
+</script>
+
+<script src="supabase-auth.js"></script>
+</body></html>,'gm'))].map(m=>m[1].trim());const title=get('TI')[0]||get('T1')[0]||'';const authors=get('AU').join('; ');const year=(get('PY')[0]||get('Y1')[0]||'').match(/(?:18|19|20|21)\d{2}/)?.[0]||'';const journal=get('JO')[0]||get('JF')[0]||get('T2')[0]||'';const doi=get('DO')[0]||'';return [authors,year,title,journal,doi].filter(Boolean).join('. ')}).filter(Boolean);
+  }else if(['bib','bibtex'].includes(ext)){
+   const entries=text.match(/@[A-Za-z]+\s*\{[\s\S]*?(?=\n@|$)/g)||[];
+   imported=entries.map(block=>{const get=key=>{const m=block.match(new RegExp('\\b'+key+'\\s*=\\s*[{"]([\\s\\S]*?)[}"]\\s*[,}]','i'));return m?m[1].replace(/[{}]/g,'').replace(/\\\\&/g,'&').replace(/\\\\_/g,'_').trim():''};const author=get('author'),year=get('year'),title=get('title'),journal=get('journal')||get('booktitle'),doi=get('doi');return [author,year,title,journal,doi].filter(Boolean).join('. ')}).filter(Boolean);
+  }else if(ext==='csv'){
+   if(!window.XLSX)throw new Error('CSV reader did not load. Refresh and try again.');
+   const wb=XLSX.read(text,{type:'string'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
+   imported=rows.map(row=>{const pick=keys=>{for(const k of keys){const found=Object.keys(row).find(x=>x.trim().toLowerCase()===k);if(found&&String(row[found]).trim())return String(row[found]).trim()}return ''};const doi=pick(['doi','dc.identifier','identifier']);const title=pick(['title','article title','work title']);const authors=pick(['author','authors','creator','dc.creator']);const year=pick(['year','publication year','date','publication date']);const journal=pick(['journal','source title','container-title','publication name']);const reference=pick(['reference','citation','formatted citation','bibliographic reference']);return reference||[authors,year,title,journal,doi].filter(Boolean).join('. ')}).filter(x=>x.trim());
+  }else{
    const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
-   const filenameSuggestsList=/(ref|reference|bibliograph|citation)/i.test(f.name);
-   // Headingless reference-only DOCX files are common. Detect repeated
-   // bibliographic paragraphs as a second signal instead of relying on filename.
-   const citationLike=lines.filter(x=>x.length>=25&&(
-    /\b(?:18|19|20|21)\d{2}[a-z]?\b/.test(x) ||
-    /\bdoi\s*:\s*10\.|https?:\/\/doi\.org\/10\./i.test(x) ||
-    /\b(?:journal|proceedings|vol\.?|pp?\.?\s*\d|university|press)\b/i.test(x)
-   ));
-   const hasManyReferenceParagraphs=lines.length>=3&&citationLike.length/Math.max(1,lines.length)>=0.45;
-   if(filenameSuggestsList||hasManyReferenceParagraphs)
-    refs=lines.filter(x=>x.length>=25&&!/^\s*(references|bibliography|reference list)[: ]*$/i.test(x));
-   else refs=[];
+   imported=lines.length?lines:[];
+  }
+  let found=false,resultMessage='';
+  if(imported.length){refs=imported.map(clean).filter(x=>x.length>=8);found=true;resultMessage='Imported '+ext.toUpperCase()+' records. Verify the preview because field mappings vary across exports.'}
+  else{
+   const result=extractReferenceSection(text);found=result.found;resultMessage=result.message||'';
+   if(result.found)refs=result.refs;
+   else{
+    const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
+    const filenameSuggestsList=/(ref|reference|bibliograph|citation)/i.test(f.name);
+    const citationLike=lines.filter(x=>x.length>=25&&( /\b(?:18|19|20|21)\d{2}[a-z]?\b/.test(x)||/\bdoi\s*:\s*10\.|https?:\/\/doi\.org\/10\./i.test(x)||/\b(?:journal|proceedings|vol\.?|pp?\.?\s*\d|university|press)\b/i.test(x)));
+    const hasManyReferenceParagraphs=lines.length>=3&&citationLike.length/Math.max(1,lines.length)>=0.45;
+    if(filenameSuggestsList||hasManyReferenceParagraphs)refs=lines.filter(x=>x.length>=25&&!/^\s*(references|bibliography|reference list)[: ]*$/i.test(x));else refs=[];
+   }
   }
   if(!refs.length)throw new Error('No separate reference entries were identified. Upload a DOCX containing only the reference list; if it has no References heading, ensure the document contains only the reference list.');
   $('preview').classList.remove('hidden');
