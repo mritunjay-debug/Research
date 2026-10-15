@@ -68,4 +68,34 @@ check('candidate decisions start unresolved', () => {
   assert.equal(groups[0].decision, 'Needs review');
   assert.equal(groups[0].records.length, 2);
 });
+
+check('matching DOI is sufficient even when citation strings differ', () => {
+  const a = 'Smith, J. (2020). Original title wording. doi:10.1234/same';
+  const b = 'Different author formatting (2021). Completely different title. https://doi.org/10.1234/same';
+  assert(hasPair([a, b], 1, 2));
+});
+check('different DOI values prevent title-only merging', () => {
+  const a = 'Taylor, P. (2020). Same title despite distinct identifiers. doi:10.1111/alpha';
+  const b = 'Taylor, P. (2020). Same title despite distinct identifiers. doi:10.2222/beta';
+  assert.equal(hasPair([a, b], 1, 2), false);
+});
+check('a candidate group retains each reference only once', () => {
+  const a = 'Ng, A. (2020). A shared title for connected records. doi:10.1234/shared';
+  const b = 'Ng, A. (2020). A shared title for connected records. https://doi.org/10.1234/shared';
+  const c = 'Ng, A. (2020). A shared title for connected records. Journal.';
+  const groups = buildDedupGroups(findDuplicateCandidates([a, b, c]));
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].records.length, 3);
+  assert.equal(new Set(groups[0].records.map(r => r.index)).size, 3);
+});
+check('default primary is a suggestion, not an automatic exclusion', () => {
+  const groups = buildDedupGroups(findDuplicateCandidates([doiA, doiB]));
+  assert.equal(groups[0].primary, 1);
+  assert.equal(groups[0].decision, 'Needs review');
+  assert.deepEqual(JSON.parse(JSON.stringify(groups[0].records.map(r => r.index))), [1, 2]);
+});
+check('blank and very short records do not form title matches', () => {
+  assert.equal(hasPair(['', ''], 1, 2), false);
+  assert.equal(hasPair(['A (2020). X.', 'A (2020). X.'], 1, 2), false);
+});
 console.log('Reference deduplication regression tests passed: ' + passed + ' checks.');
