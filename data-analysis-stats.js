@@ -76,6 +76,18 @@
     if(n>3&&Math.abs(r)<1){const z=Math.atanh(r),critical=normalQuantile(1-alpha/2),se=1/Math.sqrt(n-3);ciLow=Math.tanh(z-critical*se);ciHigh=Math.tanh(z+critical*se)}
     return {n,missingPairs,r,t,df:n-2,pValue,alpha,ciLow,ciHigh};
   }
+  function linearRegression(xValues,yValues,alpha=.05){
+    if(!Array.isArray(xValues)||!Array.isArray(yValues)||xValues.length!==yValues.length)throw new TypeError('Linear regression expects two arrays of equal length.');
+    if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
+    const pairs=xValues.map((x,index)=>({x,y:yValues[index],index})).filter(pair=>Number.isFinite(pair.x)&&Number.isFinite(pair.y)),n=pairs.length,excluded=xValues.length-n;
+    if(n<3)throw new Error('At least three complete numeric pairs are required for simple linear regression.');
+    const mean=values=>values.reduce((sum,value)=>sum+value,0)/values.length,meanX=mean(pairs.map(p=>p.x)),meanY=mean(pairs.map(p=>p.y));
+    const sxx=pairs.reduce((sum,p)=>sum+(p.x-meanX)**2,0),sxy=pairs.reduce((sum,p)=>sum+(p.x-meanX)*(p.y-meanY),0);
+    if(!(sxx>0))throw new Error('The predictor has no variation; slope is not estimable.');
+    const slope=sxy/sxx,intercept=meanY-slope*meanX,residuals=pairs.map(p=>p.y-(intercept+slope*p.x)),sse=residuals.reduce((sum,value)=>sum+value*value,0),sst=pairs.reduce((sum,p)=>sum+(p.y-meanY)**2,0),df=n-2,mse=sse/df,rmse=Math.sqrt(sse/n),mae=residuals.reduce((sum,value)=>sum+Math.abs(value),0)/n;
+    const seSlope=mse>0?Math.sqrt(mse/sxx):0,seIntercept=mse>0?Math.sqrt(mse*(1/n+meanX*meanX/sxx)):0,critical=studentTCritical(alpha,df);
+    return {n,excluded,meanX,meanY,slope,intercept,rSquared:sst>0?1-sse/sst:null,sse,rmse,mae,df,residualSE:Math.sqrt(mse),seSlope,seIntercept,ciSlopeLow:mse>0?slope-critical*seSlope:null,ciSlopeHigh:mse>0?slope+critical*seSlope:null,ciInterceptLow:mse>0?intercept-critical*seIntercept:null,ciInterceptHigh:mse>0?intercept+critical*seIntercept:null,pSlope:mse>0?studentTwoSidedP(slope/seSlope,df):null,pIntercept:mse>0?studentTwoSidedP(intercept/seIntercept,df):null,alpha,includedIndices:pairs.map(p=>p.index),residuals};
+  }
   function welchTTest(groupA,groupB,alpha=.05){
     if(!Array.isArray(groupA)||!Array.isArray(groupB))throw new TypeError('Welch test expects two arrays of parsed numeric values.');
     const a=groupA.filter(Number.isFinite),b=groupB.filter(Number.isFinite),nA=a.length,nB=b.length;
@@ -91,7 +103,7 @@
     const pooledSD=Math.sqrt(((nA-1)*varianceA+(nB-1)*varianceB)/(nA+nB-2)),cohensD=pooledSD>0?difference/pooledSD:null,hedgesG=cohensD===null?null:cohensD*(1-3/(4*(nA+nB)-9));
     return {nA,nB,missingA:groupA.length-nA,missingB:groupB.length-nB,meanA,meanB,sdA,sdB,difference,se,t,df,pValue,alpha,ciLow:difference-critical*se,ciHigh:difference+critical*se,cohensD,hedgesG};
   }
-  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,welchTTest};
+  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,welchTTest};
   root.RTDataAnalysisStats=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
