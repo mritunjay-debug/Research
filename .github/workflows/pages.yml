@@ -6,6 +6,7 @@ on:
     paths:
       - "index.html"
       - "literature.html"
+      - "workspace.html"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
