@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html'];
-const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js', 'data-analysis-core.js', 'scripts/live-smoke-test.mjs', 'scripts/data-analysis-core-test.mjs'];
+const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js', 'data-analysis-core.js', 'data-analysis-stats.js', 'scripts/live-smoke-test.mjs', 'scripts/data-analysis-core-test.mjs', 'scripts/data-analysis-stats-test.mjs'];
 const errors = [];
 for (const file of htmlFiles) {
   const fullPath = path.join(root, file);
@@ -100,7 +100,7 @@ for (const required of ['parseDelimited', 'parseJSON', 'normaliseRows', 'profile
 const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
   ? fs.readFileSync(path.join(root, 'research-tools.html'), 'utf8')
   : '';
-for (const required of ['data-tab="analysis"', 'data-analysis-core.js', 'id="analysisDataPreview"', 'id="analysisPreviewTable"', 'id="analysisPreviewStatus"', 'id="analysisPreviewSearch"', 'id="analysisPreviewPageSize"', 'id="analysisPreviewColumns"', 'id="analysisPreviewPrevious"', 'id="analysisPreviewNext"', 'id="analysisPreviewSelectAll"', 'Dataset (.csv, .tsv, .json, .xlsx, .xls)', 'data-tab="journal-finder"', 'id="jfTitle"', 'id="jfAbstract"', 'id="findJournals"', 'id="jfExport"', 'journal-finder.js', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud']) {
+for (const required of ['data-tab="analysis"', 'data-analysis-core.js', 'data-analysis-stats.js', 'id="analysisDataPreview"', 'id="analysisPreviewTable"', 'id="analysisPreviewStatus"', 'id="analysisPreviewSearch"', 'id="analysisPreviewPageSize"', 'id="analysisPreviewColumns"', 'id="analysisPreviewPrevious"', 'id="analysisPreviewNext"', 'id="analysisPreviewSelectAll"', 'Dataset (.csv, .tsv, .json, .xlsx, .xls)', 'data-tab="journal-finder"', 'id="jfTitle"', 'id="jfAbstract"', 'id="findJournals"', 'id="jfExport"', 'journal-finder.js', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud']) {
   if (!utilities.includes(required)) errors.push(`Research utilities are missing required functionality: ${required}`);
 }
 const literature = fs.existsSync(path.join(root, 'literature.html'))
