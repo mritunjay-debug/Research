@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html'];
+const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html'];
 const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js'];
 const errors = [];
 for (const file of htmlFiles) {
@@ -124,6 +124,22 @@ for (const required of [
 ]) {
   if (!citation.includes(required)) errors.push(`Reference-cleaning workflow is missing required safety/UI hook: ${required}`);
 }
+
+const planning = fs.existsSync(path.join(root, 'research-planning.html'))
+  ? fs.readFileSync(path.join(root, 'research-planning.html'), 'utf8')
+  : '';
+for (const required of [
+  'id="methodForm"',
+  'id="datasetForm"',
+  'id="integrityList"',
+  'id="exportJson"',
+  'fieldnotes-research-planning/v1',
+  'Export full JSON backup',
+  'No AI API configuration'
+]) {
+  if (!planning.includes(required)) errors.push(`Research Planning Workbench is missing required feature or data-safety hook: ${required}`);
+}
+
 if (errors.length) {
   console.error('Static site checks failed:');
   for (const error of errors) console.error(`- ${error}`);
