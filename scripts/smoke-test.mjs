@@ -98,7 +98,7 @@ for (const required of ['parseDelimited', 'parseJSON', 'normaliseRows', 'profile
   if (!dataCore.includes(required)) errors.push(`Data analysis ingestion core is missing required function: ${required}`);
 }
 const statsCore = fs.existsSync(path.join(root, 'data-analysis-stats.js')) ? fs.readFileSync(path.join(root, 'data-analysis-stats.js'), 'utf8') : '';
-for (const required of ['summariseNumeric', 'normalQuantile', 'welchTTest', 'studentTCritical']) {
+for (const required of ['summariseNumeric', 'normalQuantile', 'welchTTest', 'studentTCritical', 'pearsonCorrelation']) {
   if (!statsCore.includes(required)) errors.push(`Data analysis statistics module is missing required function: ${required}`);
 }
 const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
