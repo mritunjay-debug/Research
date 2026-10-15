@@ -9,8 +9,11 @@ assert(start >= 0 && end > start, 'Could not locate live deduplication functions
 const liveFunctions = html.slice(start, end);
 const context = {
   parseRef(ref) {
-    const m = String(ref || '').match(/\b(?:18|19|20|21)\d{2}[a-z]?\b/);
-    return {title: '', year: m ? m[0] : ''};
+    const text = String(ref || '');
+    const m = text.match(/\\b(?:18|19|20|21)\\d{2}[a-z]?\\b/);
+    const tail = m ? text.slice(m.index + m[0].length).replace(/^[ .,:()]+/, '') : '';
+    const title = tail.split(/\\.\\s+(?=[A-Z])/)[0].replace(/[. ]+$/, '');
+    return {title, year: m ? m[0] : ''};
   },
   originalAuthorText(ref) {
     const s = String(ref || '');
