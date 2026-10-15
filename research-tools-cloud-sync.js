@@ -1,0 +1,23 @@
+/* Research utilities cloud sync.
+ * Syncs journal shortlist entries, reviewer-response records and analysis summaries.
+ * Uploaded source files and raw datasets are never sent to Supabase by this module.
+ */
+(function(){
+ 'use strict';
+ const KEY='fieldnotes.researchTools.v1';
+ const $=id=>document.getElementById(id);
+ let client=null,session=null,busy=false;
+ const status=$('cloudSaveStatus'),button=$('saveAnalysisCloud');
+ function say(message,error){if(!status)return;status.textContent=message;status.style.color=error?'#9b3028':'#53695a'}
+ function readLocal(){try{const raw=localStorage.getItem(KEY);if(!raw)return {schemaVersion:1,journals:[],responses:[],analysisRuns:[]};const x=JSON.parse(raw);return {schemaVersion:1,journals:Array.isArray(x.journals)?x.journals:[],responses:Array.isArray(x.responses)?x.responses:[],analysisRuns:Array.isArray(x.analysisRuns)?x.analysisRuns:[]}}catch(e){throw new Error('Could not read local research records: '+e.message)}}
+ function saveLocal(x){localStorage.setItem(KEY,JSON.stringify({...x,schemaVersion:1,savedAt:new Date().toISOString()}))}
+ function ensureIds(x){x.journals.forEach((r,i)=>{if(!r.localId)r.localId='journal-'+(r.createdAt||'legacy')+'-'+i});x.responses.forEach((r,i)=>{if(!r.localId)r.localId='response-'+(r.createdAt||'legacy')+'-'+i});x.analysisRuns.forEach((r,i)=>{if(!r.localId)r.localId='analysis-'+(r.savedAt||'legacy')+'-'+i});return x}
+ function localArtifacts(x){const out=[];for(const r of x.journals)out.push({artifact_type:'journal',local_id:r.localId,title:r.title||'Journal shortlist entry',payload:r});for(const r of x.responses)out.push({artifact_type:'reviewer_response',local_id:r.localId,title:(r.reviewer||'Reviewer')+' · '+(r.id||'Comment'),payload:r});for(const r of x.analysisRuns)out.push({artifact_type:'analysis_run',local_id:r.localId,title:r.fileName||'Analysis run',payload:r});return out}
+ function mergeRemote(x,rows){const maps={journal:new Map(x.journals.map(r=>[r.localId,r])),reviewer_response:new Map(x.responses.map(r=>[r.localId,r])),analysis_run:new Map(x.analysisRuns.map(r=>[r.localId,r]))};for(const row of rows||[]){const payload=row.payload||{};if(!row.local_id)continue;const target=maps[row.artifact_type];if(target&&!target.has(row.local_id))target.set(row.local_id,{...payload,localId:row.local_id})}x.journals=[...maps.journal.values()];x.responses=[...maps.reviewer_response.values()];x.analysisRuns=[...maps.analysis_run.values()];return x}
+ async function sync(){if(busy)return;if(!client||!session||!session.user){say('Sign in first to sync journal, reviewer and analysis records. Local browser records remain available.',true);return}busy=true;if(button){button.disabled=true;button.textContent='Syncing…'}say('Syncing research records…');try{let state=ensureIds(readLocal());const userId=session.user.id;const pulled=await client.from('research_artifacts').select('artifact_type,local_id,title,payload,updated_at').eq('user_id',userId);if(pulled.error)throw pulled.error;state=mergeRemote(state,pulled.data||[]);saveLocal(state);const records=localArtifacts(state).map(r=>({user_id:userId,artifact_type:r.artifact_type,local_id:r.local_id,title:String(r.title||'').slice(0,500),payload:r.payload}));if(records.length){const pushed=await client.from('research_artifacts').upsert(records,{onConflict:'user_id,artifact_type,local_id'});if(pushed.error)throw pushed.error}window.dispatchEvent(new CustomEvent('rt-research-artifacts-synced',{detail:{journals:state.journals.length,responses:state.responses.length,analysisRuns:state.analysisRuns.length}}));say('Cloud sync complete: '+state.journals.length+' journal entry/entries, '+state.responses.length+' reviewer response(s), '+state.analysisRuns.length+' analysis run(s). Raw datasets and manuscript files were not uploaded.')}catch(e){say('Cloud sync failed: '+(e.message||String(e))+'. Browser-local records were retained.',true)}finally{busy=false;if(button){button.disabled=!(client&&session&&session.user);button.textContent='Sync research records'}}}
+ if(button)button.addEventListener('click',sync);
+ function attach(c,s){client=c;session=s;if(button)button.disabled=!(client&&session&&session.user);if(client&&session&&session.user)say('Signed in. Select “Sync research records” to merge this browser with your cloud records.');else say('Sign in to enable cloud backup. Your local records remain on this browser.')}
+ window.addEventListener('rt-supabase-ready',e=>{client=e.detail.client;client.auth.getSession().then(({data})=>attach(client,data.session))});
+ window.addEventListener('rt-auth-state',e=>attach(client,e.detail.session));
+ if(window.rtSupabase){client=window.rtSupabase;client.auth.getSession().then(({data})=>attach(client,data.session))}
+})();
