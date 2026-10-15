@@ -135,7 +135,7 @@ for (const required of [
   'id="exportJson"',
   'fieldnotes-research-planning/v1',
   'Export full JSON backup',
-  'No AI API configuration'
+  'no AI API configuration'
 ]) {
   if (!planning.includes(required)) errors.push(`Research Planning Workbench is missing required feature or data-safety hook: ${required}`);
 }
