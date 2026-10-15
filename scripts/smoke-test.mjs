@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const htmlFiles = ['index.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'research-tools.html'];
-const standaloneScripts = ['research-tools-cloud-sync.js'];
+const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js'];
 const errors = [];
 for (const file of htmlFiles) {
   const fullPath = path.join(root, file);
@@ -44,7 +44,7 @@ for (const required of ['const TOOL_REGISTRY=', 'id="availableToolCount"', 'id="
 const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
   ? fs.readFileSync(path.join(root, 'research-tools.html'), 'utf8')
   : '';
-for (const required of ['data-tab="analysis"', 'data-tab="journal"', 'data-tab="reviewer"', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud']) {
+for (const required of ['data-tab="analysis"', 'data-tab="journal"', 'data-tab="reviewer"', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud', 'rtLiteratureCloudBridge', 'literature-cloud-sync.js']) {
   if (!utilities.includes(required)) errors.push(`Research utilities are missing required functionality: ${required}`);
 }
 if (errors.length) {
