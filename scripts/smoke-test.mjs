@@ -100,7 +100,7 @@ for (const required of ['parseDelimited', 'parseJSON', 'normaliseRows', 'profile
 const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
   ? fs.readFileSync(path.join(root, 'research-tools.html'), 'utf8')
   : '';
-for (const required of ['data-tab="analysis"', 'data-analysis-core.js', 'id="analysisDataPreview"', 'id="analysisPreviewTable"', 'id="analysisPreviewStatus"', 'Dataset (.csv, .tsv, .json, .xlsx, .xls)', 'data-tab="journal-finder"', 'id="jfTitle"', 'id="jfAbstract"', 'id="findJournals"', 'id="jfExport"', 'journal-finder.js', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud']) {
+for (const required of ['data-tab="analysis"', 'data-analysis-core.js', 'id="analysisDataPreview"', 'id="analysisPreviewTable"', 'id="analysisPreviewStatus"', 'id="analysisPreviewSearch"', 'id="analysisPreviewPageSize"', 'id="analysisPreviewColumns"', 'id="analysisPreviewPrevious"', 'id="analysisPreviewNext"', 'id="analysisPreviewSelectAll"', 'Dataset (.csv, .tsv, .json, .xlsx, .xls)', 'data-tab="journal-finder"', 'id="jfTitle"', 'id="jfAbstract"', 'id="findJournals"', 'id="jfExport"', 'journal-finder.js', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud']) {
   if (!utilities.includes(required)) errors.push(`Research utilities are missing required functionality: ${required}`);
 }
 const literature = fs.existsSync(path.join(root, 'literature.html'))
