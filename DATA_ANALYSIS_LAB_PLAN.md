@@ -66,7 +66,8 @@ scripts/data-analysis-core-test.mjs
 ### Phase 3 — Exploratory analysis and figure studio
 - [x] Add a separately tested descriptive-statistics module with valid/missing counts, mean, median, sample SD, min/max, type-7 quartiles and IQR; show missingness rather than silently dropping it from the report.
 - [ ] Independently validate existing Pearson and Welch test implementations before expanding inferential methods.
-- Frequency tables, cross-tabulations, ECDF, Q-Q and supported distribution plots.
+- [x] Add frequency tables and categorical cross-tabulations with missing-category counts, percentages/marginals, cardinality guardrails, CSV exports, and report/reproducibility inclusion.
+- [ ] Add ECDF, Q-Q and additional supported distribution plots.
 - Grouping, variable selection, source-row identification and accessible plot configuration.
 - Save figure settings and source-data/run identifiers; verify export formats individually.
 
