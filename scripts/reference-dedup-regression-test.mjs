@@ -60,7 +60,7 @@ check('multiple duplicates are grouped by connected record membership', () => {
   const audit = findDuplicateCandidates(list);
   const groups = buildDedupGroups(audit);
   assert.equal(groups.length, 2);
-  assert.deepEqual(groups.map(g => g.records.length).sort(), [2, 2]);
+  assert.equal(JSON.stringify(groups.map(g => g.records.length).sort()), JSON.stringify([2, 2]));
 });
 check('candidate decisions start unresolved', () => {
   const audit = findDuplicateCandidates([doiA, doiB]);
