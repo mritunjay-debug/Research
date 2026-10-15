@@ -28,6 +28,7 @@
 <section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Import a reference list from DOCX, TXT, RIS, BibTeX, or CSV. Do not upload a full paper or PDF. Check the extracted preview before verification. Reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a reference-list file (.docx, .txt, .ris, .bib, .csv)</strong><br><input type="file" id="file" accept=".docx,.txt,.ris,.bib,.bibtex,.csv,text/plain,text/csv,application/x-research-info-systems,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div>
 <div style="margin-top:18px"><label for="pastedReferences" style="display:block;font-weight:750;margin-bottom:7px">Or paste references directly</label><textarea id="pastedReferences" rows="7" style="width:100%;padding:12px;border:1px solid #cbd7e1;border-radius:10px;font:inherit;line-height:1.5" placeholder="Paste references here. Separate wrapped references with a blank line, or put one complete reference on each line."></textarea><p class="muted">For references wrapped across lines, separate entries with a blank line. If each reference is on one line, paste one per line. Exact duplicate entries are removed; similar entries are retained for review.</p><div class="actions"><button id="usePastedReferences" class="secondary" type="button">Prepare pasted references</button></div></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
 <section class="panel hidden" id="resultsPanel"><h2>2. Verification results</h2><div class="stats"><div class="stat"><span class="muted">References checked</span><strong id="total">0</strong></div><div class="stat"><span class="muted">TOTALLY CORRECTED</span><strong id="correct">0</strong></div><div class="stat"><span class="muted">MANUAL CORRECTION REQUIRED</span><strong id="manual">0</strong></div></div><div class="actions"><button id="selectManualBtn" class="secondary">Show manual-review only</button><button id="showAllBtn" class="secondary">Show all references</button><button id="clearSelectionBtn" class="secondary">Clear selection</button><button id="fullscreenBtn" class="secondary">Expand results table ⛶</button><button id="excelBtn">Download Excel audit (.xlsx)</button><button id="wordBtn" class="secondary">Download corrected reference list (.docx)</button></div><p class="muted">Select manual-review references to focus the list. Use “Find best match” to retrieve one relevance-ranked Crossref candidate, inspect title, authors, year and DOI, and apply it only if it is the same paper. Manually corrected references are highlighted in the Word output.</p><p class="muted">A Crossref search result is a candidate, not a guarantee. Review author order, publication year, journal, pages/article number, and DOI before using corrected references in a submission.</p><div class="tablewrap"><table><thead><tr><th>Select</th><th>Original reference</th><th>Decision</th><th>Candidate / correction</th><th>Notes</th><th>Search</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+<section class="panel" id="citationConsistencyPanel"><h2>3. In-text citation & reference-list consistency</h2><p class="muted">Compare a manuscript's detected in-text citation markers with the currently prepared reference list. This is a heuristic screening aid: author styles, et al. rules, group authors, and numbered citation styles can produce ambiguous matches.</p><div class="drop"><strong>Select manuscript text (.txt or .docx)</strong><br><input type="file" id="consistencyManuscript" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></div><div class="actions"><button id="runConsistency" type="button">Check citation consistency</button><button id="exportConsistency" class="secondary" type="button">Export consistency CSV</button></div><div id="consistencyStatus" class="status" role="status">Prepare a reference list above, then select the manuscript.</div><div id="consistencyResults" class="hidden"></div></section>
 <section class="panel"><h2>How it works</h2><p class="muted">The app extracts paragraphs from DOCX files or text from PDF pages, locates a likely reference section in full papers/reports, queries Crossref by DOI when present and otherwise by title/bibliographic text, then applies conservative match thresholds. It also gives a Google Scholar search link for manual verification. The Word output is a separate report; it does not edit in-text citations in a full manuscript.</p><div class="notice">Privacy note: file extraction happens in your browser. When you click Verify, reference text/DOIs are sent to the public Crossref API for lookup. Avoid using this public tool for confidential unpublished material.</div></section>
 </main><footer>Built for research reference checking · Always verify metadata before publication</footer>
 <script>
@@ -185,6 +186,66 @@ function extractReferenceSection(text){
  const cleanRefs=refs.filter(x=>x.length>=25&&!isHeading(x)&&!stop.test(x));
  return {found:true,refs:cleanRefs,message:'Reference section located. Only text after the References/Bibliography heading is considered; review each boundary before verification.'};
 }
+
+let consistencyAudit=null;
+function referenceLead(ref){
+ const s=clean(ref).replace(/^\s*(?:\[\d+\]|\d+[.)])\s*/,'');
+ const year=(s.match(/\b(?:18|19|20|21)\d{2}[a-z]?\b/)||[])[0]||'';
+ const before=year?s.slice(0,s.indexOf(year)):s;
+ const surname=(before.match(/([A-Z][A-Za-z'’-]{2,})(?:,|\s|$)/g)||[]).map(x=>x.replace(/[,\s]+$/,'')).filter(Boolean);
+ return {year:year.slice(0,4),surnames:[...new Set(surname.map(x=>x.toLowerCase()))],raw:ref};
+}
+function extractCitationMarkers(text){
+ const found=[];
+ const authorDate=/\(([^()\n]{1,180}?\b(?:18|19|20|21)\d{2}[a-z]?(?:[^()\n]{0,90})?)\)/g;
+ for(const m of text.matchAll(authorDate)){
+  const inner=m[1].trim();
+  const parts=inner.split(/\s*;\s*/).map(x=>x.trim()).filter(x=>/\b(?:18|19|20|21)\d{2}[a-z]?\b/.test(x));
+  for(const p of parts)found.push({style:'Author–date',marker:p,year:((p.match(/\b(?:18|19|20|21)\d{2}/)||[])[0]||''),surname:((p.match(/[A-Z][A-Za-z'’-]{2,}/)||[])[0]||'').toLowerCase()});
+ }
+ const numbered=/\[([0-9]{1,4}(?:\s*[,;–-]\s*[0-9]{1,4})*)\]/g;
+ for(const m of text.matchAll(numbered)){
+  const nums=m[1].split(/\s*[,;]\s*|\s*[–-]\s*/).filter(Boolean);
+  for(const n of nums){const v=Number(n);if(Number.isInteger(v)&&v>0)found.push({style:'Numbered',marker:'['+n+']',number:v})}
+ }
+ const unique=new Map();found.forEach(x=>unique.set(x.style+'|'+x.marker,x));return [...unique.values()];
+}
+function runConsistencyAnalysis(manuscriptText,referenceList){
+ const refs=referenceList.map((raw,index)=>({raw,index:index+1,lead:referenceLead(raw),number:((raw.match(/^\s*\[(\d+)\]/)||raw.match(/^\s*(\d+)[.)]\s*/)||[])[1]||'')})).filter(x=>x.raw.trim());
+ const markers=extractCitationMarkers(manuscriptText);
+ const authorMarkers=markers.filter(x=>x.style==='Author–date');
+ const numberedMarkers=markers.filter(x=>x.style==='Numbered');
+ const authorChecks=authorMarkers.map(m=>{const matches=refs.filter(r=>r.lead.year===m.year&&(!m.surname||r.lead.surnames.some(s=>s===m.surname||s.startsWith(m.surname)||m.surname.startsWith(s))));return {...m,matchCount:matches.length,matches:matches.map(x=>x.index),status:matches.length===1?'Likely match':matches.length>1?'Ambiguous match':'No likely reference match'}});
+ const numberedMax=Math.max(0,...refs.map(r=>Number(r.number)||0));
+ const hasExplicitNumbers=refs.some(r=>r.number);
+ const numberChecks=numberedMarkers.map(m=>({ ...m,status:hasExplicitNumbers?(refs.some(r=>Number(r.number)===m.number)?'Number exists in reference list':'No matching numbered reference'):(m.number<=refs.length?'Within reference-list count; mapping not verified':'Number exceeds reference-list count')}));
+ const citedRefIndexes=new Set(authorChecks.filter(x=>x.matches.length).flatMap(x=>x.matches));
+ if(hasExplicitNumbers)numberChecks.forEach(m=>{const r=refs.find(x=>Number(x.number)===m.number);if(r)citedRefIndexes.add(r.index)});
+ const uncited=refs.filter(r=>!citedRefIndexes.has(r.index));
+ return {generatedAt:new Date().toISOString(),referenceCount:refs.length,authorChecks,numberChecks,uncited,hasExplicitNumbers,note:'Heuristic screening only. Uncited-reference flags are not definitive because the parser may miss narrative citations, et al. variants, group authors, footnotes, and citation styles. Numbered citation presence is not proof of correct reference ordering.'};
+}
+$('runConsistency').addEventListener('click',async()=>{
+ const f=$('consistencyManuscript').files[0];if(!f){$('consistencyStatus').textContent='Select a TXT or DOCX manuscript first.';return}
+ if(!refs.length){$('consistencyStatus').textContent='Prepare or import a reference list above first.';return}
+ const btn=$('runConsistency');btn.disabled=true;$('consistencyStatus').textContent='Reading manuscript locally and checking markers…';
+ try{
+  let text='';if(/\.docx$/i.test(f.name)){const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});text=out.value}else text=await f.text();
+  if(!text.trim())throw new Error('No readable manuscript text found.');
+  consistencyAudit=runConsistencyAnalysis(text,refs);
+  const a=consistencyAudit.authorChecks,n=consistencyAudit.numberChecks,u=consistencyAudit.uncited;
+  const table=(rows,cols)=>rows.length?'<div class="tablewrap" style="max-height:380px"><table><thead><tr>'+cols.map(x=>'<th>'+escapeHtml(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(v=>'<td>'+escapeHtml(v==null?'':String(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'<p class="muted">No markers detected in this category.</p>';
+  $('consistencyResults').classList.remove('hidden');
+  $('consistencyResults').innerHTML='<div class="stats"><div class="stat"><span class="muted">Reference entries</span><strong>'+consistencyAudit.referenceCount+'</strong></div><div class="stat"><span class="muted">Author–date markers</span><strong>'+a.length+'</strong></div><div class="stat"><span class="muted">Numbered markers</span><strong>'+n.length+'</strong></div></div><h3>Author–date marker review</h3>'+table(a.map(x=>[x.marker,x.status,x.matches.map(i=>'Reference '+i).join(', ')]),['Detected marker','Screening result','Candidate reference(s)'])+'<h3>Numbered citation review</h3>'+table(n.map(x=>[x.marker,x.status]),['Detected marker','Screening result'])+'<h3>Potentially uncited reference entries</h3>'+table(u.map(x=>['Reference '+x.index,x.raw]),['Entry','Reference text'])+'<p class="notice">'+escapeHtml(consistencyAudit.note)+'</p>';
+  $('consistencyStatus').textContent='Consistency screening complete. Inspect all flags before making changes.';
+ }catch(e){$('consistencyStatus').textContent='Consistency check failed: '+e.message}
+ finally{btn.disabled=false}
+});
+$('exportConsistency').addEventListener('click',()=>{
+ if(!consistencyAudit){alert('Run the consistency check first.');return}
+ const a=consistencyAudit;
+ const rows=[['Record type','Citation / reference','Screening result','Candidate references / details'],...a.authorChecks.map(x=>['Author–date citation',x.marker,x.status,x.matches.map(i=>'Reference '+i).join('; ')]),...a.numberChecks.map(x=>['Numbered citation',x.marker,x.status,'']),...a.uncited.map(x=>['Potentially uncited reference','Reference '+x.index,'Manual review required',x.raw]),['Method note', '', a.note,'']];
+ download('citation_consistency_audit.csv',csvOut(rows));
+});
 $('extractBtn').addEventListener('click',async()=>{
  const f=$('file').files[0];
  if(!f){setStatus('Please upload a reference list file.');return}
