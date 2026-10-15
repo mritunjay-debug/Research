@@ -1,0 +1,124 @@
+# Data Analysis Lab — Implementation Plan and Acceptance Checklist
+
+## Repository inspection (2026-10-15)
+
+### Current deployment and architecture
+- Repository: `mritunjay-debug/Research`.
+- Hosting: static site deployed by GitHub Pages through `.github/workflows/pages.yml`; no `package.json`, Next.js configuration, TypeScript configuration, or Vercel configuration exists at the repository root.
+- UI entry point: `research-tools.html`, with a large inline browser script and shared `design.css`.
+- Existing browser dependencies: Chart.js 4.4.8, SheetJS/XLSX 0.18.5, Mammoth 1.8.0, and the shared Supabase browser client/auth UI.
+- Existing analysis code is client-side. Current dataset state is an in-memory matrix of strings; filtering and cleaning notes are kept in page state. Raw dataset values are not sent by the research-tools cloud-sync module.
+- Existing cloud persistence: `research_artifacts` stores user-owned journal, reviewer-response and analysis-summary payloads under Supabase RLS. It is not a raw-dataset file store.
+- Current ingestion: CSV and XLS/XLSX with worksheet selection. The CSV parser is comma-specific; TSV and JSON imports, encoding/delimiter detection, a dedicated row preview, multiple simultaneous datasets, and large-file resource guards are not implemented.
+- Current analysis: descriptive numeric summaries, Pearson correlations/heatmap with pair counts, simple linear regression, basic regression diagnostics, Welch two-group test, group comparison, data-quality checks, Chart.js figures, CSV and HTML reports, and a reproducibility JSON record. Method selection is a guide for several unimplemented tests; it must not be described as implemented inference.
+- Existing limits: regression intervals use a normal critical-value approximation, and diagnostics are limited to a simple one-predictor model. No validated multi-predictor regression, logistic regression, ANOVA suite, nonparametric suite, ML pipeline, or time-series forecasting engine was found in the current Data Analysis Lab.
+
+### Dependency map
+```
+research-tools.html
+  ├── data-analysis-core.js (new, deterministic ingestion/schema/profile layer)
+  ├── Chart.js (existing charts)
+  ├── SheetJS/XLSX (existing spreadsheet import/export library)
+  ├── research-tools-cloud-sync.js (metadata/summary sync only; no raw data)
+  ├── supabase-auth.js (existing sign-in UI)
+  └── design.css (shared toolkit styling)
+
+scripts/data-analysis-core-test.mjs
+  └── loads data-analysis-core.js in Node VM and checks deterministic results
+
+.github/workflows/pages.yml
+  ├── scripts/smoke-test.mjs
+  ├── scripts/reference-dedup-regression-test.mjs
+  └── scripts/data-analysis-core-test.mjs (new)
+```
+
+## Implementation phases
+
+### Phase 0 — Inventory and guardrails
+- [x] Inspect repository tree, deployment workflow, Data Analysis Lab, shared styling, auth/cloud-sync code and current migration.
+- [x] Record architecture mismatch: this repository is a static GitHub Pages app, not a Next.js/Vercel application. Do not introduce Next.js merely to satisfy a generic architecture suggestion.
+- [x] Preserve the current non-AI, free-to-use product commitment.
+- [x] Document implemented versus unimplemented methods.
+- [ ] Verify every release on GitHub Actions and then against the live site.
+
+### Phase 1 — Dataset ingestion and schema foundation (current)
+- [ ] Add a separately testable, deterministic browser/Node-compatible data ingestion module.
+- [ ] Support CSV, TSV and JSON, retain existing XLS/XLSX worksheet support.
+- [ ] Validate headers, empty files, ragged rows, duplicate headers and resource limits.
+- [ ] Detect common delimiter and UTF-8 BOM; explain assumptions and malformed input.
+- [ ] Show a row preview and schema/profile summary before running analysis.
+- [ ] Keep imported data in browser memory; do not silently upload raw values.
+- [ ] Add known-fixture and edge-case tests and wire them into deployment validation.
+
+### Phase 2 — Cleaning and data-quality controls
+- Missingness and duplicate-row reports with row identifiers.
+- Range checks, suspicious-value flags and explicit unit conversions.
+- Transformations as reversible, parameterized operations; preview before apply.
+- Clear original/current dataset distinction and undo/redo.
+- No automatic deletion or imputation.
+
+### Phase 3 — Exploratory analysis and figure studio
+- Frequency tables, cross-tabulations, ECDF, Q-Q and supported distribution plots.
+- Grouping, variable selection, source-row identification and accessible plot configuration.
+- Save figure settings and source-data/run identifiers; verify export formats individually.
+
+### Phase 4 — Validated core statistics
+- Independent reference tests for descriptive summaries, correlation, t-tests and supported comparisons.
+- Add methods only with correct test statistics, degrees of freedom, p-values, confidence intervals and assumption/design checks.
+- Separate method-guide recommendations from executed methods.
+- Replace normal-approximation intervals with validated distributions where appropriate.
+
+### Phase 5 — Regression and diagnostics
+- Multiple regression, coefficient uncertainty, residual diagnostics, VIF, influence and heteroscedasticity checks.
+- Explicit complete-case/missing-data policy and included/excluded row accounting.
+- Do not expose a method as available until reference fixtures and edge cases pass.
+
+### Phase 6 — Machine learning and time series
+- Baselines, leakage-safe cross-validation, appropriate splits, metrics, seeds and model manifests.
+- Time-aware validation and backtesting for temporal data.
+- Warn on sample-size, class-balance, grouping and complexity limitations.
+- Evaluate browser-side libraries and separate compute workers only after requirements and workload are measured.
+
+### Phase 7 — Reproducibility and reports
+- Versioned analysis configurations, dataset fingerprints, provenance, stale-output detection and rerun comparison.
+- CSV/XLSX/JSON/HTML exports, then DOCX/PDF only with tested rendering paths.
+- Reports populated exclusively from computed result objects; no fabricated outputs.
+
+### Phase 8 — Optional AI assistance
+- Keep external AI off by default and optional.
+- Convert prompts into validated structured configurations; never execute arbitrary supplied code.
+- Disclose when data leaves the browser and cite actual result IDs.
+- This phase must respect the current repository's non-AI product commitment unless that product decision is explicitly revised.
+
+## Acceptance-test checklist
+
+### Ingestion and schema
+- [ ] CSV quoted commas, escaped quotes, CRLF, LF, UTF-8 BOM and empty cells.
+- [ ] TSV with quoted tabs/newlines.
+- [ ] JSON array of objects, stable key union and missing values.
+- [ ] Empty/invalid JSON, inconsistent rows, duplicate/blank headers and unsupported types.
+- [ ] File-size/row/column limits prevent unbounded work.
+- [ ] Numeric/date-like inference is explicitly heuristic and never silently converts source values.
+- [ ] Preview counts and sampled values match the retained dataset.
+
+### Statistical correctness
+- [ ] Known independent fixtures for every implemented statistic.
+- [ ] Missing values, constants, zero variance, tiny samples, and singular/invalid inputs.
+- [ ] Degrees of freedom, confidence intervals and p-values independently verified.
+- [ ] No unsupported test presented as executed.
+
+### Reproducibility and privacy
+- [ ] Imported raw values remain in browser memory unless the user explicitly chooses an implemented persistence feature.
+- [ ] Summary cloud sync contains no raw dataset values.
+- [ ] Dataset changes invalidate or mark derived outputs stale.
+- [ ] Exported records match visible results and include method/settings/limitations.
+
+### Release and UX
+- [ ] Node test suite and site smoke checks pass.
+- [ ] GitHub Pages deploy job completes.
+- [ ] Live critical-page smoke test confirms deployment.
+- [ ] Mobile layout, keyboard access, empty/error/loading states and browser-console errors checked.
+- [ ] Report incomplete capabilities and limitations honestly.
+
+## Explicit non-goals for the first vertical slice
+Do not add a Next.js/Vercel backend, a paid service, arbitrary code execution, cloud raw-data storage, AI APIs, or new database migrations. The first slice improves the actual static application with a testable ingestion layer.
