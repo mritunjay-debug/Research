@@ -111,7 +111,7 @@ footer{color:#8a929a!important}
 <header class="topbar"><div class="crumb">Workspace&nbsp; / &nbsp;<strong>Overview</strong></div><div class="dashboard-search"><span aria-hidden="true">⌕</span><input id="dashboardSearch" type="search" placeholder="Search projects, tasks, and research tools…" aria-label="Search dashboard"></div><span class="local-badge" title="Projects and tasks can be synced; literature records are still local">PROJECTS &amp; TASKS SYNC</span></header>
 <main class="content" id="dashboard">
 <section class="welcome"><div><h1>Your research, in focus.</h1><p>Keep projects, data, papers and tasks together. Use the tools you need, when you need them.</p></div><div class="actions"><button id="newProjectBtn">＋ New project</button><button class="secondary" id="exportBtn">Export workspace JSON</button></div></section>
-<div class="notice"><strong>Storage limitation:</strong> project details and tasks are saved in this browser's local storage. Clearing browser data can remove them. Do not treat this as secure storage for confidential manuscripts or as a backup system.</div>
+<div class="notice"><strong>Storage note:</strong> projects and tasks can be synced to your signed-in account. Other research records and files are not included in that sync yet. Keep independent backups of important work.</div>
 <section class="grid" aria-label="Workspace summary">
 <div class="stat"><span>Active projects</span><strong id="projectCount">0</strong><small>Across all research areas</small></div>
 <div class="stat"><span>Open tasks</span><strong id="openCount">0</strong><small>Across all projects</small></div>
@@ -148,10 +148,9 @@ footer{color:#8a929a!important}
 </div>
 <div class="dashboard-lower"><section class="panel" id="recentActivity"><div class="panel-head"><div><h2>Recent activity</h2><div class="muted">Updates based on saved projects and planner tasks.</div></div></div><div id="activityList" class="activity-list"><div class="activity-empty">Your recent project and task activity will appear here.</div></div></section><section class="panel" id="researchToolsPanel"><div class="panel-head"><div><h2>Research tools</h2><div class="muted">Essential tools for your research workflow.</div></div></div><div class="tools"><article class="tool"><h3>Literature review</h3><p>Search, screen and manage research papers.</p><a href="literature.html">Open literature review →</a></article><article class="tool"><h3>Citation verification</h3><p>Verify and format references against metadata.</p><a href="index.html">Open citation verification →</a></article><article class="tool"><h3>Manuscript quality audit</h3><p>Check captions and reference-section structure.</p><a href="manuscript-audit.html">Audit manuscript →</a></article><article class="tool"><h3>Data analysis lab</h3><p>Planned tools for reproducible data analysis.</p><span class="state planned">Planned</span></article></div></section></div>
 <section class="panel">
-<div class="panel-head"><div><h2>Research tools<div class="muted">Essential tools for your research workflow.</div></div></div>
+<div class="panel-head"><div><h2>More research tools</h2><div class="muted">Planned modules are labelled clearly until their functionality is implemented.</div></div></div>
 <div class="tools">
-<article class="tool"><h3>Literature Search & PRISMA</h3><p>Import bibliographic records, manage screening, review duplicates, and work with PRISMA-related outputs.</p><span class="state">Available</span><p style="margin-top:10px"><a href="literature.html">Open literature tool →</a></p></article>
-<article class="tool"><h3>Citation Verification Agent</h3><p>Check reference metadata against Crossref, inspect candidate matches, and export review documents.</p><span class="state">Available</span><p style="margin-top:10px"><a href="index.html">Open citation checker →</a></p></article>
+
 <article class="tool" id="roadmap"><h3>Thesis & Manuscript Studio</h3><p>Scientific consistency audit, document editing, cross-reference checks, and thesis assembly.</p><span class="state planned">Not implemented</span></article>
 <article class="tool"><h3>Data Analysis Lab</h3><p>Data-quality checks, statistical calculations, reproducible analyses, and figure exports.</p><span class="state planned">Not implemented</span></article>
 <article class="tool"><h3>Journal Finder & Publication Assistant</h3><p>Evidence-based journal matching and current publisher/indexing checks.</p><span class="state planned">Not implemented</span></article>
@@ -164,7 +163,7 @@ footer{color:#8a929a!important}
 <p class="muted">The JSON export includes projects, tasks, the active project ID, and an export timestamp. It does not bundle uploaded papers or data from the separate literature/citation tools.</p>
 <div class="actions"><button id="exportBtn2">Export workspace JSON</button><button class="secondary" id="importBtn">Import workspace JSON</button><input id="importFile" type="file" accept=".json,application/json" class="hidden"></div><div id="exportStatus" class="status" role="status"></div>
 </section>
-<footer>Research Scholar Workspace · Static GitHub Pages release · No cloud account or server-side persistence is configured.</footer>
+<footer>Fieldnotes for Research · Project and task cloud sync is available for signed-in users; other research records may remain browser-local.</footer>
 </main>
 </div>
 </div>
