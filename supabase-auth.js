@@ -18,7 +18,7 @@
   #rt-auth-bar .rt-sync-dot{width:7px;height:7px;border-radius:50%;background:#d7b77b;flex:0 0 7px}
   #rt-auth-bar .rt-sync-state[data-state="synced"] .rt-sync-dot{background:#9ed5ad}
   #rt-auth-bar .rt-sync-state[data-state="error"] .rt-sync-dot{background:#ff9e88}
-  #rt-auth-bar button{min-height:36px;border:1px solid #477663;border-radius:7px;padding:8px 12px;font:650 12px inherit;cursor:pointer;background:#245B49;color:#fff}
+  #rt-auth-bar button{min-height:36px;border:1px solid #477663;border-radius:7px;padding:8px 12px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;background:#245B49;color:#fff}
   #rt-auth-bar button:hover{background:#2d6a54}
   #rt-auth-bar button:focus-visible,#rt-auth-bar a:focus-visible{outline:3px solid #F0B49C;outline-offset:3px}
   #rt-auth-bar button.rt-light{background:#f7f5ef;color:#173F35;border-color:#f7f5ef}
@@ -170,8 +170,8 @@
       showSession(null);
       $('rt-auth-status').textContent = 'Signed out successfully';
     } catch (err) {
-      $('rt-auth-status').hidden = false;
-      $('rt-auth-status').textContent = 'Sign-out failed: ' + (err.message || String(err));
+      openModal('signin');
+      message('Sign-out failed: ' + (err.message || String(err)), true);
     } finally { button.disabled = false; }
   });
   function init() {
