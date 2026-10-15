@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html'];
@@ -29,10 +30,10 @@ for (const file of standaloneScripts) {
     errors.push(`Missing required script: ${file}`);
     continue;
   }
-  try {
-    new Function(fs.readFileSync(fullPath, 'utf8'));
-  } catch (error) {
-    errors.push(`${file}: JavaScript syntax error: ${error.message}`);
+  const check = spawnSync(process.execPath, ['--check', fullPath], { encoding: 'utf8' });
+  if (check.error || check.status !== 0) {
+    const detail = check.error?.message || check.stderr?.trim() || `Node exited with status ${check.status}`;
+    errors.push(`${file}: JavaScript syntax error: ${detail}`);
   }
 }
 const workspace = fs.existsSync(path.join(root, 'workspace.html'))
