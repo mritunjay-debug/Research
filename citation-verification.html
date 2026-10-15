@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Citation Verification | Fieldnotes Research Toolkit</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#17202a;background:#f4f7fb}
+*{box-sizing:border-box}body{margin:0}.hero{background:#10283f;color:white;padding:42px 20px 34px}.wrap{max-width:1440px;margin:auto}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#9fd5d0;font-weight:800}.hero h1{margin:12px 0;font-size:clamp(28px,4vw,44px);letter-spacing:-.03em}.hero p{max-width:780px;line-height:1.65;color:#d9e5ed}.tag{display:inline-block;border:1px solid #567184;border-radius:99px;padding:6px 10px;font-size:12px;margin-top:8px}.main{width:min(98vw,1800px);max-width:none;margin:20px auto;padding:0 14px 50px}.panel{background:white;border:1px solid #e1e8ef;border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 6px 24px #10283f0a}.panel h2{font-size:19px;margin:0 0 12px}.muted{color:#617182;font-size:14px;line-height:1.55}.drop{border:2px dashed #b7c7d5;border-radius:12px;padding:26px;text-align:center;background:#f9fbfd}.drop input{max-width:100%;margin-top:14px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}button{border:0;border-radius:9px;padding:11px 16px;font-weight:750;cursor:pointer;background:#176c72;color:white}button.secondary{background:#e8eff4;color:#1b3446}button:disabled{opacity:.45;cursor:not-allowed}.notice{padding:12px 14px;border-radius:10px;background:#fff7df;color:#6d5110;font-size:13px;line-height:1.5}.status{margin-top:14px;font-size:14px;white-space:pre-wrap}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.stat{padding:16px;background:#f5f8fa;border-radius:12px}.stat strong{display:block;font-size:26px;margin-top:5px}.tablewrap{overflow:auto;max-height:calc(100vh - 260px);min-height:360px;border:1px solid #d8e2e9;border-radius:10px}table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;font-size:13px}th,td{text-align:left;padding:12px;border-bottom:1px solid #e9eef2;vertical-align:top;overflow-wrap:anywhere;word-break:normal;min-width:0;line-height:1.55}th{background:#f5f8fa;position:sticky;top:0;z-index:2}th:nth-child(1),td:nth-child(1){width:64px;text-align:center}th:nth-child(2),td:nth-child(2){width:29%}th:nth-child(3),td:nth-child(3){width:190px}th:nth-child(4),td:nth-child(4){width:30%}th:nth-child(5),td:nth-child(5){width:19%}th:nth-child(6),td:nth-child(6){width:125px}#resultsPanel{width:100%;padding:clamp(14px,2vw,30px)}#resultsPanel .tablewrap:fullscreen{max-height:100vh;height:100vh;border-radius:0}#resultsPanel .tablewrap:fullscreen table{font-size:14px}.manually-corrected{background:#f2fbf5}.row-select{width:18px;height:18px;accent-color:#176c72}.pill{font-size:11px;font-weight:800;border-radius:99px;padding:4px 7px;white-space:nowrap}.good{background:#e1f4eb;color:#17643c}.review{background:#fff0d7;color:#82520c}.hidden{display:none}footer{text-align:center;color:#72808d;font-size:12px;padding:16px}
+@media(max-width:800px){.main{width:100%;padding:0 8px 30px}.panel{padding:14px}.tablewrap{max-height:70vh}table{table-layout:auto;min-width:900px}th,td{min-width:110px}th:nth-child(2),td:nth-child(2),th:nth-child(4),td:nth-child(4){min-width:260px}}@media(max-width:600px){.stats{grid-template-columns:1fr}.hero{padding:32px 18px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<link rel="stylesheet" href="design.css">
+<style id="citation-mobile-final">
+*,*::before,*::after{box-sizing:border-box}html,body{max-width:100%;overflow-x:hidden}
+@media(max-width:760px){.hero{padding:25px 14px!important}.hero h1{font-size:clamp(26px,7vw,36px)!important;line-height:1.15;overflow-wrap:anywhere}.main{width:100%!important;max-width:100%!important;padding:0 8px 28px!important}.panel{padding:12px!important;min-width:0}.drop{padding:18px 10px!important}.drop input{width:100%;font-size:16px!important}.actions{display:flex;flex-direction:column;align-items:stretch}.actions button{width:100%;min-height:44px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.stat{min-width:0;padding:12px!important}.stat strong{font-size:22px!important;overflow-wrap:anywhere}.tablewrap{width:100%;max-width:100%;overflow:auto!important;-webkit-overflow-scrolling:touch;min-height:240px}.tablewrap table{display:table!important;width:max-content;min-width:900px;max-width:none;table-layout:auto!important}.tablewrap th,.tablewrap td{min-width:110px;padding:9px!important}.tablewrap th:nth-child(2),.tablewrap td:nth-child(2),.tablewrap th:nth-child(4),.tablewrap td:nth-child(4){min-width:240px}.tablewrap:fullscreen{width:100vw!important;max-width:100vw!important}.tablewrap:fullscreen table{min-width:900px}.status,.notice{overflow-wrap:anywhere}}
+@media(max-width:420px){.stats{grid-template-columns:minmax(0,1fr)!important}.panel{padding:10px!important}}
+</style>
+</head>
+<body>
+<nav class="site-nav" aria-label="Main navigation"><a class="nav-brand" href="./">Fieldnotes <span style="font:inherit;color:#c56c4c">/</span> Research</a><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-links">Menu ☰</button><div class="nav-links" id="primary-links"><a href="workspace.html">Workspace</a><a href="literature.html">Literature &amp; PRISMA</a><a href="index.html" aria-current="page">Citation verification</a><a href="manuscript-audit.html">Manuscript audit</a></div></nav><script>(function(){const n=document.querySelector('.site-nav'),b=n&&n.querySelector('.nav-toggle');if(b)b.addEventListener('click',()=>{const open=n.classList.toggle('open');b.setAttribute('aria-expanded',String(open));b.textContent=open?'Close ×':'Menu ☰'});})();</script>
+<header class="hero"><div class="wrap"><div class="eyebrow">Research integrity toolkit</div><h1>Citation Verification Agent</h1><p>Check a Word reference list or full PDF paper/report against Crossref metadata, inspect possible matches, and export a review-ready Excel audit and Word report. Uncertain records are flagged for manual review—not declared fake.</p><span class="tag">Browser-based · GitHub Pages</span></div></header>
+<main class="main">
+<section class="panel"><h2>Research Scholar Toolkit</h2><p class="muted">Continue from reference verification to literature discovery and systematic screening.</p><div class="actions"><a href="./literature.html" style="display:inline-block;text-decoration:none;background:#176c72;color:white;font-weight:750;border-radius:9px;padding:11px 16px">Open Literature Search &amp; PRISMA Screening →</a></div></section>
+<section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Upload a DOCX file containing only your reference list. Do not upload a full paper or PDF. Check the extracted preview before verification. Reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a .docx file containing references only</strong><br><input type="file" id="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
+<section class="panel hidden" id="resultsPanel"><h2>2. Verification results</h2><div class="stats"><div class="stat"><span class="muted">References checked</span><strong id="total">0</strong></div><div class="stat"><span class="muted">TOTALLY CORRECTED</span><strong id="correct">0</strong></div><div class="stat"><span class="muted">MANUAL CORRECTION REQUIRED</span><strong id="manual">0</strong></div></div><div class="actions"><button id="selectManualBtn" class="secondary">Show manual-review only</button><button id="showAllBtn" class="secondary">Show all references</button><button id="clearSelectionBtn" class="secondary">Clear selection</button><button id="fullscreenBtn" class="secondary">Expand results table ⛶</button><button id="excelBtn">Download Excel audit (.xlsx)</button><button id="wordBtn" class="secondary">Download corrected reference list (.docx)</button></div><p class="muted">Select manual-review references to focus the list. Use “Find best match” to retrieve one relevance-ranked Crossref candidate, inspect title, authors, year and DOI, and apply it only if it is the same paper. Manually corrected references are highlighted in the Word output.</p><p class="muted">A Crossref search result is a candidate, not a guarantee. Review author order, publication year, journal, pages/article number, and DOI before using corrected references in a submission.</p><div class="tablewrap"><table><thead><tr><th>Select</th><th>Original reference</th><th>Decision</th><th>Candidate / correction</th><th>Notes</th><th>Search</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+<section class="panel"><h2>How it works</h2><p class="muted">The app extracts paragraphs from DOCX files or text from PDF pages, locates a likely reference section in full papers/reports, queries Crossref by DOI when present and otherwise by title/bibliographic text, then applies conservative match thresholds. It also gives a Google Scholar search link for manual verification. The Word output is a separate report; it does not edit in-text citations in a full manuscript.</p><div class="notice">Privacy note: file extraction happens in your browser. When you click Verify, reference text/DOIs are sent to the public Crossref API for lookup. Avoid using this public tool for confidential unpublished material.</div></section>
+</main><footer>Built for research reference checking · Always verify metadata before publication</footer>
+<script>
+const $=id=>document.getElementById(id);let refs=[],results=[],manualOnly=false;
+const scholar=q=>'https://scholar.google.com/scholar?q='+encodeURIComponent(q);
+function setStatus(s){$('status').textContent=s}
+function clean(s){return (s||'').replace(/\\([.,&])/g,'$1').replace(/\s+/g,' ').trim()}
+function escapeHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function parseRef(ref){
+ const doiMatch=ref.match(/(?:https?:\/\/(?:dx\.)?doi\.org\/|\bdoi\s*:\s*)(10\.\d{4,9}\/[^\s<>]+)/i);
+ const doi=doiMatch?doiMatch[1].replace(/[.,;)]+$/,''):'';
+ const yearMatch=ref.match(/\b(?:19|20)\d{2}[a-z]?\b/);
+ const year=yearMatch?yearMatch[0]:'';
+ let title='';
+ if(yearMatch){const tail=ref.slice(yearMatch.index+yearMatch[0].length).replace(/^[ .,:()]+/,'');title=(tail.split(/\.\s+(?=[A-Z])/)[0]||'').replace(/[. ]+$/,'');}
+ const quoted=ref.match(/[“"]([^”"]{12,})[”"]/);if(quoted)title=quoted[1];
+ return {doi,year,title};
+}
+function sim(a,b){a=(a||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();b=(b||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();if(!a||!b)return 0;const x=a.split(' '),y=b.split(' ');let same=0;const used=new Set();for(const t of x){let best=-1;for(let j=0;j<y.length;j++){if(!used.has(j)&&y[j]===t){best=j;break;}}if(best>=0){same++;used.add(best)}}return (2*same)/(x.length+y.length)}
+function itemYear(it){for(const k of ['published-print','published-online','published','issued','created']){const p=it[k]?.['date-parts'];if(p?.[0]?.[0])return String(p[0][0])}return ''}
+function titleOf(it){return (it.title||[''])[0]}
+function authorOf(it){return (it.author||[]).map(a=>[a.given,a.family].filter(Boolean).join(' ')).join('; ')}
+function originalAuthorText(ref){const m=String(ref||'').match(/^(.{3,180}?)\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b/);return m?m[1].replace(/^\s*\[?\d+\]?\.?\s*/,'').trim():''}
+function authorSimilarity(ref,it){
+ const raw=originalAuthorText(ref).toLowerCase().replace(/[^a-z0-9,; &.-]/g,' ');
+ const families=(it.author||[]).map(a=>(a.family||'').toLowerCase()).filter(Boolean);
+ if(!raw||!families.length)return null;
+ const tokens=raw.split(/[;,]/).map(s=>s.trim().replace(/\b(and|et al|and others)\b/g,'').replace(/[^a-z0-9.-]/g,'')).filter(s=>s.length>2);
+ if(!tokens.length)return null;
+ const hits=families.filter(f=>tokens.some(t=>t===f||t.includes(f)||f.includes(t)));
+ return hits.length/Math.min(families.length,Math.max(1,tokens.length));
+}
+function doiOf(it){return (it.DOI||'').replace(/^https?:\/\/(dx\.)?doi\.org\//i,'').replace(/[.,;]+$/,'')}
+function citation(it){const authors=(it.author||[]).map(a=>{const init=(a.given||'').match(/\b\w/g)||[];return (a.family||'')+(init.length?', '+init.map(x=>x+'.').join(' '):'')});let s=(authors.length>8?[...authors.slice(0,6),'…',authors[authors.length-1]]:authors).join(', ');s+=' ('+itemYear(it)+'). '+titleOf(it)+'. '+((it['container-title']||[''])[0]||'');if(it.volume)s+=', '+it.volume;if(it.issue)s+='('+it.issue+')';const pg=it.page||it['article-number'];if(pg)s+=', '+pg;const d=doiOf(it);if(d)s+='. https://doi.org/'+d;return s.trim()}
+const crossrefCache=new Map();
+async function fetchJson(url){
+ let lastError;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const response=await fetch(url,{headers:{'Accept':'application/json'}});
+   if(response.ok)return await response.json();
+   if(response.status!==429&&response.status<500)throw new Error('Crossref returned HTTP '+response.status);
+   lastError=new Error('Crossref returned HTTP '+response.status);
+  }catch(e){lastError=e}
+  if(attempt<2)await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));
+ }
+ throw lastError||new Error('Crossref request failed');
+}
+async function crossref(params){
+ const url='https://api.crossref.org/works?'+new URLSearchParams(params);
+ const key='search:'+url;if(crossrefCache.has(key))return crossrefCache.get(key);
+ const promise=fetchJson(url).then(data=>data.message?.items||[]);crossrefCache.set(key,promise);
+ try{return await promise}catch(e){crossrefCache.delete(key);throw e}
+}
+async function verifyOne(ref){
+ const p=parseRef(ref);const cacheKey='ref:'+ref.trim().toLowerCase().replace(/\\s+/g,' ');
+ if(crossrefCache.has(cacheKey))return {...await crossrefCache.get(cacheKey),'Original reference':ref};
+ const work=(async()=>{
+ let candidates=[],method='';
+ if(p.doi){
+  try{const data=await fetchJson('https://api.crossref.org/works/'+p.doi);if(data.message)candidates=[data.message];method='Direct DOI lookup'}
+  catch(e){method='DOI lookup unavailable'}
+ }
+ if(!candidates.length&&p.title){try{candidates=await crossref({'query.title':p.title,rows:'5'});method='Title search'}catch(e){method='Crossref request failed'}}
+ if(!candidates.length){try{candidates=await crossref({'query.bibliographic':ref,rows:'5'});method='Bibliographic search'}catch(e){method='Crossref request failed'}}
+ let best=null,bestScore=-1;for(const c of candidates){
+  const titleScore=sim(p.title||ref,titleOf(c));
+  const yearScore=p.year&&itemYear(c)?(p.year.slice(0,4)===itemYear(c).slice(0,4)?1:0):0.5;
+  const authorScore=authorSimilarity(ref,c);
+  let score=.78*titleScore+.12*yearScore+(authorScore===null?.10:.10*authorScore);
+  if(p.doi&&doiOf(c).toLowerCase()===p.doi.toLowerCase())score=1;
+  if(score>bestScore){best=c;bestScore=score}
+ }
+ if(!best)return {'Original reference':ref,'DOI in reference':p.doi,'Year in reference':p.year,'Parsed title':p.title,'Decision':'MANUAL CORRECTION REQUIRED','Match confidence':'','Match method':method||'No database result','Crossref title':'','Crossref authors':'','Crossref year':'','Journal':'','Crossref DOI':'','Suggested reference':'','Notes':'No Crossref match returned. This is not evidence that the paper is fabricated; verify through the publisher, DOI resolver, or Google Scholar.','Google Scholar search':scholar(p.title||ref)};
+ const cdoi=doiOf(best),cyear=itemYear(best),ctitle=titleOf(best),ts=sim(p.title,ctitle),authorScore=authorSimilarity(ref,best),doiMatch=!!p.doi&&p.doi.toLowerCase()===cdoi.toLowerCase(),yearMatch=!p.year||!cyear||p.year.slice(0,4)===cyear.slice(0,4);
+ const titleStrong=ts>=.88,authorCompatible=authorScore===null||authorScore>=.35;
+ const confident=(!!p.doi&&doiMatch&&ts>=.72&&authorCompatible)||(!p.doi&&titleStrong&&yearMatch&&authorCompatible);
+ let notes=[];if(p.doi&&cdoi&&!doiMatch)notes.push('DOI differs from candidate');if(p.title&&ts<.88)notes.push('Title differs from candidate');if(authorScore!==null&&authorScore<.35)notes.push('Author names may differ from candidate');if(p.year&&cyear&&p.year.slice(0,4)!==cyear.slice(0,4))notes.push('Year differs; check online-first versus issue year');if(!notes.length)notes.push(confident?'Title, year and available author/DOI evidence meet the match threshold':'Candidate found but evidence is insufficient for automatic acceptance');
+ return {'Original reference':ref,'DOI in reference':p.doi,'Year in reference':p.year,'Parsed title':p.title,'Decision':confident?'TOTALLY CORRECTED':'MANUAL CORRECTION REQUIRED','Match confidence':Number(ts.toFixed(3)),'Match method':method,'Crossref title':ctitle,'Crossref authors':authorOf(best),'Crossref year':cyear,'Journal':(best['container-title']||[''])[0],'Crossref DOI':cdoi,'Suggested reference':citation(best),'Notes':notes.join('; '),'Google Scholar search':scholar(p.title||ref)};
+ })();
+ crossrefCache.set(cacheKey,work);
+ try{return await work}catch(e){crossrefCache.delete(cacheKey);throw e}
+}
+$('file').addEventListener('change',()=>{$('filename').textContent=$('file').files[0]?.name||'No file selected';$('verifyBtn').disabled=true;refs=[];results=[];$('preview').classList.add('hidden');$('resultsPanel').classList.add('hidden');setStatus('')});
+async function extractPdfText(file){
+ if(!window.pdfjsLib)throw new Error('PDF text reader did not load. Refresh and try again.');
+ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+ const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let pages=[];
+ for(let n=1;n<=pdf.numPages;n++){
+  setStatus('Reading PDF text: page '+n+' of '+pdf.numPages+'…');
+  const page=await pdf.getPage(n),content=await page.getTextContent(),viewport=page.getViewport({scale:1}),items=[];
+  for(const item of content.items){if(!item.str||!item.str.trim())continue;items.push({x:Number(item.transform[4])||0,y:Number(item.transform[5])||0,w:Math.max(1,Number(item.width)||item.str.length*3),text:item.str})}
+  if(!items.length){pages.push('');continue}
+  // Detect a persistent whitespace gutter. This prevents text from two columns
+  // being merged into the same line, which was corrupting reference boundaries.
+  const width=viewport.width||Math.max(...items.map(i=>i.x+i.w)),bins=120,occupancy=new Array(bins).fill(0);
+  for(const it of items){const lo=Math.max(0,Math.floor(it.x/width*bins)),hi=Math.min(bins-1,Math.floor(Math.min(width,it.x+it.w)/width*bins));for(let k=lo;k<=hi;k++)occupancy[k]++}
+  let best=null;
+  for(let i=Math.floor(bins*.28);i<Math.floor(bins*.68);i++){
+   if(occupancy[i]!==0)continue;let j=i;while(j+1<Math.floor(bins*.72)&&occupancy[j+1]===0)j++;
+   const span=j-i+1;if(span>=3&&(!best||span>best.span))best={lo:i,hi:j,span};i=j;
+  }
+  const split=best&&best.span>=4?((best.lo+best.hi+1)/2/bins*width):null;
+  const lineText=arr=>{
+   const rows=new Map();
+   for(const it of arr){const y=Math.round(it.y*2)/2,key=String(y);if(!rows.has(key))rows.set(key,[]);rows.get(key).push(it)}
+   return [...rows.entries()].sort((a,b)=>Number(b[0])-Number(a[0])).map(([,row])=>row.sort((a,b)=>a.x-b.x).map(it=>it.text).join(' ').replace(/\\s+/g,' ').trim()).filter(Boolean);
+  };
+  let ordered;
+  if(split!==null){
+   const left=items.filter(it=>it.x+it.w/2<split),right=items.filter(it=>it.x+it.w/2>=split);
+   const leftLines=lineText(left),rightLines=lineText(right);
+   // Standard journal reading order is top-to-bottom in the left column,
+   // followed by top-to-bottom in the right column.
+   ordered=leftLines.concat(rightLines);
+  }else ordered=lineText(items);
+  pages.push(ordered.join('\\n'));
+ }
+ return pages.join('\\n');
+}
+function extractReferenceSection(text){
+ const raw=text.split(/\r?\n/).map(x=>clean(x)).filter(Boolean);
+ const norm=x=>x.toLowerCase().replace(/[\u00a0\u200b]/g,' ').replace(/^\s*(?:(?:\d+(?:\.\d+)*|[ivxlcdm]+)[.)]?\s+)?/i,'').replace(/[\s.:;|0-9]+$/g,'').trim();
+ const headingNames=['references','reference','bibliography','literature cited','works cited','references and notes','reference list','literature references'];
+ const isHeading=x=>headingNames.includes(norm(x));
+ let start=-1,found=false;
+ // A full manuscript must have an identifiable reference-section heading. Do not
+ // guess from author-year citations in the body: those are in-text citations.
+ for(let i=raw.length-1;i>=0;i--){
+  if(isHeading(raw[i])){start=i+1;found=true;break}
+  if(raw[i].length<100&&/\b(references|bibliography|works cited|literature cited|reference list)\b/i.test(raw[i])){
+   const m=raw[i].match(/\b(?:references|bibliography|works cited|literature cited|reference list)\b/i);
+   if(m){start=i+1;found=true;break}
+  }
+ }
+ if(!found)return {found:false,refs:[],message:'No distinct References/Bibliography heading was detected. To avoid treating in-text citations as references, extraction stopped. Check that the PDF has selectable text and a visible reference-section heading.'};
+ const stop=/^(?:appendix(?:es)?|supplementary material|author contributions|conflict of interest|acknowledg(?:e)?ments|funding|data availability|declaration of competing interests|ethics statement|supplementary information|endnotes)\b/i;
+ const numberedInline=/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s+\S/;
+ const year=/\b(?:18|19|20|21)\d{2}[a-z]?\b/;
+ const authorYearStart=x=>/^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+/.test(x)&&year.test(x.slice(0,180))&&x.length>30;
+ const body=[];
+ for(let i=start;i<raw.length;i++){if(stop.test(raw[i])&&body.length>=2)break;body.push(raw[i])}
+ const refs=[];let current='',expectNumbered=false;
+ const push=()=>{if(current.trim().length>=25)refs.push(clean(current));current=''};
+ for(const original of body){
+  const line=clean(original);if(!line||isHeading(line)||stop.test(line))continue;
+  if(/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s*$/.test(line)){push();expectNumbered=true;continue}
+  if(numberedInline.test(line)){push();current=line.replace(/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)])\s+/,'');expectNumbered=false;continue}
+  if(authorYearStart(line)){push();current=line;expectNumbered=false;continue}
+  if(expectNumbered){current=line;expectNumbered=false;continue}
+  const split=line.split(/(?=\s+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*)?\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b)/);
+  for(let j=0;j<split.length;j++){const part=clean(split[j]);if(!part)continue;if(j>0&&authorYearStart(part)){push();current=part}else if(current)current+=' '+part;else current=part}
+ }
+ push();
+ const cleanRefs=refs.filter(x=>x.length>=25&&!isHeading(x)&&!stop.test(x));
+ return {found:true,refs:cleanRefs,message:'Reference section located. Only text after the References/Bibliography heading is considered; review each boundary before verification.'};
+}
+$('extractBtn').addEventListener('click',async()=>{
+ const f=$('file').files[0];
+ if(!f){setStatus('Please upload a DOCX file containing references only.');return}
+ try{
+  if(!f.name.toLowerCase().endsWith('.docx'))throw new Error('Please upload a DOCX reference list only.');
+  setStatus('Extracting reference list from DOCX…');
+  const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});
+  const text=out.value;
+  const result=extractReferenceSection(text);
+  let found=result.found,resultMessage=result.message||'';
+  if(result.found)refs=result.refs;
+  else{
+   const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
+   const filenameSuggestsList=/(ref|reference|bibliograph|citation)/i.test(f.name);
+   // Headingless reference-only DOCX files are common. Detect repeated
+   // bibliographic paragraphs as a second signal instead of relying on filename.
+   const citationLike=lines.filter(x=>x.length>=25&&(
+    /\b(?:18|19|20|21)\d{2}[a-z]?\b/.test(x) ||
+    /\bdoi\s*:\s*10\.|https?:\/\/doi\.org\/10\./i.test(x) ||
+    /\b(?:journal|proceedings|vol\.?|pp?\.?\s*\d|university|press)\b/i.test(x)
+   ));
+   const hasManyReferenceParagraphs=lines.length>=3&&citationLike.length/Math.max(1,lines.length)>=0.45;
+   if(filenameSuggestsList||hasManyReferenceParagraphs)
+    refs=lines.filter(x=>x.length>=25&&!/^\s*(references|bibliography|reference list)[: ]*$/i.test(x));
+   else refs=[];
+  }
+  if(!refs.length)throw new Error('No separate reference entries were identified. Upload a DOCX containing only the reference list; if it has no References heading, ensure the document contains only the reference list.');
+  $('preview').classList.remove('hidden');
+  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(resultMessage||'Reference list prepared.')+' Review the boundaries before verification.</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
+  $('verifyBtn').disabled=false;setStatus('Extraction complete. Check the preview before verification.');
+ }catch(e){setStatus('Could not prepare references: '+e.message)}
+});
+$('verifyBtn').addEventListener('click',async()=>{
+ if(!refs.length)return;results=new Array(refs.length);$('verifyBtn').disabled=true;$('extractBtn').disabled=true;$('resultsPanel').classList.remove('hidden');
+ let next=0,done=0;const worker=async()=>{while(true){const i=next++;if(i>=refs.length)return;try{results[i]=await verifyOne(refs[i])}catch(e){results[i]={'Original reference':refs[i],'Decision':'MANUAL CORRECTION REQUIRED','Notes':'Verification request failed: '+e.message,'Google Scholar search':scholar(refs[i])}}
+ done++;if(done===1||done%5===0||done===refs.length)setStatus('Checking references: '+done+' of '+refs.length+' completed…');
+ }};
+ try{await Promise.all(Array.from({length:Math.min(4,refs.length)},()=>worker()));renderResults();setStatus('Verification finished: '+results.filter(x=>x.Decision==='TOTALLY CORRECTED').length+' matched at the applied threshold; '+results.filter(x=>x.Decision==='MANUAL CORRECTION REQUIRED').length+' require manual review. Review all suggested matches before use.')}
+ finally{$('verifyBtn').disabled=false;$('extractBtn').disabled=false}
+});
+function renderResults(){
+ $('total').textContent=results.length;
+ $('correct').textContent=results.filter(x=>x.Decision==='TOTALLY CORRECTED'||x.Decision==='MANUALLY CORRECTED').length;
+ $('manual').textContent=results.filter(x=>x.Decision==='MANUAL CORRECTION REQUIRED').length;
+ const visible=results.map((r,i)=>({r,i})).filter(({r})=>!manualOnly||r.Decision==='MANUAL CORRECTION REQUIRED');
+ $('selectManualBtn').textContent=manualOnly?'Manual-review filter active':'Show manual-review only';
+ $('tbody').innerHTML=visible.map(({r,i})=>{
+  const manual=r.Decision==='MANUAL CORRECTION REQUIRED';
+  const candidate=r['Suggested reference']||r['Crossref title']||'No candidate';
+  return '<tr class="'+(r.Decision==='MANUALLY CORRECTED'?'manually-corrected':'')+'"><td><input type="checkbox" class="row-select" data-index="'+i+'" '+(r.selected?'checked':'')+' aria-label="Select reference '+(i+1)+'"></td><td>'+escapeHtml(r['Original reference']||'')+'</td><td><span class="pill '+(r.Decision==='TOTALLY CORRECTED'||r.Decision==='MANUALLY CORRECTED'?'good':'review')+'">'+escapeHtml(r.Decision||'MANUAL CORRECTION REQUIRED')+'</span></td><td><div>'+escapeHtml(candidate)+'</div>'+(manual?'<button class="secondary find-candidates" data-index="'+i+'">Find best match</button><div id="candidateBox'+i+'"></div>':'')+'</td><td>'+escapeHtml(r.Notes||'')+'</td><td><a href="'+escapeHtml(r['Google Scholar search']||scholar(r['Original reference']||''))+'" target="_blank" rel="noopener">Google Scholar ↗</a></td></tr>'
+ }).join('');
+ if(manualOnly&&visible.length===0)$('tbody').innerHTML='<tr><td colspan="6">No references currently require manual correction.</td></tr>';
+}
+$('selectManualBtn').addEventListener('click',()=>{manualOnly=true;results.forEach(r=>r.selected=r.Decision==='MANUAL CORRECTION REQUIRED');renderResults()});
+$('showAllBtn').addEventListener('click',()=>{manualOnly=false;renderResults()});
+$('fullscreenBtn').addEventListener('click',async()=>{const el=$('resultsPanel').querySelector('.tablewrap');try{if(!document.fullscreenElement){await el.requestFullscreen();$('fullscreenBtn').textContent='Exit full screen ⤢'}else{await document.exitFullscreen();$('fullscreenBtn').textContent='Expand results table ⛶'}}catch(e){el.style.maxHeight='calc(100vh - 180px)';el.style.height='calc(100vh - 180px)';setStatus('Expanded table view enabled.')}});
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)$('fullscreenBtn').textContent='Expand results table ⛶'});
+$('clearSelectionBtn').addEventListener('click',()=>{results.forEach(r=>r.selected=false);renderResults()});
+$('tbody').addEventListener('change',e=>{if(e.target.classList.contains('row-select')){const i=Number(e.target.dataset.index);if(results[i])results[i].selected=e.target.checked}});
+$('tbody').addEventListener('click',async e=>{
+ const btn=e.target.closest('.find-candidates');if(!btn)return;
+ const i=Number(btn.dataset.index),r=results[i];if(!r)return;
+ const box=$('candidateBox'+i);btn.disabled=true;btn.textContent='Searching Crossref…';
+ try{
+  const p=parseRef(r['Original reference']||'');let items=[];
+  if(p.title)items=await crossref({'query.title':p.title,rows:'10'});
+  if(items.length<5){const more=await crossref({'query.bibliographic':r['Original reference']||'',rows:'10'});items=items.concat(more)}
+  const seen=new Set();items=items.filter(x=>{const key=(x.DOI||x.title?.[0]||'').toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true});
+  const scored=items.map(x=>{const ts=sim(p.title||r['Original reference'],titleOf(x)),ys=p.year&&itemYear(x)?(p.year.slice(0,4)===itemYear(x).slice(0,4)?1:0):.5,as=authorSimilarity(r['Original reference'],x),doi=p.doi&&doiOf(x).toLowerCase()===p.doi.toLowerCase();return {item:x,score:doi?1:.78*ts+.12*ys+.10*(as===null?.5:as),titleScore:ts,authorScore:as,yearScore:ys,doi}}).sort((a,b)=>b.score-a.score);
+  const best=scored[0];
+  if(!best||best.score<.48||best.titleScore<.35){box.innerHTML='<p class="muted">No sufficiently relevant Crossref match found. We are not showing unrelated options. Use the Google Scholar link or search the publisher site manually.</p>';return}
+  const x=best.item;
+  box.innerHTML='<div class="notice" style="margin:8px 0"><strong>Best available match</strong> · relevance '+Math.round(best.score*100)+'% (heuristic, not a probability)<br><strong>'+escapeHtml(titleOf(x)||'Untitled')+'</strong><br>'+escapeHtml(authorOf(x)||'Authors not listed')+' · '+escapeHtml(itemYear(x)||'Year unavailable')+' · '+escapeHtml((x['container-title']||['Journal not listed'])[0])+'<br>DOI: '+escapeHtml(doiOf(x)||'not listed')+'<br>'+((best.titleScore<.88)?'Title differs. ':'')+((best.authorScore!==null&&best.authorScore<.35)?'Author list may differ. ':'')+((p.year&&itemYear(x)&&p.year.slice(0,4)!==itemYear(x).slice(0,4))?'Year differs. ':'')+'Review the original publisher record before applying.</div><button class="apply-candidate" data-index="'+i+'">Apply this match</button>';
+  box._candidateItems=[x];
+ }catch(err){box.innerHTML='<p class="muted">Candidate search failed: '+escapeHtml(err.message)+'</p>'}
+ finally{btn.disabled=false;btn.textContent='Find candidates'}
+});
+$('tbody').addEventListener('click',e=>{
+ const btn=e.target.closest('.apply-candidate');if(!btn)return;
+ const i=Number(btn.dataset.index),box=$('candidateBox'+i),r=results[i],items=box?box._candidateItems:[];
+ if(!r||!items||!items[0]){setStatus('No reliable candidate is available to apply.');return}
+ const paper=items[0];
+ r['Suggested reference']=citation(paper);r['Crossref title']=(paper.title||[''])[0];r['Crossref authors']=authorOf(paper);r['Crossref year']=((paper.published?.['date-parts']||paper['published-print']?.['date-parts']||paper['published-online']?.['date-parts']||[['']])[0][0]);r['Journal']=(paper['container-title']||[''])[0];r['Crossref DOI']=paper.DOI||'';r['Decision']='MANUALLY CORRECTED';r['Notes']='Candidate selected manually by user; verify all metadata before publication.';r['selected']=true;
+ renderResults();setStatus('Candidate applied to reference '+(i+1)+'. The corrected entry will be highlighted in the Word reference list.');
+});
+$('excelBtn').addEventListener('click',()=>{const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results),'Full Audit');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results.filter(r=>r.Decision==='MANUAL CORRECTION REQUIRED')),'Manual Review');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(results.filter(r=>r.Decision==='TOTALLY CORRECTED'||r.Decision==='MANUALLY CORRECTED')),'Matched');XLSX.writeFile(wb,'citation_verification_audit.xlsx')});
+$('wordBtn').addEventListener('click',async()=>{try{const {Document,Paragraph,Packer,TextRun,HeadingLevel}=docx;const children=[new Paragraph({text:'Citation Verification Report',heading:HeadingLevel.TITLE}),new Paragraph('References checked against Crossref. Review all metadata before publication.')];results.forEach((r,i)=>{const corrected=(r.Decision==='TOTALLY CORRECTED'||r.Decision==='MANUALLY CORRECTED')&&r['Suggested reference'];const val=corrected?r['Suggested reference']:r['Original reference'];children.push(new Paragraph({children:[new TextRun({text:(i+1)+'. '+(val||''),highlight:r.Decision==='MANUALLY CORRECTED'?'yellow':undefined,bold:r.Decision==='MANUALLY CORRECTED'})]}));if(!corrected)children.push(new Paragraph({children:[new TextRun({text:'[MANUAL CORRECTION REQUIRED] '+(r.Notes||''),italics:true})]}))});const d=new Document({sections:[{children}]});saveAs(await Packer.toBlob(d),'corrected_reference_list_highlighted.docx')}catch(e){setStatus('Word export failed: '+e.message)}});
+</script>
+
+<script src="supabase-auth.js"></script>
+</body></html>
