@@ -5,6 +5,7 @@ on:
     branches: ["main"]
     paths:
       - "index.html"
+      - "citation-verification.html"
       - "literature.html"
       - "workspace.html"
       - "manuscript-audit.html"
