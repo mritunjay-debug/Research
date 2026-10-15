@@ -57,7 +57,8 @@ scripts/data-analysis-core-test.mjs
 - [x] Add a clearly labelled synthetic sample dataset for first-run exploration; mark its provenance in analysis records and reports.
 - Missingness and duplicate-row reports with row identifiers.
 - Range checks, suspicious-value flags and explicit unit conversions.
-- Transformations as reversible, parameterized operations; preview before apply.
+- [x] Add a reversible, parameterized numeric derived-column operation with preview/confirm, undo/redo, unit labels, reason, valid/missing counts, and exportable provenance. The original imported matrix is retained in memory; the operation creates a new column and never imputes or deletes rows.
+- [ ] Expand to additional explicit recoding/unit-conversion operations and test transformations against browser UI workflows.
 - Clear original/current dataset distinction and undo/redo.
 - No automatic deletion or imputation.
 
