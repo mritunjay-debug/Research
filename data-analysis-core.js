@@ -46,8 +46,9 @@
     const warnings=[];
     if(rows.some(r=>r.length!==width))warnings.push('Rows with different field counts were padded with empty cells; inspect the source before inferential analysis.');
     rows.forEach((r,i)=>{if(r.some(v=>v.length>limits.maxCellChars))throw new Error('A cell in row '+(i+1)+' exceeds the supported text length.')});
-    const rawHeaders=rows[0].map((x,i)=>String(x).trim()||('Column '+(i+1))),seen=new Map();
+    const rawHeaders=Array.from({length:width},(_,i)=>String(rows[0][i]??'').trim()||('Column '+(i+1))),seen=new Map();
     const headers=rawHeaders.map((h,i)=>{const count=(seen.get(h)||0)+1;seen.set(h,count);if(count>1){warnings.push('Duplicate header "'+h+'" renamed to "'+h+' ('+count+')".');return h+' ('+count+')'}return h});
+    rows.forEach(r=>{while(r.length<width)r.push('')});
     rows[0]=headers;
     return {rows,headers,warnings,rowCount:rows.length-1,columnCount:width};
   }
@@ -61,7 +62,7 @@
   }
   function profileRows(rows){
     const clean=normaliseRows(rows),data=clean.rows.slice(1),n=data.length;
-    const variables=clean.headers.map((name,index)=>{const values=data.map(r=>r[index]??''),present=values.filter(v=>String(v).trim()!==''),uniq=new Set(present).size;return {index,name,type:inferType(values),missing:n-present.length,missingPercent:n?100*(n-present.length)/n:0,unique:uniq,examples:present.slice(0,3),range:inferType(values)==='numeric'&&present.length?{min:Math.min(...present.map(Number)),max:Math.max(...present.map(Number))}:null}});
+    const variables=clean.headers.map((name,index)=>{const values=data.map(r=>r[index]??''),present=values.filter(v=>String(v).trim()!==''),uniq=new Set(present).size;return {index,name,type:inferType(values),missing:n-present.length,missingPercent:n?100*(n-present.length)/n:0,unique:uniq,examples:present.slice(0,3),range:inferType(values)==='numeric'&&present.length?present.reduce((range,value)=>{const number=Number(value);range.min=Math.min(range.min,number);range.max=Math.max(range.max,number);return range},{min:Infinity,max:-Infinity}):null}});
     const seen=new Set();let duplicateRows=0;
     for(const row of data){const key=JSON.stringify(row);if(seen.has(key))duplicateRows++;else seen.add(key)}
     return {rowCount:n,columnCount:clean.columnCount,missingCells:variables.reduce((s,v)=>s+v.missing,0),duplicateRows,variables,warnings:clean.warnings};
