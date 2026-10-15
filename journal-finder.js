@@ -20,7 +20,7 @@
   if(a.length<80&&!t){status.textContent='Add a title or a longer abstract (at least 80 characters).';return}
   run.disabled=true;run.textContent='Finding journals…';status.textContent='Searching published research and grouping related papers by journal…';results.innerHTML='';latest=[];
   try{
-   const qs=[];if(t)qs.push({q:t.slice(0,350),weight:2});if(a)qs.push({q:a.slice(0,900),weight:1});
+   const qs=[];if(t)qs.push({q:t.slice(0,350),weight:2});if(a)qs.push({q:([field.value.trim(),a].filter(Boolean).join(' ')).slice(0,900),weight:1});
    const settled=await Promise.all(qs.map(async x=>({weight:x.weight,works:await fetchWorks(x.q)})));
    const seen=new Map();for(const batch of settled){for(const w of batch.works){if(!w.id)continue;const old=seen.get(w.id);if(!old||old.weight<batch.weight)seen.set(w.id,{...w,weight:batch.weight})}}
    const candidates=new Map();for(const w of seen.values()){const s=sourceOf(w);if(!s||!s.id||!s.display_name)continue;let c=candidates.get(s.id);if(!c){c={id:s.id,name:s.display_name,publisher:s.host_organization_name||'',issn:s.issn||[],homepage:s.homepage_url||'',openalex:s.id,papers:[],weightSum:0,recentCount:0};candidates.set(s.id,c)}c.papers.push(w);c.weightSum+=w.weight;if((w.publication_year||0)>=2022)c.recentCount++}
