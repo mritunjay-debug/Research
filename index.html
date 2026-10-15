@@ -18,7 +18,7 @@
 <header class="hero"><div class="wrap"><div class="eyebrow">Research integrity toolkit</div><h1>Citation Verification Agent</h1><p>Check a Word reference list or full PDF paper/report against Crossref metadata, inspect possible matches, and export a review-ready Excel audit and Word report. Uncertain records are flagged for manual review—not declared fake.</p><span class="tag">Browser-based · GitHub Pages</span></div></header>
 <main class="main">
 <section class="panel"><h2>Research Scholar Toolkit</h2><p class="muted">Continue from reference verification to literature discovery and systematic screening.</p><div class="actions"><a href="./literature.html" style="display:inline-block;text-decoration:none;background:#176c72;color:white;font-weight:750;border-radius:9px;padding:11px 16px">Open Literature Search &amp; PRISMA Screening →</a></div></section>
-<section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Upload a DOCX reference list or a full PDF paper/report. The tool extracts text in your browser and looks for a References/Bibliography section. PDFs must contain selectable text; scanned PDFs need OCR first. Extracted reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a .docx reference list or full .pdf paper/report</strong><br><input type="file" id="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,application/pdf"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
+<section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Paste your reference list into the text box, or upload a DOCX containing only the references. Do not upload a full paper or PDF. Check the extracted preview before verification. Reference text is sent to Crossref only when you run verification.</p><label for="referenceText"><strong>Option 1: Paste references</strong></label><textarea id="referenceText" rows="8" placeholder="Paste your reference list here, one reference per paragraph. Include all authors, year, title, journal/book details, pages and DOI where available."></textarea><p class="muted">Or use Option 2 below. Use one reference per paragraph or line where possible.</p><div class="drop"><strong>Option 2: Upload a .docx file containing references only</strong><br><input type="file" id="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
 <section class="panel hidden" id="resultsPanel"><h2>2. Verification results</h2><div class="stats"><div class="stat"><span class="muted">References checked</span><strong id="total">0</strong></div><div class="stat"><span class="muted">TOTALLY CORRECTED</span><strong id="correct">0</strong></div><div class="stat"><span class="muted">MANUAL CORRECTION REQUIRED</span><strong id="manual">0</strong></div></div><div class="actions"><button id="excelBtn">Download Excel audit (.xlsx)</button><button id="wordBtn" class="secondary">Download Word report (.docx)</button></div><p class="muted">A Crossref search result is a candidate, not a guarantee. Review author order, publication year, journal, pages/article number, and DOI before using corrected references in a submission.</p><div class="tablewrap"><table><thead><tr><th>Original reference</th><th>Decision</th><th>Crossref candidate</th><th>Notes</th><th>Search</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
 <section class="panel"><h2>How it works</h2><p class="muted">The app extracts paragraphs from DOCX files or text from PDF pages, locates a likely reference section in full papers/reports, queries Crossref by DOI when present and otherwise by title/bibliographic text, then applies conservative match thresholds. It also gives a Google Scholar search link for manual verification. The Word output is a separate report; it does not edit in-text citations in a full manuscript.</p><div class="notice">Privacy note: file extraction happens in your browser. When you click Verify, reference text/DOIs are sent to the public Crossref API for lookup. Avoid using this public tool for confidential unpublished material.</div></section>
 </main><footer>Built for research reference checking · Always verify metadata before publication</footer>
@@ -156,45 +156,41 @@ function extractReferenceSection(text){
  const cleanRefs=refs.filter(x=>x.length>=25&&!isHeading(x)&&!stop.test(x));
  return {found:true,refs:cleanRefs,message:'Reference section located. Only text after the References/Bibliography heading is considered; review each boundary before verification.'};
 }
+function splitPastedReferences(text){
+ const chunks=text.split(/\n\s*\n+/).map(clean).filter(x=>x.length>=25);
+ if(chunks.length>1)return chunks;
+ const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
+ const starts=/^(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)]\s+|[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*)?\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b)/;
+ const out=[];let cur='';
+ for(const line of lines){if(starts.test(line)&&cur){out.push(cur.trim());cur=line}else if(!cur)cur=line;else cur+=' '+line}
+ if(cur.trim())out.push(cur.trim());
+ return out.filter(x=>x.length>=25);
+}
 $('extractBtn').addEventListener('click',async()=>{
- const f=$('file').files[0];if(!f){setStatus('Please select a DOCX or PDF file first.');return}
+ const f=$('file').files[0],pasted=$('referenceText').value.trim();
+ if(!f&&!pasted){setStatus('Paste your reference list or upload a DOCX containing references only.');return}
  try{
-  setStatus('Extracting text in your browser…');let text;
-  if(f.name.toLowerCase().endsWith('.pdf'))text=await extractPdfText(f);
-  else {const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});text=out.value}
-  let found=true;
-  const isPdf=f.name.toLowerCase().endsWith('.pdf');
-  let resultMessage='';
-  if(isPdf){
-   const result=extractReferenceSection(text);found=result.found;refs=result.refs;resultMessage=result.message||'';
+  setStatus('Preparing reference list…');let found=true,resultMessage='';
+  if(pasted){
+   refs=splitPastedReferences(pasted);
+   resultMessage='References were segmented from the pasted text. Check each boundary before verification.';
   }else{
+   if(!f.name.toLowerCase().endsWith('.docx'))throw new Error('Please upload a DOCX reference list only, or paste the reference text.');
+   const out=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});const text=out.value;
    const result=extractReferenceSection(text);found=result.found;resultMessage=result.message||'';
    if(result.found)refs=result.refs;
-   else {
+   else{
     const lines=text.split(/\r?\n/).map(clean).filter(Boolean);
     const filenameSuggestsList=/(^|[\s._-])(ref|refs|reference|references|bibliography|citations)([\s._-]|$)/i.test(f.name);
-    // The filename is a strong signal that this is a standalone reference list.
-    // Do not reject it merely because a reference title or paragraph contains the
-    // word "references" somewhere in the text.
-    if(filenameSuggestsList){
-     refs=lines.filter(x=>x.length>=25&&!/^\s*(references|bibliography|reference list)[: ]*$/i.test(x));
-     // Some DOCX files store multiple entries in one paragraph. Split only at
-     // common strong entry starts; otherwise preserve the paragraph for review.
-     if(refs.length<=1&&lines.length){
-      const joined=lines.join(' ');
-      const parts=joined.split(/(?=\s+(?:\[\s*\d{1,4}\s*\]|\(\s*\d{1,4}\s*\)|\d{1,4}[.)]\s+[A-Z]|[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]+(?:,\s*[A-Z][A-Za-z.]*)?\s*\(?\b(?:18|19|20|21)\d{2}[a-z]?\b))/).map(clean).filter(x=>x.length>=25);
-      if(parts.length>refs.length)refs=parts;
-     }
-    }else refs=[];
+    if(filenameSuggestsList)refs=splitPastedReferences(lines.join('\n'));
+    else refs=[];
    }
   }
-  if(!refs.length)throw new Error(isPdf
-   ? 'No separate reference entries were identified in this PDF. Confirm it has selectable text and a recognisable References/Bibliography heading; scanned PDFs need OCR.'
-   : 'No separate reference entries were identified. For a DOCX containing only references, include a References heading or name the file ref.docx/references.docx. For a full manuscript, ensure the reference section heading is present.');
+  if(!refs.length)throw new Error('No separate reference entries were identified. Paste one reference per paragraph, or upload a DOCX containing only the reference list.');
   $('preview').classList.remove('hidden');
-  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(resultMessage|| (found?'A reference section was detected.':'No clear References heading was detected; candidate entries were inferred from the final part of the document.'))+' Review the boundaries before verification.</p>'+(refs.length<3?'<div class="notice">Only '+refs.length+' reference entries were separated. Check the preview against the original PDF before proceeding.</div>':'')+'<ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
-  $('verifyBtn').disabled=false;setStatus('Extraction complete. Check the preview and remove any non-reference text before verification.');
- }catch(e){setStatus('Could not extract references: '+e.message)}
+  $('preview').innerHTML='<h3>Extracted '+refs.length+' candidate reference(s)</h3><p class="muted">'+(resultMessage||'Reference list prepared.')+' Review the boundaries before verification.</p><ol>'+refs.map(r=>'<li style="margin:8px 0;line-height:1.5">'+escapeHtml(r)+'</li>').join('')+'</ol>';
+  $('verifyBtn').disabled=false;setStatus('Extraction complete. Check the preview before verification.');
+ }catch(e){setStatus('Could not prepare references: '+e.message)}
 });
 function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 $('verifyBtn').addEventListener('click',async()=>{
