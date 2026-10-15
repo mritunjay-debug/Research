@@ -79,3 +79,11 @@ a{color:#246044}
 #researchToolsPanel .tool .state,.tools .tool .state{background:#d5e8d8!important;color:#174b34!important;border:1px solid #bdd7c2!important}
 #researchToolsPanel .tool .state.planned,.tools .tool .state.planned{background:#f2e9d9!important;color:#74552b!important;border-color:#e7d7b9!important}
 .tool-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:#d5e8d8;color:#174b34;margin-bottom:10px}
+
+
+/* Button contrast: white labels on green buttons, dark labels only on light buttons */
+button{color:#fff!important}
+button.secondary{color:#244c3c!important}
+.utility-nav button:not([aria-selected="true"]){color:#174638!important}
+#rt-auth-bar button{color:#174638!important}
+#rt-auth-bar button.rt-light{color:#174638!important}
