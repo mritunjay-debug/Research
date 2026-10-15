@@ -154,6 +154,7 @@ footer{color:#8a929a!important}
 <article class="tool"><div class="tool-icon" aria-hidden="true">▤</div><h3>Manuscript structure studio</h3><p>Inspect TXT/DOCX structure and export a checklist report.</p><a href="research-tools.html#manuscript">Open manuscript studio →</a></article>
 <article class="tool"><div class="tool-icon" aria-hidden="true">∑</div><h3>Data Analysis Lab</h3><p>CSV data-quality checks, descriptive summaries, and correlation matrix.</p><a href="research-tools.html#analysis">Open data analysis →</a></article>
 <article class="tool"><div class="tool-icon" aria-hidden="true">◎</div><h3>Journal Finder</h3><p>Identify candidate journals from your manuscript title and abstract, with links to related papers and journal sources.</p><a href="research-tools.html#journal-finder">Open Journal Finder →</a></article>
+<article class="tool"><div class="tool-icon" aria-hidden="true">⌘</div><h3>Research Planning Workbench</h3><p>Build a structured methodology plan, catalogue datasets, track integrity checks, and export portable records. Free and non-AI.</p><a href="research-planning.html">Open planning workbench →</a></article>
 </div>
 </section>
 <section class="panel" id="reviewHandoff"><div class="panel-head"><div><h2>Literature review handoff</h2><div class="muted">Attach a summary from the Literature & PRISMA tool to the selected project.</div></div><button class="secondary" id="refreshHandoff">Refresh</button></div><div id="handoffStatus" class="empty">No review summary has been sent from the Literature tool in this browser.</div><div class="actions"><button id="attachHandoffBtn" disabled>Attach summary to selected project</button><button class="secondary" id="clearHandoffBtn">Clear pending summary</button></div><div class="muted" style="margin-top:10px">This bridge transfers review protocol and counts only. Individual paper records, screening decisions, and PRISMA stage values remain in the Literature tool; export them separately for full auditability.</div></section>
@@ -177,7 +178,8 @@ const TOOL_REGISTRY=[
 {id:'manuscript-audit',href:'manuscript-audit.html',enabled:true},
 {id:'manuscript-studio',href:'research-tools.html#manuscript',enabled:true},
 {id:'data-analysis',href:'research-tools.html#analysis',enabled:true},
-{id:'journal-finder',href:'research-tools.html#journal-finder',enabled:true}
+{id:'journal-finder',href:'research-tools.html#journal-finder',enabled:true},
+{id:'research-planning',href:'research-planning.html',enabled:true}
 ];
 let state={projects:[],tasks:[],activeProjectId:null};
 function id(){return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
