@@ -88,7 +88,8 @@ footer{color:#8a929a!important}
 <div class="layout">
 <aside class="sidebar">
 <div class="brand">Fieldnotes<br>for Research</div><div class="brand-sub">A working desk for serious research</div>
-<nav class="nav">
+<button type="button" id="mobileWorkspaceNavToggle" class="mobile-workspace-nav-toggle" aria-expanded="false" aria-controls="workspaceNavigation">☰ <span>Workspace menu</span></button>
+<nav class="nav" id="workspaceNavigation">
 <div class="nav-label">Workspace</div>
 <a class="active" href="#dashboard">▦ &nbsp;Dashboard</a>
 <a href="#projects">▣ &nbsp;My projects</a>
@@ -233,5 +234,105 @@ load();render();readHandoff();
 
 <script src="supabase-auth.js"></script>
 <script src="workspace-cloud-sync.js"></script>
+
+<style id="workspace-mobile-final-pass">
+/* Workspace-specific mobile repairs; overrides earlier desktop-oriented declarations. */
+.mobile-workspace-nav-toggle{display:none}
+.layout{width:100%;max-width:100%;min-width:0}
+.sidebar,.main,.content,.panel,.cols,.grid,.dashboard-lower{min-width:0}
+.content{width:100%}
+.project>div:first-child{min-width:0;overflow-wrap:anywhere}
+.project{min-width:0}
+.task-actions{flex-wrap:wrap}
+.dashboard-lower{min-width:0}
+@media(max-width:720px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden}
+  .layout{display:flex!important;flex-direction:column!important;min-height:100vh}
+  .sidebar{width:100%!important;max-width:100%!important;padding:12px!important;border-right:0!important;border-bottom:3px solid #d56e4e!important}
+  .sidebar .brand{display:block!important;margin:0 4px 8px!important;font-size:19px!important}
+  .sidebar .brand br{display:none}
+  .mobile-workspace-nav-toggle{display:flex!important;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;margin:8px 0 0!important;background:#245845!important;color:#fff!important;border:1px solid #6d907d!important;border-radius:5px!important;box-shadow:none!important}
+  .sidebar #workspaceNavigation{display:none!important;max-height:60vh;overflow-y:auto;overflow-x:hidden;padding:8px 0 2px}
+  .sidebar.mobile-nav-open #workspaceNavigation{display:block!important}
+  .sidebar #workspaceNavigation .nav-label{display:block!important;margin:12px 8px 5px!important}
+  .sidebar #workspaceNavigation a{display:flex!important;white-space:normal!important;width:100%;min-height:44px;padding:11px 12px!important;margin:3px 0!important;overflow-wrap:anywhere}
+  .sidebar .brand-sub,.sidebar .side-note{display:none!important}
+  .main{width:100%!important;max-width:100%!important}
+  .topbar{height:auto!important;min-height:0!important;width:100%;display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;padding:10px 12px!important}
+  .topbar .crumb{flex:1 1 auto;min-width:0;font-size:12px}
+  .topbar .local-badge{max-width:100%;white-space:normal;line-height:1.35}
+  .dashboard-search{order:3!important;display:flex!important;flex:1 0 100%!important;width:100%!important;max-width:100%!important;min-width:0;padding:9px 10px!important}
+  .dashboard-search input{min-width:0!important;width:100%!important;font-size:16px!important}
+  .content{width:100%!important;max-width:100%!important;margin:0!important;padding:15px 10px 26px!important}
+  .welcome{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:14px!important;margin-bottom:14px!important}
+  .welcome h1{font-size:clamp(27px,7vw,36px)!important;line-height:1.12!important;overflow-wrap:anywhere}
+  .welcome p{font-size:14px!important}
+  .welcome .actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%;margin-top:0!important}
+  .welcome .actions button{width:100%;min-height:44px}
+  .notice{overflow-wrap:anywhere}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  .stat{min-width:0!important;min-height:112px!important;padding:12px!important}
+  .stat:before{left:10px!important;top:12px!important;width:32px!important;height:32px!important}
+  .stat:after{left:20px!important;top:15px!important;font-size:18px!important}
+  .stat span,.stat strong,.stat small{margin-left:39px!important;overflow-wrap:anywhere}
+  .stat span{font-size:11px!important}
+  .stat strong{font-size:clamp(22px,6vw,28px)!important}
+  .stat small{font-size:10px!important}
+  .cols,.dashboard-lower{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+  .panel{padding:13px!important;margin-bottom:10px!important;max-width:100%!important}
+  .panel-head{align-items:flex-start!important;flex-wrap:wrap!important}
+  .panel-head>div{min-width:0;flex:1 1 180px}
+  .panel-head button{max-width:100%;min-height:42px}
+  .formrow{grid-template-columns:minmax(0,1fr)!important;gap:0!important}
+  .field input,.field select,.field textarea{min-width:0;width:100%;font-size:16px!important}
+  .project{display:flex!important;flex-direction:column!important;gap:8px!important;padding:12px 4px!important}
+  .project>div{width:100%;min-width:0}
+  .project .task-actions{width:100%;display:flex;flex-wrap:wrap}
+  .project .task-actions button,.task-actions button{min-height:38px}
+  .task{flex-wrap:wrap}
+  .task-main{flex:1 1 calc(100% - 34px);min-width:0}
+  .task-actions{width:100%;flex-wrap:wrap}
+  .task-actions button{flex:0 1 auto}
+  .tools{grid-template-columns:minmax(0,1fr)!important}
+  .tool{min-width:0}
+  .activity-item{grid-template-columns:8px minmax(0,1fr)!important}
+  .activity-item time{grid-column:2;white-space:normal!important}
+  #projectForm .actions button,.actions button{min-height:42px}
+  .status,.muted{overflow-wrap:anywhere}
+}
+@media(max-width:390px){
+  .content{padding-left:8px!important;padding-right:8px!important}
+  .grid{grid-template-columns:minmax(0,1fr)!important}
+  .stat{min-height:88px!important}
+  .panel-head{display:flex!important;flex-direction:column!important}
+  .panel-head button{width:100%}
+  .topbar .local-badge{font-size:9px!important}
+}
+@media(prefers-reduced-motion:reduce){.sidebar #workspaceNavigation{scroll-behavior:auto!important}}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const toggle=document.getElementById('mobileWorkspaceNavToggle');
+  const sidebar=document.querySelector('.sidebar');
+  if(!toggle||!sidebar)return;
+  toggle.addEventListener('click',function(){
+    const open=sidebar.classList.toggle('mobile-nav-open');
+    toggle.setAttribute('aria-expanded',String(open));
+    toggle.querySelector('span').textContent=open?'Close workspace menu':'Workspace menu';
+    toggle.firstChild.textContent=open?'✕ ':'☰ ';
+  });
+  document.querySelectorAll('#workspaceNavigation a[href^="#"]').forEach(function(link){
+    link.addEventListener('click',function(){
+      if(window.matchMedia('(max-width: 720px)').matches){
+        sidebar.classList.remove('mobile-nav-open');
+        toggle.setAttribute('aria-expanded','false');
+        toggle.querySelector('span').textContent='Workspace menu';
+        toggle.firstChild.textContent='☰ ';
+      }
+    });
+  });
+});
+</script>
+
 </body>
 </html>
