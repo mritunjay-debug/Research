@@ -12,6 +12,7 @@ on:
       - "thesis-manuscript-studio.html"
       - "research-tools.html"
       - "research-planning.html"
+      - "research-library.html"
       - "journal-finder.js"
       - "research-tools-cloud-sync.js"
       - "literature-cloud-sync.js"
