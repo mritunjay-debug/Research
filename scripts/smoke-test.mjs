@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'research-tools.html'];
+const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html'];
 const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js'];
 const errors = [];
 for (const file of htmlFiles) {
@@ -40,6 +40,27 @@ const workspace = fs.existsSync(path.join(root, 'workspace.html'))
   : '';
 for (const required of ['const TOOL_REGISTRY=', 'id="availableToolCount"', 'id="projectCount"', 'id="openCount"', 'id="doneCount"']) {
   if (!workspace.includes(required)) errors.push(`Workspace is missing required dashboard element: ${required}`);
+}
+const studio = fs.existsSync(path.join(root, 'thesis-manuscript-studio.html'))
+  ? fs.readFileSync(path.join(root, 'thesis-manuscript-studio.html'), 'utf8')
+  : '';
+for (const required of [
+  'id="createProject"',
+  'id="addSection"',
+  'id="saveDraft"',
+  'id="snapshotDraft"',
+  'id="versionList"',
+  'id="saveChecks"',
+  'id="exportJson"',
+  'id="exportMarkdown"',
+  'id="exportHtml"',
+  'id="importJson"',
+  'function renderAll()',
+  'function renderVersions()',
+  'function renderChecks()',
+  'localStorage.setItem(STORE'
+]) {
+  if (!studio.includes(required)) errors.push(`Thesis & Manuscript Studio is missing required functionality: ${required}`);
 }
 const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
   ? fs.readFileSync(path.join(root, 'research-tools.html'), 'utf8')
