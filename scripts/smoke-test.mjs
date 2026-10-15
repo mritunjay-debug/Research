@@ -21,7 +21,7 @@ for (const file of htmlFiles) {
     try {
       new vm.Script(scripts[i], { filename: `${file} inline script ${i + 1}` });
     } catch (error) {
-      errors.push(`${file}: inline script ${i + 1} has a syntax error: ${error.message}`);
+      errors.push(`${file}: inline script ${i + 1} has a syntax error: ${error.stack || error.message}`);
     }
   }
 }
