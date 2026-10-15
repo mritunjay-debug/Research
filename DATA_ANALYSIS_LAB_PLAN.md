@@ -9,7 +9,7 @@
 - Existing browser dependencies: Chart.js 4.4.8, SheetJS/XLSX 0.18.5, Mammoth 1.8.0, and the shared Supabase browser client/auth UI.
 - Existing analysis code is client-side. Current dataset state is an in-memory matrix of strings; filtering and cleaning notes are kept in page state. Raw dataset values are not sent by the research-tools cloud-sync module.
 - Existing cloud persistence: `research_artifacts` stores user-owned journal, reviewer-response and analysis-summary payloads under Supabase RLS. It is not a raw-dataset file store.
-- Current ingestion: CSV/TSV/JSON parsing and XLS/XLSX worksheet selection are present. The pure core detects common delimiters, strips a UTF-8 BOM, supports quoted delimiters and escaped quotes, normalizes duplicate/blank headers, enforces row/column/cell limits, infers heuristic types, and profiles missingness, unique values, numeric ranges and duplicate rows. The analysis UI has a bounded read-only preview. Multiple simultaneous datasets, row-level sorting/search/pagination, and a full multi-dataset project model are not implemented.
+- Current ingestion: CSV/TSV/JSON parsing and XLS/XLSX worksheet selection are present. The pure core detects common delimiters, strips a UTF-8 BOM, supports quoted delimiters and escaped quotes, normalizes duplicate/blank headers, enforces row/column/cell limits, infers heuristic types, and profiles missingness, unique values, numeric ranges and duplicate rows. The analysis UI has a bounded read-only preview with search across rows, sortable columns, visible-column selection, and pagination. A synthetic teaching dataset is available and explicitly labelled as non-empirical. Multiple simultaneous datasets and a full multi-dataset project model are not implemented.
 - Current analysis: descriptive numeric summaries, Pearson correlations/heatmap with pair counts, simple linear regression, basic regression diagnostics, Welch two-group test, group comparison, data-quality checks, Chart.js figures, CSV and HTML reports, and a reproducibility JSON record. Method selection is a guide for several unimplemented tests; it must not be described as implemented inference.
 - Existing limits: regression intervals use a normal critical-value approximation, and diagnostics are limited to a simple one-predictor model. No validated multi-predictor regression, logistic regression, ANOVA suite, nonparametric suite, ML pipeline, or time-series forecasting engine was found in the current Data Analysis Lab.
 
@@ -53,6 +53,8 @@ scripts/data-analysis-core-test.mjs
 - [ ] Verify worksheet import, browser preview, and export round-trip in a real browser; Node tests do not substitute for browser integration testing.
 
 ### Phase 2 — Cleaning and data-quality controls
+- [x] Add non-destructive preview search, sortable columns, visible-column selection, and pagination; source row numbers remain visible and source data is not changed by preview controls.
+- [x] Add a clearly labelled synthetic sample dataset for first-run exploration; mark its provenance in analysis records and reports.
 - Missingness and duplicate-row reports with row identifiers.
 - Range checks, suspicious-value flags and explicit unit conversions.
 - Transformations as reversible, parameterized operations; preview before apply.
@@ -60,6 +62,8 @@ scripts/data-analysis-core-test.mjs
 - No automatic deletion or imputation.
 
 ### Phase 3 — Exploratory analysis and figure studio
+- [x] Add a separately tested descriptive-statistics module with valid/missing counts, mean, median, sample SD, min/max, type-7 quartiles and IQR; show missingness rather than silently dropping it from the report.
+- [ ] Independently validate existing Pearson and Welch test implementations before expanding inferential methods.
 - Frequency tables, cross-tabulations, ECDF, Q-Q and supported distribution plots.
 - Grouping, variable selection, source-row identification and accessible plot configuration.
 - Save figure settings and source-data/run identifiers; verify export formats individually.
