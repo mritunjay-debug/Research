@@ -8,6 +8,11 @@ on:
       - "literature.html"
       - "workspace.html"
       - "manuscript-audit.html"
+      - "research-tools.html"
+      - "design.css"
+      - "supabase-auth.js"
+      - "workspace-cloud-sync.js"
+      - "scripts/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -29,6 +34,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate static site and inline JavaScript
+        run: node scripts/smoke-test.mjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
