@@ -55,8 +55,9 @@ scripts/data-analysis-core-test.mjs
 ### Phase 2 — Cleaning and data-quality controls
 - [x] Add non-destructive preview search, sortable columns, visible-column selection, and pagination; source row numbers remain visible and source data is not changed by preview controls.
 - [x] Add a clearly labelled synthetic sample dataset for first-run exploration; mark its provenance in analysis records and reports.
-- Missingness and duplicate-row reports with row identifiers.
-- Range checks, suspicious-value flags and explicit unit conversions.
+- [x] Existing missingness, duplicate-row and IQR-outlier summaries remain available; outlier flags are not automatic deletion rules.
+- [x] Add explicit min/max range validation with source-row flags, missing/non-numeric counts, a CSV export, and report/reproducibility-manifest inclusion; it does not modify the dataset.
+- [ ] Improve duplicate-row review with source-row identifiers and add more suspicious-value rules.
 - [x] Add a reversible, parameterized numeric derived-column operation with preview/confirm, undo/redo, unit labels, reason, valid/missing counts, and exportable provenance. The original imported matrix is retained in memory; the operation creates a new column and never imputes or deletes rows.
 - [ ] Expand to additional explicit recoding/unit-conversion operations and test transformations against browser UI workflows.
 - Clear original/current dataset distinction and undo/redo.
