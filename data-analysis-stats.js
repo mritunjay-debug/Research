@@ -88,6 +88,27 @@
     const seSlope=mse>0?Math.sqrt(mse/sxx):0,seIntercept=mse>0?Math.sqrt(mse*(1/n+meanX*meanX/sxx)):0,critical=studentTCritical(alpha,df);
     return {n,excluded,meanX,meanY,slope,intercept,rSquared:sst>0?1-sse/sst:null,sse,rmse,mae,df,residualSE:Math.sqrt(mse),seSlope,seIntercept,ciSlopeLow:mse>0?slope-critical*seSlope:null,ciSlopeHigh:mse>0?slope+critical*seSlope:null,ciInterceptLow:mse>0?intercept-critical*seIntercept:null,ciInterceptHigh:mse>0?intercept+critical*seIntercept:null,pSlope:mse>0?studentTwoSidedP(slope/seSlope,df):null,pIntercept:mse>0?studentTwoSidedP(intercept/seIntercept,df):null,alpha,includedIndices:pairs.map(p=>p.index),residuals};
   }
+  function oneSampleTTest(values,populationMean=0,alpha=.05){
+    if(!Array.isArray(values))throw new TypeError('One-sample t-test expects an array of numeric values.');
+    if(!Number.isFinite(populationMean))throw new TypeError('The hypothesised population mean must be finite.');
+    if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
+    const valid=values.filter(Number.isFinite),n=valid.length,missing=values.length-n;
+    if(n<2)throw new Error('At least two valid numeric observations are required.');
+    const mean=valid.reduce((sum,value)=>sum+value,0)/n,variance=valid.reduce((sum,value)=>sum+(value-mean)**2,0)/(n-1),sd=Math.sqrt(variance),se=sd/Math.sqrt(n),difference=mean-populationMean;
+    if(!(se>0))throw new Error('The sample has zero variance; the t statistic is undefined.');
+    const df=n-1,t=difference/se,critical=studentTCritical(alpha,df);
+    return {n,missing,mean,sd,se,populationMean,difference,t,df,pValue:studentTwoSidedP(t,df),alpha,ciLow:mean-critical*se,ciHigh:mean+critical*se,cohensD:difference/sd};
+  }
+  function pairedTTest(beforeValues,afterValues,alpha=.05){
+    if(!Array.isArray(beforeValues)||!Array.isArray(afterValues)||beforeValues.length!==afterValues.length)throw new TypeError('Paired t-test expects equal-length before and after arrays.');
+    if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
+    const pairs=beforeValues.map((before,index)=>({before,after:afterValues[index]})).filter(pair=>Number.isFinite(pair.before)&&Number.isFinite(pair.after)),n=pairs.length,missingPairs=beforeValues.length-n;
+    if(n<2)throw new Error('At least two complete numeric pairs are required.');
+    const differences=pairs.map(pair=>pair.after-pair.before),mean=differences.reduce((sum,value)=>sum+value,0)/n,variance=differences.reduce((sum,value)=>sum+(value-mean)**2,0)/(n-1),sd=Math.sqrt(variance),se=sd/Math.sqrt(n);
+    if(!(se>0))throw new Error('Paired differences have zero variance; the t statistic is undefined.');
+    const df=n-1,t=mean/se,critical=studentTCritical(alpha,df);
+    return {n,missingPairs,meanDifference:mean,sdDifference:sd,se,t,df,pValue:studentTwoSidedP(t,df),alpha,ciLow:mean-critical*se,ciHigh:mean+critical*se,cohensDz:mean/sd,differences};
+  }
   function welchTTest(groupA,groupB,alpha=.05){
     if(!Array.isArray(groupA)||!Array.isArray(groupB))throw new TypeError('Welch test expects two arrays of parsed numeric values.');
     const a=groupA.filter(Number.isFinite),b=groupB.filter(Number.isFinite),nA=a.length,nB=b.length;
@@ -103,7 +124,7 @@
     const pooledSD=Math.sqrt(((nA-1)*varianceA+(nB-1)*varianceB)/(nA+nB-2)),cohensD=pooledSD>0?difference/pooledSD:null,hedgesG=cohensD===null?null:cohensD*(1-3/(4*(nA+nB)-9));
     return {nA,nB,missingA:groupA.length-nA,missingB:groupB.length-nB,meanA,meanB,sdA,sdB,difference,se,t,df,pValue,alpha,ciLow:difference-critical*se,ciHigh:difference+critical*se,cohensD,hedgesG};
   }
-  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,welchTTest};
+  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest};
   root.RTDataAnalysisStats=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
