@@ -124,7 +124,33 @@
     const pooledSD=Math.sqrt(((nA-1)*varianceA+(nB-1)*varianceB)/(nA+nB-2)),cohensD=pooledSD>0?difference/pooledSD:null,hedgesG=cohensD===null?null:cohensD*(1-3/(4*(nA+nB)-9));
     return {nA,nB,missingA:groupA.length-nA,missingB:groupB.length-nB,meanA,meanB,sdA,sdB,difference,se,t,df,pValue,alpha,ciLow:difference-critical*se,ciHigh:difference+critical*se,cohensD,hedgesG};
   }
-  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest};
+  function normalErfc(x){
+    const z=Math.abs(x),t=1/(1+.5*z);
+    const answer=t*Math.exp(-z*z-1.26551223+t*(1.00002368+t*(.37409196+t*(.09678418+t*(-.18628806+t*(.27886807+t*(-1.13520398+t*(1.48851587+t*(-.82215223+t*.17087277)))))))));
+    return x>=0?answer:2-answer;
+  }
+  function mannWhitneyU(groupA,groupB){
+    if(!Array.isArray(groupA)||!Array.isArray(groupB))throw new TypeError('Mann–Whitney U expects two arrays of parsed numeric values.');
+    const a=groupA.filter(Number.isFinite),b=groupB.filter(Number.isFinite),nA=a.length,nB=b.length,N=nA+nB;
+    if(nA<2||nB<2)throw new Error('Each independent group requires at least two valid numeric observations.');
+    const combined=[...a.map((value,index)=>({value,group:0,index})),...b.map((value,index)=>({value,group:1,index}))].sort((x,y)=>x.value-y.value);
+    const ranksA=new Array(nA),tieGroups=[];let rankSumA=0;
+    for(let start=0;start<combined.length;){
+      let end=start+1;while(end<combined.length&&combined[end].value===combined[start].value)end++;
+      const tieSize=end-start,averageRank=((start+1)+end)/2;
+      if(tieSize>1)tieGroups.push(tieSize);
+      for(let i=start;i<end;i++)if(combined[i].group===0){ranksA[combined[i].index]=averageRank;rankSumA+=averageRank}
+      start=end;
+    }
+    const uA=rankSumA-nA*(nA+1)/2,uB=nA*nB-uA,meanU=nA*nB/2;
+    const tieCorrection=tieGroups.reduce((sum,t)=>sum+t*t*t-t,0);
+    const variance=nA*nB/12*((N+1)-tieCorrection/(N*(N-1)));
+    if(!(variance>0))throw new Error('All pooled observations are tied; the Mann–Whitney U variance is zero and inference is undefined.');
+    const difference=uA-meanU,correctedMagnitude=Math.max(0,Math.abs(difference)-.5),z=(difference===0?0:Math.sign(difference)*correctedMagnitude/Math.sqrt(variance));
+    const pValue=Math.max(0,Math.min(1,normalErfc(Math.abs(z)/Math.SQRT2)));
+    return {nA,nB,missingA:groupA.length-nA,missingB:groupB.length-nB,uA,uB,u:Math.min(uA,uB),meanU,rankSumA,rankBiserial:2*uA/(nA*nB)-1,z,pValue,tieGroups,tieCorrection,variance,continuityCorrection:true,method:'Asymptotic normal approximation with tie correction and continuity correction'};
+  }
+  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest,mannWhitneyU};
   root.RTDataAnalysisStats=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
