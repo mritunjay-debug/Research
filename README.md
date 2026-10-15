@@ -12,6 +12,8 @@ All toolkit features are to remain free for now. This project does not require A
 - **Research Utilities** ([research-tools.html](research-tools.html)): data analysis, journal finder and manuscript utilities.
 - **Thesis & Manuscript Studio** ([thesis-manuscript-studio.html](thesis-manuscript-studio.html)): section planning, local drafts, snapshots and exports.
 - **Manuscript Quality Audit** ([manuscript-audit.html](manuscript-audit.html)): document checks and quality findings.
+- **Research Planning Workbench** ([research-planning.html](research-planning.html)): methodology plans, dataset catalogue, integrity checklist and portable exports.
+- **Research Library & Methods** ([research-library.html](research-library.html)): searchable notes, publication tracker, Crossref DOI lookup, survey instrument builder and statistical-method reference.
 
 ## Hosting and storage
 The static website is deployed through GitHub Pages. Some workflows use browser-local storage; this data stays in the current browser and is not automatically available on other devices. Cloud synchronization is available only for the records and services explicitly connected and successfully configured. A visible sync status must reflect actual synchronization, not merely a local save. Export JSON/backups regularly. Do not use browser-local storage for confidential research data.
