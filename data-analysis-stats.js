@@ -150,7 +150,28 @@
     const pValue=Math.max(0,Math.min(1,normalErfc(Math.abs(z)/Math.SQRT2)));
     return {nA,nB,missingA:groupA.length-nA,missingB:groupB.length-nB,uA,uB,u:Math.min(uA,uB),meanU,rankSumA,rankBiserial:2*uA/(nA*nB)-1,z,pValue,tieGroups,tieCorrection,variance,continuityCorrection:true,method:'Asymptotic normal approximation with tie correction and continuity correction'};
   }
-  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest,mannWhitneyU};
+  function oneWayAnova(groups,alpha=.05){
+    if(!Array.isArray(groups)||groups.length<2)throw new TypeError('One-way ANOVA expects at least two groups.');
+    if(!(alpha>0&&alpha<1))throw new RangeError('Alpha must be strictly between 0 and 1.');
+    const clean=groups.map((group,index)=>{if(!Array.isArray(group.values))throw new TypeError('Each ANOVA group must have a values array.');const values=group.values.filter(Number.isFinite);if(values.length<2)throw new Error('Each group requires at least two valid numeric observations.');const mean=values.reduce((sum,value)=>sum+value,0)/values.length;const ss=values.reduce((sum,value)=>sum+(value-mean)**2,0);return {label:String(group.label??('Group '+(index+1))),n:values.length,missing:group.values.length-values.length,mean,ss,values}});
+    const N=clean.reduce((sum,group)=>sum+group.n,0),k=clean.length,grandMean=clean.reduce((sum,g)=>sum+g.n*g.mean,0)/N;
+    const ssBetween=clean.reduce((sum,g)=>sum+g.n*(g.mean-grandMean)**2,0),ssWithin=clean.reduce((sum,g)=>sum+g.ss,0),ssTotal=ssBetween+ssWithin,dfBetween=k-1,dfWithin=N-k,msBetween=ssBetween/dfBetween,msWithin=ssWithin/dfWithin;
+    if(!(msWithin>0))throw new Error('Within-group variance is zero; the F statistic is undefined.');
+    const F=msBetween/msWithin,pValue=regularizedBeta(dfWithin/(dfWithin+dfBetween*F),dfWithin/2,dfBetween/2),etaSquared=ssTotal>0?ssBetween/ssTotal:null,omegaSquared=Math.max(0,(ssBetween-dfBetween*msWithin)/(ssTotal+msWithin));
+    return {method:'One-way fixed-effects ANOVA',k,N,missing:groups.reduce((sum,g)=>sum+g.values.length,0)-N,groups:clean.map(({values,...g})=>g),grandMean,ssBetween,ssWithin,ssTotal,dfBetween,dfWithin,msBetween,msWithin,F,pValue,alpha,etaSquared,omegaSquared};
+  }
+  function holmAdjust(pValues){
+    if(!Array.isArray(pValues))throw new TypeError('Holm adjustment expects an array of p-values.');
+    const valid=pValues.map((p,index)=>{if(!Number.isFinite(p)||p<0||p>1)throw new RangeError('Every p-value must be finite and between 0 and 1.');return {p,index}}).sort((a,b)=>a.p-b.p);
+    let running=0;const adjusted=new Array(valid.length);for(let i=0;i<valid.length;i++){running=Math.max(running,(valid.length-i)*valid[i].p);adjusted[valid[i].index]=Math.min(1,running)}
+    return adjusted;
+  }
+  function pairwiseWelchPostHoc(groups,alpha=.05){
+    if(!Array.isArray(groups)||groups.length<2)throw new TypeError('Pairwise post-hoc analysis expects at least two groups.');
+    const comparisons=[];for(let i=0;i<groups.length;i++)for(let j=i+1;j<groups.length;j++){const result=welchTTest(groups[i].values,groups[j].values,alpha);comparisons.push({groupA:String(groups[i].label??('Group '+(i+1))),groupB:String(groups[j].label??('Group '+(j+1))),...result})}
+    const adjusted=holmAdjust(comparisons.map(row=>row.pValue));return comparisons.map((row,index)=>({...row,pAdjustedHolm:adjusted[index],significantAfterHolm:adjusted[index]<alpha,adjustment:'Holm step-down correction'}));
+  }
+  const api={quantile,summariseNumeric,normalQuantile,studentTwoSidedP,studentTCritical,pearsonCorrelation,linearRegression,oneSampleTTest,pairedTTest,welchTTest,mannWhitneyU,oneWayAnova,holmAdjust,pairwiseWelchPostHoc};
   root.RTDataAnalysisStats=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
