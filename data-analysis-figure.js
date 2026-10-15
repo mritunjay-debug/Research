@@ -6,7 +6,15 @@
     const title=overrides.title||titleConfig.text||'Research figure',fontSize=Math.max(8,Math.min(24,Number(overrides.fontSize)||12));
     const xTitle=overrides.xTitle||scales.x?.title?.text||'',yTitle=overrides.yTitle||scales.y?.title?.text||'';
     const traces=[];
-    if(baseType==='pie'){
+    if(baseType==='box'||baseType==='violin'){
+      for(const ds of chartData.datasets){
+        const values=(Array.isArray(ds.data)?ds.data:[]).filter(Number.isFinite);
+        traces.push({type:baseType,name:ds.label||'Observations',y:values,boxpoints:baseType==='box'?'outliers':undefined,points:baseType==='violin'?'outliers':undefined,jitter:.28,pointpos:0,meanline:baseType==='violin'?{visible:true}:undefined,marker:{color:ds.backgroundColor||ds.borderColor,opacity:.72,size:5},line:{color:ds.borderColor||ds.backgroundColor,width:1.5},hovertemplate:'%{y}<extra>%{fullData.name}</extra>'});
+      }
+    }else if(baseType==='splom'){
+      if(!Array.isArray(chartData.dimensions)||chartData.dimensions.length<2)throw new Error('A pair plot requires at least two selected numeric dimensions.');
+      traces.push({type:'splom',dimensions:chartData.dimensions,showupperhalf:false,diagonal:{visible:true},marker:{color:'#176c55',size:4,opacity:.62,line:{width:.25,color:'#fffdf8'}},name:'Pairwise relationships',showlegend:false});
+    }else if(baseType==='pie'){
       const ds=chartData.datasets[0]||{};
       traces.push({type:'pie',labels:chartData.labels||[],values:ds.data||[],name:ds.label||'Share',textinfo:'label+percent',hovertemplate:'%{label}<br>Value: %{value}<br>Share: %{percent}<extra></extra>',marker:{colors:Array.isArray(ds.backgroundColor)?ds.backgroundColor:undefined},sort:false});
     }else{
