@@ -9,6 +9,7 @@ on:
       - "workspace.html"
       - "manuscript-audit.html"
       - "research-tools.html"
+      - "journal-finder.js"
       - "research-tools-cloud-sync.js"
       - "literature-cloud-sync.js"
       - "supabase/migrations/**"
