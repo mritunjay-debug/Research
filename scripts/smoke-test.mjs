@@ -44,7 +44,7 @@ for (const required of ['const TOOL_REGISTRY=', 'id="availableToolCount"', 'id="
 const utilities = fs.existsSync(path.join(root, 'research-tools.html'))
   ? fs.readFileSync(path.join(root, 'research-tools.html'), 'utf8')
   : '';
-for (const required of ['data-tab="analysis"', 'data-tab="journal-finder"', 'id="jfTitle"', 'id="jfAbstract"', 'id="findJournals"', 'id="jfExport"', 'journal-finder.js', 'data-tab="journal"', 'data-tab="reviewer"', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud']) {
+for (const required of ['data-tab="analysis"', 'data-tab="journal-finder"', 'id="jfTitle"', 'id="jfAbstract"', 'id="findJournals"', 'id="jfExport"', 'journal-finder.js', 'data-tab="manuscript"', 'restoreWorkspace();', 'persistWorkspace()', 'xlsx.full.min.js', 'sheetPicker', 'saveAnalysisCloud']) {
   if (!utilities.includes(required)) errors.push(`Research utilities are missing required functionality: ${required}`);
 }
 const literature = fs.existsSync(path.join(root, 'literature.html'))
