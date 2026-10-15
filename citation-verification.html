@@ -243,7 +243,7 @@ $('extractBtn').addEventListener('click',async()=>{
 $('usePastedReferences').addEventListener('click',()=>{
  const raw=$('pastedReferences').value.trim();if(!raw){setStatus('Paste one or more references first.');return}
  const blocks=raw.split(/\n\s*\n+/).map(x=>clean(x.replace(/\s*\n\s*/g,' '))).filter(x=>x.length>=25);
- const entries=blocks.length>1?blocks:raw.split(/\r?\n/).map(clean).filter(x=>x.length>=25);
+ const entries=/\n\s*\n+/.test(raw)?blocks:raw.split(/\r?\n/).map(clean).filter(x=>x.length>=25);
  const unique=[],seen=new Set();for(const entry of entries){const key=entry.toLowerCase().replace(/\s+/g,' ');if(!seen.has(key)){seen.add(key);unique.push(entry)}}
  if(!unique.length){setStatus('No reference entries identified. Use one complete reference per line or separate wrapped references with blank lines.');return}
  refs=unique;results=[];manualOnly=false;$('resultsPanel').classList.add('hidden');$('preview').classList.remove('hidden');
