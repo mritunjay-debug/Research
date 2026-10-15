@@ -9,6 +9,8 @@ on:
       - "workspace.html"
       - "manuscript-audit.html"
       - "research-tools.html"
+      - "research-tools-cloud-sync.js"
+      - "supabase/migrations/**"
       - "design.css"
       - "supabase-auth.js"
       - "workspace-cloud-sync.js"
