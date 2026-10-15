@@ -53,6 +53,29 @@ const literature = fs.existsSync(path.join(root, 'literature.html'))
 for (const required of ['rtLiteratureCloudBridge', 'literature-cloud-sync.js']) {
   if (!literature.includes(required)) errors.push(`Literature workspace is missing cloud-sync integration: ${required}`);
 }
+const citation = fs.existsSync(path.join(root, 'citation-verification.html'))
+  ? fs.readFileSync(path.join(root, 'citation-verification.html'), 'utf8')
+  : '';
+for (const required of [
+  'id="duplicateAuditPanel"',
+  'id="runDuplicateAudit"',
+  'id="exportDuplicateAudit"',
+  'id="exportCleanReferences"',
+  'id="resetCleanReferences"',
+  'id="duplicateStatus"',
+  'id="duplicateResults"',
+  'id="cleanedExports"',
+  'id="downloadCleanTxt"',
+  'id="downloadCleanCsv"',
+  'id="downloadExcludedCsv"',
+  'id="downloadDecisionCsv"',
+  'id="downloadDuplicateAuditCsv"',
+  'function findDuplicateCandidates(list)',
+  'function buildDedupGroups(a)',
+  'no record is excluded unless you explicitly confirm'
+]) {
+  if (!citation.includes(required)) errors.push(`Reference-cleaning workflow is missing required safety/UI hook: ${required}`);
+}
 if (errors.length) {
   console.error('Static site checks failed:');
   for (const error of errors) console.error(`- ${error}`);
