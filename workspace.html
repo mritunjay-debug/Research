@@ -7,7 +7,75 @@
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#17202a;background:#f3f6f9;--navy:#10283f;--teal:#176c72;--line:#dfe7ed;--muted:#617182}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:10px 14px;background:var(--teal);color:#fff;font-weight:750}button.secondary{background:#e8eff4;color:#1b3446}button.danger{background:#9f3434}button:disabled{opacity:.5;cursor:not-allowed}a{color:#176c72}.layout{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}.sidebar{background:var(--navy);color:white;padding:24px 16px}.brand{font-weight:850;font-size:19px;line-height:1.25;margin:0 8px 5px}.brand-sub{color:#b7cbd6;font-size:12px;margin:0 8px 24px}.nav-label{color:#9db6c4;font-size:10px;letter-spacing:.13em;font-weight:800;margin:22px 8px 8px;text-transform:uppercase}.nav a{display:flex;gap:10px;align-items:center;color:#e1eaf0;text-decoration:none;padding:10px;border-radius:8px;font-size:13px;margin:3px 0}.nav a.active,.nav a:hover{background:#23465e;color:#fff}.nav .disabled{opacity:.5;cursor:not-allowed}.side-note{font-size:11px;line-height:1.5;color:#b7cbd6;margin:26px 8px}.main{min-width:0}.topbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;gap:16px}.crumb{font-size:13px;color:var(--muted)}.local-badge{font-size:11px;padding:6px 9px;border-radius:20px;background:#fff2d7;color:#765411;font-weight:800}.content{max-width:1280px;margin:auto;padding:28px}.welcome{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:22px}.welcome h1{font-size:clamp(26px,3vw,36px);letter-spacing:-.035em;margin:0 0 8px}.welcome p{color:var(--muted);margin:0;line-height:1.55;max-width:720px}.actions{display:flex;gap:8px;flex-wrap:wrap}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.stat,.panel,.tool{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px #10283f08}.stat{padding:16px}.stat span{font-size:12px;color:var(--muted)}.stat strong{display:block;font-size:27px;margin-top:6px}.stat small{font-size:11px;color:var(--muted)}.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:14px;margin-top:14px}.panel{padding:20px;margin-bottom:14px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.panel h2{font-size:17px;margin:0}.muted{font-size:12px;line-height:1.5;color:var(--muted)}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:750;margin-bottom:5px;color:#445566}.field input,.field select,.field textarea{width:100%;border:1px solid #cbd6df;border-radius:8px;padding:10px;background:#fff;color:#17202a}.field textarea{min-height:76px;resize:vertical}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.project-list,.task-list{display:grid;gap:9px}.project{border:1px solid var(--line);border-radius:10px;padding:13px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.project.current{border-color:#77b9b2;background:#f4fbfa}.project h3{font-size:14px;margin:0 0 5px}.project p{font-size:12px;color:var(--muted);margin:0;line-height:1.45}.project .meta{font-size:11px;color:var(--muted);margin-top:7px}.task{display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid #edf1f4;padding:10px 0}.task:last-child{border-bottom:0}.task input{margin-top:4px}.task-main{flex:1;min-width:0}.task-title{font-size:13px;font-weight:700;overflow-wrap:anywhere}.task.done .task-title{text-decoration:line-through;color:#82909b}.task-meta{font-size:11px;color:var(--muted);margin-top:4px}.task-actions{display:flex;gap:5px}.task-actions button{padding:5px 8px;font-size:11px}.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tool{padding:14px}.tool h3{font-size:13px;margin:0 0 6px}.tool p{font-size:12px;color:var(--muted);line-height:1.45;margin:0 0 12px}.tool .state{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#1b6c46}.tool .state.planned{color:#8b681b}.tool a{font-size:12px;font-weight:750}.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed #cbd6df;border-radius:10px}.notice{padding:12px 14px;background:#fff5dc;border-radius:10px;color:#705313;font-size:12px;line-height:1.5;margin:0 0 14px}.status{font-size:12px;line-height:1.5;margin-top:9px;white-space:pre-wrap;color:var(--muted)}.hidden{display:none!important}footer{padding:10px 0 25px;color:#81909c;font-size:11px;text-align:center}@media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:1fr}}@media(max-width:720px){.layout{grid-template-columns:1fr}.sidebar{padding:14px}.nav{display:flex;overflow:auto;gap:4px}.nav a{white-space:nowrap}.nav-label,.side-note,.brand-sub{display:none}.brand{margin:0 8px 10px}.topbar{padding:0 16px}.content{padding:18px 14px}.welcome{display:block}.welcome .actions{margin-top:14px}.tools{grid-template-columns:1fr}.formrow{grid-template-columns:1fr}}
 </style>
-<link rel="stylesheet" href="design.css">
+<link rel="stylesheet" href="design.css"><style>
+/* Dashboard redesign inspired by the supplied Fieldnotes reference */
+:root{--navy:#10283f;--forest:#174638;--forest2:#245845;--paper:#f7f5ef;--line:#e5e2da;--muted:#627183;--ink:#152238;--card:#fffefa}
+html,body{background:var(--paper)!important;color:var(--ink)!important;font-family:Inter,"Segoe UI",Arial,sans-serif!important}
+.layout{grid-template-columns:252px minmax(0,1fr)!important;background:var(--paper)}
+.sidebar{background:linear-gradient(180deg,#174638 0%,#123c31 100%)!important;color:#fff!important;border-right:3px solid #d56e4e!important;padding:24px 16px 18px!important}
+.sidebar .brand{font-size:21px;letter-spacing:-.035em;color:#fff!important;margin:0 10px 5px!important}
+.sidebar .brand-sub{color:#d4e2da!important;font-size:12px;margin:0 10px 30px!important}
+.nav-label{color:#b9cec2!important;letter-spacing:.12em!important;font-size:10px!important;margin:25px 8px 10px!important}
+.nav a,.sidebar .nav a:link,.sidebar .nav a:visited{color:#f2f5f1!important;border-radius:7px!important;padding:11px 12px!important;margin:4px 0!important;font-size:13px!important;opacity:1!important}
+.nav a.active,.nav a:hover{background:#356b55!important;color:#fff!important}
+.nav .disabled{color:#b3c8bc!important;opacity:.8!important}
+.side-note{background:#214f3f;border:1px solid #47705e;border-radius:8px;padding:12px!important;margin:26px 0 0!important;color:#e0eae3!important}
+.main{background:var(--paper)!important;min-width:0}
+.topbar{height:52px!important;background:#f0ede4!important;border-bottom:1px solid #e0ddd4!important;padding:0 28px!important}
+.crumb{color:#758092!important}.local-badge{background:#e4eee5!important;color:#245845!important;border:1px solid #d0e0d2!important;border-radius:5px!important;font-size:10px!important;letter-spacing:.04em}
+.content{max-width:1600px!important;padding:26px 28px 38px!important}
+.welcome{align-items:center!important;margin-bottom:20px!important}
+.welcome h1{font:500 clamp(30px,3vw,43px)/1.12 Georgia,"Times New Roman",serif!important;letter-spacing:-.045em!important;color:#111d2e!important;margin-bottom:9px!important}
+.welcome p{font-size:15px!important;max-width:760px!important;color:#5f7084!important}
+.actions{gap:9px!important}
+button{background:#174638!important;color:#fff!important;border-radius:5px!important;box-shadow:none!important;border:1px solid #174638!important;padding:11px 15px!important}
+button:hover{background:#245845!important;transform:none!important;box-shadow:none!important}
+button.secondary{background:#f7f5ef!important;color:#172337!important;border:1px solid #ddd9d0!important}
+button.secondary:hover{background:#eeece4!important}
+.grid{gap:10px!important}
+.stat,.panel,.tool{background:var(--card)!important;border:1px solid #e6e3db!important;border-radius:8px!important;box-shadow:0 2px 5px #18273b06!important}
+.stat{padding:17px 18px!important;position:relative;min-height:126px}
+.stat span{color:#617084!important;font-size:12px!important}
+.stat strong{font:600 34px/1.2 Inter,"Segoe UI",sans-serif!important;color:#111d2e!important;margin-top:7px!important}
+.stat small{font-size:11px!important;color:#7a8794!important}
+.stat:before{content:"";position:absolute;left:17px;top:17px;width:38px;height:38px;border-radius:10px;background:#e1eee6}
+.stat span,.stat strong,.stat small{margin-left:52px;display:block}
+.stat:nth-child(2):before{background:#ffeadf}.stat:nth-child(3):before{background:#e2ebf8}.stat:nth-child(4):before{background:#eee5fb}
+.stat:after{position:absolute;left:29px;top:22px;font-size:20px;color:#205a44}.stat:nth-child(1):after{content:"▱"}.stat:nth-child(2):after{content:"☷";color:#c84c30}.stat:nth-child(3):after{content:"✓";color:#245b91}.stat:nth-child(4):after{content:"▦";color:#6b38bd}
+.cols{grid-template-columns:minmax(0,1.7fr) minmax(300px,.9fr)!important;gap:12px!important;margin-top:12px!important;align-items:start}
+.panel{padding:17px!important;margin-bottom:12px!important}
+.panel-head{margin-bottom:13px!important}
+.panel h2{font-size:17px!important;color:#152238!important}
+.muted{font-size:12px!important;color:#68778a!important}
+.notice{background:#f5e8d1!important;border-left:4px solid #d56e4e!important;border-radius:2px!important;color:#725437!important;margin-bottom:13px!important}
+.project-list{gap:7px!important}
+.project{border:0!important;border-bottom:1px solid #ece9e2!important;border-radius:0!important;background:transparent!important;padding:13px 4px!important;box-shadow:none!important}
+.project.current{background:#f1f7f0!important;border:1px solid #dce8dc!important;border-radius:6px!important}
+.project h3{font-size:13px!important;color:#162236!important}
+.project p,.project .meta{color:#6e7b8b!important}
+.project .task-actions{flex-wrap:wrap}
+.empty{background:#fbfaf6!important;border:1px dashed #ddd9d0!important;border-radius:5px!important;color:#758194!important}
+#planner{background:var(--card)!important}
+#planner .panel-head h2{font:500 20px Georgia,serif!important}
+.field label{color:#46586c!important;font-size:11px!important}
+.field input,.field select,.field textarea{border:1px solid #dedbd2!important;border-radius:4px!important;background:#fffefa!important;padding:10px 11px!important}
+.task{border-bottom:1px solid #ece9e2!important;padding:11px 0!important}
+.task-title{font-size:12px!important;color:#1c2b40!important}
+.task-meta{color:#728093!important}
+.tools{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+.tool{padding:14px!important}
+.tool h3{font-size:12px!important;color:#18263b!important}
+.tool p{font-size:11px!important;color:#6c7888!important}
+.tool a{color:#1763b1!important}
+footer{color:#8a929a!important}
+#rt-auth-bar{background:#10283f!important;color:#fff!important;border-bottom:1px solid #243f56!important;box-shadow:none!important}
+#rt-auth-bar .rt-brand{color:#fff!important}#rt-auth-bar .rt-status{color:#d4dfe8!important}
+#rt-auth-bar button{background:#174638!important;color:#fff!important;border:1px solid #4d7b67!important;border-radius:4px!important}
+#rt-auth-bar button.rt-light{background:#f5f1e8!important;color:#174638!important;border-color:#f5f1e8!important}
+@media(max-width:1150px){.content{padding:22px 18px!important}.cols{grid-template-columns:1fr!important}.welcome{align-items:flex-start!important}}
+@media(max-width:720px){.layout{grid-template-columns:1fr!important}.sidebar{padding:14px!important;border-right:0!important;border-bottom:3px solid #d56e4e!important}.nav{display:flex;flex-wrap:nowrap;overflow:auto;gap:4px}.nav a{white-space:nowrap;flex:0 0 auto}.nav-label,.side-note,.brand-sub{display:none!important}.brand{margin:0 8px 10px!important}.topbar{padding:0 14px!important}.content{padding:16px 12px 28px!important}.welcome{display:block!important}.welcome .actions{margin-top:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.stat{min-height:112px;padding:13px!important}.stat:before{left:12px;top:13px}.stat:after{left:24px;top:18px}.stat span,.stat strong,.stat small{margin-left:45px}.stat strong{font-size:26px!important}.tools{grid-template-columns:1fr!important}.formrow{grid-template-columns:1fr!important}.panel{padding:14px!important}}
+@media(max-width:390px){.grid{grid-template-columns:1fr!important}.stat{min-height:92px}}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -33,19 +101,19 @@
 <div class="side-note">Projects and tasks are saved in this browser and can be synced to your account. Literature records and uploaded documents are not included in this sync yet.</div>
 </aside>
 <div class="main">
-<header class="topbar"><div class="crumb">Research workspace / <strong>Dashboard</strong></div><span class="local-badge" title="Projects and tasks can be synced when signed in; other research records remain browser-local">LOCAL DATA + PROJECT/TASK SYNC</span></header>
+<header class="topbar"><div class="crumb">Research workspace / <strong>Dashboard</strong></div><span class="local-badge" title="Projects and tasks can be synced; literature records are still local">PROJECTS &amp; TASKS SYNC</span></header>
 <main class="content" id="dashboard">
-<section class="welcome"><div><h1>Your research, organised.</h1><p>Keep projects and milestones together, then open the research tools that are already available. This first release is a functional project-and-planner foundation—not a claim that every planned module is complete.</p></div><div class="actions"><button id="newProjectBtn">＋ New project</button><button class="secondary" id="exportBtn">Export workspace JSON</button></div></section>
+<section class="welcome"><div><h1>Your research, in focus.</h1><p>Keep projects, data, papers and tasks together. Use the tools you need, when you need them.</p></div><div class="actions"><button id="newProjectBtn">＋ New project</button><button class="secondary" id="exportBtn">Export workspace JSON</button></div></section>
 <div class="notice"><strong>Storage limitation:</strong> project details and tasks are saved in this browser's local storage. Clearing browser data can remove them. Do not treat this as secure storage for confidential manuscripts or as a backup system.</div>
 <section class="grid" aria-label="Workspace summary">
-<div class="stat"><span>Projects</span><strong id="projectCount">0</strong><small>Saved in this browser</small></div>
+<div class="stat"><span>Active projects</span><strong id="projectCount">0</strong><small>Across all research areas</small></div>
 <div class="stat"><span>Open tasks</span><strong id="openCount">0</strong><small>Across all projects</small></div>
-<div class="stat"><span>Completed tasks</span><strong id="doneCount">0</strong><small>Marked complete</small></div>
+<div class="stat"><span>Completed this month</span><strong id="doneCount">0</strong><small>Tasks marked complete</small></div>
 <div class="stat"><span>Research tools</span><strong>3</strong><small>Available now in this repository</small></div>
 </section>
 <div class="cols">
 <section id="projects" class="panel">
-<div class="panel-head"><div><h2>My research projects</h2><div class="muted">Create a project record and connect tasks to it.</div></div><button class="secondary" id="showProjectForm">Add project</button></div>
+<div class="panel-head"><div><h2>Your projects</h2><div class="muted">Recent and ongoing research projects.</div></div><button class="secondary" id="showProjectForm">Add project</button></div>
 <form id="projectForm" class="hidden">
 <div class="field"><label for="projectTitle">Project title *</label><input id="projectTitle" required maxlength="180" placeholder="e.g., Stability assessment of underground marble pillars"></div>
 <div class="formrow"><div class="field"><label for="discipline">Discipline</label><select id="discipline"><option>Mining Engineering</option><option>Geology</option><option>Civil Engineering</option><option>Environmental Science</option><option>Computer Science</option><option>Medicine</option><option>Social Science</option><option>Other</option></select></div><div class="field"><label for="projectStage">Stage</label><select id="projectStage"><option>Planning</option><option>Literature review</option><option>Data collection</option><option>Analysis</option><option>Writing</option><option>Revision</option><option>Completed</option></select></div></div>
@@ -60,7 +128,7 @@
 </div>
 </section>
 <section class="panel" id="planner">
-<div class="panel-head"><div><h2>Research planner</h2><div class="muted">Tasks, due dates, and project-linked milestones.</div></div></div>
+<div class="panel-head"><div><h2>Upcoming</h2><div class="muted">Next tasks and milestones.</div></div></div>
 <form id="taskForm">
 <div class="field"><label for="taskTitle">Task or milestone *</label><input id="taskTitle" required maxlength="180" placeholder="e.g., Complete sensitivity analysis"></div>
 <div class="formrow"><div class="field"><label for="taskProject">Project</label><select id="taskProject"><option value="">General / unassigned</option></select></div><div class="field"><label for="taskDue">Due date</label><input type="date" id="taskDue"></div></div>
@@ -72,7 +140,7 @@
 </section>
 </div>
 <section class="panel">
-<div class="panel-head"><div><h2>Available research tools</h2><div class="muted">Open existing tools; roadmap items are clearly marked as not yet implemented.</div></div></div>
+<div class="panel-head"><div><h2>Research tools</h2><div class="muted">Essential tools for your research workflow.</div></div></div>
 <div class="tools">
 <article class="tool"><h3>Literature Search & PRISMA</h3><p>Import bibliographic records, manage screening, review duplicates, and work with PRISMA-related outputs.</p><span class="state">Available</span><p style="margin-top:10px"><a href="literature.html">Open literature tool →</a></p></article>
 <article class="tool"><h3>Citation Verification Agent</h3><p>Check reference metadata against Crossref, inspect candidate matches, and export review documents.</p><span class="state">Available</span><p style="margin-top:10px"><a href="index.html">Open citation checker →</a></p></article>
