@@ -42,7 +42,9 @@ for (const [path, expectedTitle] of requiredPages) {
     const html = await response.text();
     assert.match(contentType, /text\/html/i, `Unexpected content type for ${path}: ${contentType}`);
     assert.match(html, /<!doctype html|<html\b/i, `${path} did not return an HTML document`);
-    assert.match(html, /<title\b[^>]*>[\s\S]*?<\/title>/i, `${path} has no title element`);
+    const titleMatch = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
+    assert.ok(titleMatch, `${path} has no title element`);
+    assert.ok(titleMatch[1].toLowerCase().includes(expectedTitle.toLowerCase()), path + ' title did not contain expected text "' + expectedTitle + '": ' + titleMatch[1]);
     if (path === 'workspace.html') {
       assert.match(html, /id="availableToolCount"/, 'Dashboard tool-count element is missing');
       assert.match(html, /id="projectCount"/, 'Dashboard project-count element is missing');
