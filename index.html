@@ -228,8 +228,12 @@ function renderResults(){
   const candidate=r['Suggested reference']||r['Crossref title']||'No candidate';
   return '<tr class="'+(r.Decision==='MANUALLY CORRECTED'?'manually-corrected':'')+'"><td><input type="checkbox" class="row-select" data-index="'+i+'" '+(r.selected?'checked':'')+' aria-label="Select reference '+(i+1)+'"></td><td>'+escapeHtml(r['Original reference']||'')+'</td><td><span class="pill '+(r.Decision==='TOTALLY CORRECTED'||r.Decision==='MANUALLY CORRECTED'?'good':'review')+'">'+escapeHtml(r.Decision||'MANUAL CORRECTION REQUIRED')+'</span></td><td><div>'+escapeHtml(candidate)+'</div>'+(manual?'<button class="secondary find-candidates" data-index="'+i+'">Find best match</button><div id="candidateBox'+i+'"></div>':'')+'</td><td>'+escapeHtml(r.Notes||'')+'</td><td><a href="'+escapeHtml(r['Google Scholar search']||scholar(r['Original reference']||''))+'" target="_blank" rel="noopener">Google Scholar ↗</a></td></tr>'
  }).join('');
+ if(manualOnly&&visible.length===0)$('tbody').innerHTML='<tr><td colspan="6">No references currently require manual correction.</td></tr>';
 }
-$('selectManualBtn').addEventListener('click',()=>{results.forEach(r=>r.selected=r.Decision==='MANUAL CORRECTION REQUIRED');renderResults()});
+$('selectManualBtn').addEventListener('click',()=>{manualOnly=true;results.forEach(r=>r.selected=r.Decision==='MANUAL CORRECTION REQUIRED');renderResults()});
+$('showAllBtn').addEventListener('click',()=>{manualOnly=false;renderResults()});
+$('fullscreenBtn').addEventListener('click',async()=>{const el=$('resultsPanel').querySelector('.tablewrap');try{if(!document.fullscreenElement){await el.requestFullscreen();$('fullscreenBtn').textContent='Exit full screen ⤢'}else{await document.exitFullscreen();$('fullscreenBtn').textContent='Expand results table ⛶'}}catch(e){el.style.maxHeight='calc(100vh - 180px)';el.style.height='calc(100vh - 180px)';setStatus('Expanded table view enabled.')}});
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)$('fullscreenBtn').textContent='Expand results table ⛶'});
 $('clearSelectionBtn').addEventListener('click',()=>{results.forEach(r=>r.selected=false);renderResults()});
 $('tbody').addEventListener('change',e=>{if(e.target.classList.contains('row-select')){const i=Number(e.target.dataset.index);if(results[i])results[i].selected=e.target.checked}});
 $('tbody').addEventListener('click',async e=>{
