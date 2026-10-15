@@ -28,8 +28,29 @@
 <section class="panel"><h2>1. Upload your reference list</h2><p class="muted">Import a reference list from DOCX, TXT, RIS, BibTeX, or CSV. Do not upload a full paper or PDF. Check the extracted preview before verification. Reference text is sent to Crossref only when you run verification.</p><div class="drop"><strong>Select a reference-list file (.docx, .txt, .ris, .bib, .csv)</strong><br><input type="file" id="file" accept=".docx,.txt,.ris,.bib,.bibtex,.csv,text/plain,text/csv,application/x-research-info-systems,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><div class="muted" id="filename">No file selected</div></div><div class="actions"><button id="extractBtn">Extract and preview references</button><button class="secondary" id="verifyBtn" disabled>Verify references</button></div>
 <div style="margin-top:18px"><label for="pastedReferences" style="display:block;font-weight:750;margin-bottom:7px">Or paste references directly</label><textarea id="pastedReferences" rows="7" style="width:100%;padding:12px;border:1px solid #cbd7e1;border-radius:10px;font:inherit;line-height:1.5" placeholder="Paste references here. Separate wrapped references with a blank line, or put one complete reference on each line."></textarea><p class="muted">For references wrapped across lines, separate entries with a blank line. If each reference is on one line, paste one per line. Exact duplicate entries are removed; similar entries are retained for review.</p><div class="actions"><button id="usePastedReferences" class="secondary" type="button">Prepare pasted references</button></div></div><div id="status" class="status" role="status"></div><div id="preview" class="hidden"></div></section>
 <section class="panel hidden" id="resultsPanel"><h2>2. Verification results</h2><div class="stats"><div class="stat"><span class="muted">References checked</span><strong id="total">0</strong></div><div class="stat"><span class="muted">TOTALLY CORRECTED</span><strong id="correct">0</strong></div><div class="stat"><span class="muted">MANUAL CORRECTION REQUIRED</span><strong id="manual">0</strong></div></div><div class="actions"><button id="selectManualBtn" class="secondary">Show manual-review only</button><button id="showAllBtn" class="secondary">Show all references</button><button id="clearSelectionBtn" class="secondary">Clear selection</button><button id="fullscreenBtn" class="secondary">Expand results table ⛶</button><button id="excelBtn">Download Excel audit (.xlsx)</button><button id="wordBtn" class="secondary">Download corrected reference list (.docx)</button></div><p class="muted">Select manual-review references to focus the list. Use “Find best match” to retrieve one relevance-ranked Crossref candidate, inspect title, authors, year and DOI, and apply it only if it is the same paper. Manually corrected references are highlighted in the Word output.</p><p class="muted">A Crossref search result is a candidate, not a guarantee. Review author order, publication year, journal, pages/article number, and DOI before using corrected references in a submission.</p><div class="tablewrap"><table><thead><tr><th>Select</th><th>Original reference</th><th>Decision</th><th>Candidate / correction</th><th>Notes</th><th>Search</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
-<section class="panel" id="duplicateAuditPanel"><h2>3. Duplicate Reference Detection</h2><p class="muted">Find exact and probable duplicates in the prepared reference list. Candidates are not merged automatically; review the evidence and confirm each group yourself.</p><div class="actions"><button id="runDuplicateAudit" type="button">Find duplicate candidates</button><button id="exportDuplicateAudit" class="secondary" type="button">Export duplicate audit CSV</button><button id="exportCleanReferences" type="button">Export cleaned reference list</button></div><div id="duplicateStatus" class="status" role="status">Prepare a reference list above first.</div><div id="duplicateResults" class="hidden"></div></section>
-<section class="panel" id="citationConsistencyPanel"><h2>3. In-text citation & reference-list consistency</h2><p class="muted">Compare a manuscript's detected in-text citation markers with the currently prepared reference list. This is a heuristic screening aid: author styles, et al. rules, group authors, and numbered citation styles can produce ambiguous matches.</p><div class="drop"><strong>Select manuscript text (.txt or .docx)</strong><br><input type="file" id="consistencyManuscript" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></div><div class="actions"><button id="runConsistency" type="button">Check citation consistency</button><button id="exportConsistency" class="secondary" type="button">Export consistency CSV</button></div><div id="consistencyStatus" class="status" role="status">Prepare a reference list above, then select the manuscript.</div><div id="consistencyResults" class="hidden"></div></section>
+<section class="panel" id="duplicateAuditPanel">
+<h2>3. Reference List Cleaning &amp; Deduplication</h2>
+<p class="muted">Review candidate groups before creating a cleaned working list. The imported list is preserved as the original; no record is excluded unless you explicitly confirm the group and select a record to retain.</p>
+<div class="actions">
+<button id="runDuplicateAudit" type="button">Find duplicate candidates</button>
+<button id="exportDuplicateAudit" class="secondary" type="button">Export duplicate audit CSV</button>
+<button id="exportCleanReferences" type="button">Create cleaned working list</button>
+<button id="resetCleanReferences" class="secondary" type="button">Undo / reset cleaning</button>
+</div>
+<div id="duplicateStatus" class="status" role="status">Prepare a reference list above first.</div>
+<div id="dedupCounts" class="stats" aria-live="polite"></div>
+<div id="duplicateResults" class="hidden"></div>
+<div id="cleanedExports" class="hidden">
+<h3>Download cleaning outputs</h3>
+<div class="actions">
+<button id="downloadCleanTxt" type="button">Cleaned list (.txt)</button>
+<button id="downloadCleanCsv" class="secondary" type="button">Cleaned list (.csv)</button>
+<button id="downloadExcludedCsv" class="secondary" type="button">Excluded records (.csv)</button>
+<button id="downloadDecisionCsv" class="secondary" type="button">Decision log (.csv)</button>
+</div>
+<p class="muted">The cleaned list is now the active list for verification and citation-consistency checks. The original imported list remains available through Undo / reset cleaning.</p>
+</div>
+</section><section class="panel" id="citationConsistencyPanel"><h2>3. In-text citation & reference-list consistency</h2><p class="muted">Compare a manuscript's detected in-text citation markers with the currently prepared reference list. This is a heuristic screening aid: author styles, et al. rules, group authors, and numbered citation styles can produce ambiguous matches.</p><div class="drop"><strong>Select manuscript text (.txt or .docx)</strong><br><input type="file" id="consistencyManuscript" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></div><div class="actions"><button id="runConsistency" type="button">Check citation consistency</button><button id="exportConsistency" class="secondary" type="button">Export consistency CSV</button></div><div id="consistencyStatus" class="status" role="status">Prepare a reference list above, then select the manuscript.</div><div id="consistencyResults" class="hidden"></div></section>
 <section class="panel"><h2>How it works</h2><p class="muted">The app extracts paragraphs from DOCX files or text from PDF pages, locates a likely reference section in full papers/reports, queries Crossref by DOI when present and otherwise by title/bibliographic text, then applies conservative match thresholds. It also gives a Google Scholar search link for manual verification. The Word output is a separate report; it does not edit in-text citations in a full manuscript.</p><div class="notice">Privacy note: file extraction happens in your browser. When you click Verify, reference text/DOIs are sent to the public Crossref API for lookup. Avoid using this public tool for confidential unpublished material.</div></section>
 </main><footer>Built for research reference checking · Always verify metadata before publication</footer>
 <script>
@@ -249,16 +270,20 @@ $('exportConsistency').addEventListener('click',()=>{
 });
 
 let duplicateAudit=null;
-function normaliseTitle(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/https?:\/\/(?:dx\.)?doi\.org\//g,' ').replace(/\bdoi\s*:\s*/g,' ').replace(/\b10\.\d{4,9}\/[^\s,;]+/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim()}
+let originalReferenceList=null;
+let cleanedReferenceList=null;
+let dedupGroups=[];
+let dedupDecisions=[];
+function normaliseTitle(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/https?:\\/\\/(?:dx\\.)?doi\\.org\\//g,' ').replace(/\\bdoi\\s*:\\s*/g,' ').replace(/\\b10\\.\\d{4,9}\\/[^\\s,;]+/g,' ').replace(/[^\\p{L}\\p{N}]+/gu,' ').replace(/\\s+/g,' ').trim()}
 function titleCandidate(ref){
  const p=parseRef(ref),raw=String(ref||'');
  if(p.title&&p.title.length>=8)return p.title;
  const q=raw.match(/[“"]([^”"]{12,})[”"]/);if(q)return q[1];
- const year=raw.search(/\b(?:18|19|20|21)\d{2}[a-z]?\b/);
- if(year>=0){const tail=raw.slice(year).replace(/^\b(?:18|19|20|21)\d{2}[a-z]?\b[ .,:()\-]*/,'');const m=tail.match(/^(.{12,}?)(?:\.\s+[A-Z][a-z]+,|\.\s+[A-Z][a-z]+\.|,\s*(?:vol\.|volume|pp\.|pages)|$)/);if(m)return m[1].trim()}
+ const year=raw.search(/\\b(?:18|19|20|21)\\d{2}[a-z]?\\b/);
+ if(year>=0){const tail=raw.slice(year).replace(/^\\b(?:18|19|20|21)\\d{2}[a-z]?\\b[ .,:()\\-]*/,'');const m=tail.match(/^(.{12,}?)(?:\\.\\s+[A-Z][a-z]+,|\\.\\s+[A-Z][a-z]+\\.|,\\s*(?:vol\\.|volume|pp\\.|pages)|$)/);if(m)return m[1].trim()}
  return '';
 }
-function doiCandidate(ref){const m=String(ref||'').match(/(?:https?:\/\/(?:dx\.)?doi\.org\/|\bdoi\s*:\s*)(10\.\d{4,9}\/[^\s<>]+)/i);return m?m[1].toLowerCase().replace(/[.,;)]+$/,''):''}
+function doiCandidate(ref){const m=String(ref||'').match(/(?:https?:\\/\\/(?:dx\\.)?doi\\.org\\/|\\bdoi\\s*:\\s*)(10\\.\\d{4,9}\\/[^\\s<>]+)/i);return m?m[1].replace(/[.,;)]+$/,'').toLowerCase():''}
 function levenshteinSimilarity(a,b){
  if(!a||!b)return 0;if(a===b)return 1;
  let prev=Array.from({length:b.length+1},(_,i)=>i);
@@ -266,52 +291,119 @@ function levenshteinSimilarity(a,b){
  return 1-prev[b.length]/Math.max(a.length,b.length);
 }
 function findDuplicateCandidates(list){
- const records=list.map((raw,i)=>({index:i+1,raw,doi:doiCandidate(raw),title:normaliseTitle(titleCandidate(raw)||raw),titleRaw:titleCandidate(raw),year:((raw.match(/\b(?:18|19|20|21)\d{2}\b/)||[])[0]||''),author:(originalAuthorText(raw)||'').toLowerCase().replace(/[^a-z0-9]/g,'')}));
+ const records=list.map((raw,i)=>({id:'ref-'+(i+1),index:i+1,raw,doi:doiCandidate(raw),title:normaliseTitle(titleCandidate(raw)||''),titleRaw:titleCandidate(raw),year:((raw.match(/\\b(?:18|19|20|21)\\d{2}\\b/)||[])[0]||''),author:(typeof originalAuthorText==='function'?(originalAuthorText(raw)||''):'').toLowerCase().replace(/[^a-z0-9]/g,'')}));
  const candidates=[];
  for(let i=0;i<records.length;i++)for(let j=i+1;j<records.length;j++){
   const a=records[i],b=records[j];let type='',score=0,evidence='';
-  if(a.doi&&b.doi&&a.doi===b.doi){type='Exact DOI match';score=1;evidence='Normalised DOI strings are identical.'}
-  else if(a.title&&b.title&&a.title===b.title){type='Exact normalised title';score=.98;evidence='Titles are identical after punctuation, case, and diacritic normalisation.'}
+  if(a.doi&&b.doi&&a.doi!==b.doi)continue;
+  if(a.doi&&b.doi&&a.doi===b.doi){type='Exact DOI match';score=1;evidence='Normalised DOI values are identical.'}
+  else if(a.title&&b.title&&a.title===b.title){type='Exact normalised title';score=1;evidence='Normalised titles match after punctuation, case and diacritic normalisation.'}
   else if(a.title&&b.title){
    const simScore=levenshteinSimilarity(a.title,b.title);
-   const yearCompatible=!a.year||!b.year||a.year===b.year;
-   const authorCompatible=!a.author||!b.author||a.author===b.author||a.author.includes(b.author)||b.author.includes(a.author);
-   if(simScore>=.91&&yearCompatible&&(authorCompatible||simScore>=.97)){type='Probable duplicate';score=simScore;evidence='High title similarity ('+Math.round(simScore*100)+'%); year '+(yearCompatible?'compatible':'differs')+'; author text '+(authorCompatible?'compatible':'not clearly matching')+'.'}
+   if(simScore>=.88){
+    type='Probable title match';score=simScore;
+    evidence='Title similarity '+Math.round(simScore*100)+'%; year '+(!a.year||!b.year?'not available':a.year===b.year?'matches':'DIFFERS ('+a.year+' vs '+b.year+')')+'; author text '+(!a.author||!b.author?'not available':a.author===b.author||a.author.includes(b.author)||b.author.includes(a.author)?'compatible':'DIFFERS')+'.';
+   }
   }
   if(type)candidates.push({a,b,type,score,evidence,decision:'Needs review'});
  }
  return {generatedAt:new Date().toISOString(),count:list.length,candidates};
 }
-function renderDuplicateAudit(a){
- const groups=a.candidates.map((x,i)=>'<tr><td><input type="checkbox" data-dup-confirm="'+i+'" '+(x.decision==='Confirmed duplicate'?'checked':'')+' aria-label="Confirm duplicate candidate '+(i+1)+'"></td><td>'+x.a.index+'<br>'+escapeHtml(x.a.raw)+'</td><td>'+x.b.index+'<br>'+escapeHtml(x.b.raw)+'</td><td>'+escapeHtml(x.type)+' · '+Math.round(x.score*100)+'%</td><td>'+escapeHtml(x.evidence)+'</td><td><select data-dup-decision="'+i+'">'+['Needs review','Confirmed duplicate','Distinct records'].map(s=>'<option'+(x.decision===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td></tr>').join('');
+function buildDedupGroups(a){
+ const parent=Array.from({length:a.count+1},(_,i)=>i);
+ const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
+ const union=(x,y)=>{const rx=find(x),ry=find(y);if(rx!==ry)parent[ry]=rx};
+ a.candidates.forEach(c=>union(c.a.index,c.b.index));
+ const map=new Map();
+ a.candidates.forEach(c=>{const root=find(c.a.index);if(!map.has(root))map.set(root,{id:'group-'+root,records:[],candidates:[],decision:'Needs review',primary:c.a.index})});
+ for(const g of map.values()){
+  const idx=new Set();g.candidates=a.candidates.filter(c=>find(c.a.index)===find(g.candidates[0]?.a.index||c.a.index));
+ }
+ // Rebuild by root without relying on pair ordering.
+ const grouped=new Map();
+ a.candidates.forEach(c=>{const root=find(c.a.index);if(!grouped.has(root))grouped.set(root,{id:'group-'+root,records:[],candidates:[],decision:'Needs review',primary:null});const g=grouped.get(root);g.candidates.push(c);g.records.push(c.a,c.b)});
+ return [...grouped.values()].map(g=>{const uniq=[...new Map(g.records.map(r=>[r.index,r])).values()].sort((x,y)=>x.index-y.index);return {...g,records:uniq,primary:uniq[0]?.index||null}});
+}
+function renderDedupWorkflow(){
+ const a=duplicateAudit;
+ if(!a){$('duplicateResults').classList.add('hidden');return}
+ const groupHtml=dedupGroups.map((g,gi)=>{
+  const rows=g.records.map(r=>'<div class="dedup-record"><label><input type="radio" name="primary-'+gi+'" data-primary-group="'+gi+'" value="'+r.index+'" '+(Number(g.primary)===r.index?'checked':'')+' '+(g.decision==='Confirmed duplicate'?'':'disabled')+'> <strong>Reference '+r.index+'</strong></label><div class="dedup-ref">'+escapeHtml(r.raw)+'</div><div class="muted">DOI: '+escapeHtml(doiCandidate(r.raw)||'Not detected')+' · Year: '+escapeHtml(((r.raw.match(/\\b(?:18|19|20|21)\\d{2}\\b/)||[])[0]||'Not detected'))+'</div></div>').join('');
+  const pairs=g.candidates.map(c=>'<li><strong>'+escapeHtml(c.type)+'</strong> · '+Math.round(c.score*100)+'% indicator<br>'+escapeHtml(c.evidence)+'</li>').join('');
+  return '<article class="dedup-group"><h3>Candidate group '+(gi+1)+' · '+g.records.length+' records</h3><label for="group-decision-'+gi+'">Group decision</label><select id="group-decision-'+gi+'" data-group-decision="'+gi+'">'+['Needs review','Confirmed duplicate','Distinct records'].map(v=>'<option'+(g.decision===v?' selected':'')+'>'+v+'</option>').join('')+'</select><h4>Records and retained-primary choice</h4>'+rows+'<h4>Detection evidence</h4><ul>'+pairs+'</ul></article>';
+ }).join('');
  $('duplicateResults').classList.remove('hidden');
- $('duplicateResults').innerHTML='<p><strong>'+a.candidates.length+'</strong> candidate pair(s) found across '+a.count+' reference entries. No records have been removed or merged.</p><div class="tablewrap"><table><thead><tr><th>Confirm</th><th>Reference A</th><th>Reference B</th><th>Detection</th><th>Evidence</th><th>Your decision</th></tr></thead><tbody>'+groups+'</tbody></table></div><p class="notice">Similar titles can refer to distinct papers, preprints, corrections, or conference and journal versions. Confirm identity before deduplicating.</p>';
- $('duplicateResults').querySelectorAll('[data-dup-decision]').forEach(el=>el.addEventListener('change',()=>{const x=a.candidates[Number(el.dataset.dupDecision)];if(x){x.decision=el.value;renderDuplicateAudit(a)}}));
- $('duplicateResults').querySelectorAll('[data-dup-confirm]').forEach(el=>el.addEventListener('change',()=>{const x=a.candidates[Number(el.dataset.dupConfirm)];if(x){x.decision=el.checked?'Confirmed duplicate':'Needs review';renderDuplicateAudit(a)}}));
+ $('duplicateResults').innerHTML=a.candidates.length?'<p><strong>'+a.candidates.length+'</strong> candidate pair(s) organised into <strong>'+dedupGroups.length+'</strong> review group(s). Similarity values are indicators, not probabilities. No records have been removed.</p>'+groupHtml+'<p class="notice">Different non-empty DOI values suppress a duplicate suggestion. Title-only matches remain suggestions; year and author differences are displayed for human assessment. Confirming a group excludes every record except the primary record you select.</p>':'<div class="notice">No duplicate candidates were detected. All '+a.count+' original records remain unchanged and can still be exported as a cleaned working list.</div>';
+ $('duplicateResults').querySelectorAll('[data-group-decision]').forEach(el=>el.addEventListener('change',()=>{const g=dedupGroups[Number(el.dataset.groupDecision)];if(!g)return;g.decision=el.value;if(g.decision!=='Confirmed duplicate')g.primary=g.records[0]?.index||null;renderDedupWorkflow()}));
+ $('duplicateResults').querySelectorAll('[data-primary-group]').forEach(el=>el.addEventListener('change',()=>{const g=dedupGroups[Number(el.dataset.primaryGroup)];if(g)g.primary=Number(el.value)}));
+ const confirmed=dedupGroups.filter(g=>g.decision==='Confirmed duplicate');
+ const excluded=new Set(confirmed.flatMap(g=>g.records.filter(r=>r.index!==Number(g.primary)).map(r=>r.index)));
+ const unresolved=dedupGroups.filter(g=>g.decision==='Needs review').length;
+ $('dedupCounts').innerHTML='<div class="stat"><span class="muted">Original references</span><strong>'+a.count+'</strong></div><div class="stat"><span class="muted">Confirmed groups</span><strong>'+confirmed.length+'</strong></div><div class="stat"><span class="muted">Potential exclusions</span><strong>'+excluded.size+'</strong></div><div class="stat"><span class="muted">Groups unresolved</span><strong>'+unresolved+'</strong></div>';
+}
+function dedupAuditRows(){
+ const rows=[['Generated at',duplicateAudit?.generatedAt||''],['Original record count',duplicateAudit?.count||0],['Group ID','Reference A index','Reference A text','Reference B index','Reference B text','Detection type','Similarity indicator','Evidence','Group decision','Retained primary index']];
+ dedupGroups.forEach(g=>g.candidates.forEach(c=>rows.push([g.id,c.a.index,c.a.raw,c.b.index,c.b.raw,c.type,Math.round(c.score*100)+'%',c.evidence,g.decision,g.decision==='Confirmed duplicate'?g.primary:''])));
+ return rows;
+}
+function excludedDedupRows(){
+ const rows=[['Original index','Original reference text','Group ID','Retained primary index','Decision']];
+ dedupGroups.filter(g=>g.decision==='Confirmed duplicate').forEach(g=>g.records.filter(r=>r.index!==Number(g.primary)).forEach(r=>rows.push([r.index,r.raw,g.id,g.primary,'Excluded as confirmed duplicate'])));
+ return rows;
+}
+function decisionDedupRows(){
+ const rows=[['Generated at','Group ID','Member indices','Group decision','Retained primary index','Detection evidence']];
+ dedupGroups.forEach(g=>rows.push([new Date().toISOString(),g.id,g.records.map(r=>r.index).join('; '),g.decision,g.decision==='Confirmed duplicate'?g.primary:'',g.candidates.map(c=>c.type+' ('+Math.round(c.score*100)+'%): '+c.evidence).join(' | ')]));
+ return rows;
+}
+function downloadCsvFile(name,rows){download(name,csvOut(rows))}
+function createCleanedWorkingList(){
+ if(!originalReferenceList)originalReferenceList=refs.slice();
+ const confirmed=dedupGroups.filter(g=>g.decision==='Confirmed duplicate');
+ for(const g of confirmed){if(!g.primary||!g.records.some(r=>r.index===Number(g.primary))){$('duplicateStatus').textContent='Select a retained primary record for every confirmed group.';return}}
+ const excluded=new Set(confirmed.flatMap(g=>g.records.filter(r=>r.index!==Number(g.primary)).map(r=>r.index)));
+ const next=originalReferenceList.filter((_,i)=>!excluded.has(i+1));
+ if(!confirm('Create a cleaned working list? This will switch the active reference list from '+originalReferenceList.length+' original records to '+next.length+' retained records. The original list remains available through Undo / reset cleaning.'))return;
+ cleanedReferenceList=next.slice();refs=next.slice();results=[];manualOnly=false;
+ if($('resultsPanel'))$('resultsPanel').classList.add('hidden');
+ consistencyAudit=null;if($('consistencyResults'))$('consistencyResults').classList.add('hidden');
+ $('cleanedExports').classList.remove('hidden');
+ $('duplicateStatus').textContent='Cleaned working list created: '+next.length+' retained; '+excluded.size+' excluded. The excluded records are available for inspection and export.';
+ $('dedupCounts').innerHTML='<div class="stat"><span class="muted">Original references</span><strong>'+originalReferenceList.length+'</strong></div><div class="stat"><span class="muted">Retained</span><strong>'+next.length+'</strong></div><div class="stat"><span class="muted">Excluded</span><strong>'+excluded.size+'</strong></div><div class="stat"><span class="muted">Unresolved groups retained</span><strong>'+dedupGroups.filter(g=>g.decision==='Needs review').length+'</strong></div>';
 }
 $('runDuplicateAudit').addEventListener('click',()=>{
  if(!refs.length){$('duplicateStatus').textContent='Prepare or import a reference list above first.';return}
- duplicateAudit=findDuplicateCandidates(refs);renderDuplicateAudit(duplicateAudit);
- $('duplicateStatus').textContent='Duplicate scan complete. '+duplicateAudit.candidates.length+' candidate pair(s) need inspection.';
+ if(!originalReferenceList)originalReferenceList=refs.slice();
+ duplicateAudit=findDuplicateCandidates(originalReferenceList);
+ dedupGroups=buildDedupGroups(duplicateAudit);
+ renderDedupWorkflow();
+ $('cleanedExports').classList.add('hidden');
+ $('duplicateStatus').textContent='Scan complete. Review each candidate group; no reference has been excluded.';
 });
 $('exportDuplicateAudit').addEventListener('click',()=>{
  if(!duplicateAudit){alert('Run duplicate detection first.');return}
- download('duplicate_reference_audit.csv',csvOut([['Reference A number','Reference A text','Reference B number','Reference B text','Detection type','Similarity score','Evidence','Decision'],...duplicateAudit.candidates.map(x=>[x.a.index,x.a.raw,x.b.index,x.b.raw,x.type,Math.round(x.score*100)+'%',x.evidence,x.decision])]));
+ downloadCsvFile('duplicate_reference_audit.csv',dedupAuditRows());
 });
 $('exportCleanReferences').addEventListener('click',()=>{
- if(!duplicateAudit){alert('Run duplicate detection first.');return}
- const confirmed=duplicateAudit.candidates.filter(x=>x.decision==='Confirmed duplicate');
- if(!confirmed.length){alert('No candidate pairs are marked Confirmed duplicate. Review the candidates and confirm only genuine duplicates.');return}
- const distinct=duplicateAudit.candidates.filter(x=>x.decision==='Distinct records');
- const conflict=confirmed.some(x=>distinct.some(y=>x.a.index===y.a.index||x.a.index===y.b.index||x.b.index===y.a.index||x.b.index===y.b.index));
- if(conflict&&!confirm('Some references are marked duplicate in one pair but distinct in another. Export will keep the earliest reference number in each confirmed pair. Continue?'))return;
- const remove=new Set();
- confirmed.forEach(x=>remove.add(Math.max(x.a.index,x.b.index)));
- const kept=refs.filter((_,i)=>!remove.has(i+1));
- download('cleaned_references.txt',kept.map((r,i)=>(i+1)+'. '+r).join(String.fromCharCode(10)));
- download('deduplication_decision_log.csv',csvOut([['Reference A number','Reference A text','Reference B number','Reference B text','Detection type','Evidence','Decision'],...duplicateAudit.candidates.map(x=>[x.a.index,x.a.raw,x.b.index,x.b.raw,x.type,x.evidence,x.decision])]));
- $('duplicateStatus').textContent='Exported '+kept.length+' retained references and a separate decision log. Removed '+remove.size+' later-numbered entries based only on pairs marked Confirmed duplicate.';
+ if(!duplicateAudit){if(!refs.length){$('duplicateStatus').textContent='Prepare or import a reference list above first.';return}originalReferenceList=refs.slice();duplicateAudit=findDuplicateCandidates(originalReferenceList);dedupGroups=buildDedupGroups(duplicateAudit);renderDedupWorkflow()}
+ createCleanedWorkingList();
 });
+$('resetCleanReferences').addEventListener('click',()=>{
+ if(!originalReferenceList){$('duplicateStatus').textContent='No original working list is available to reset.';return}
+ if(!confirm('Undo cleaning and restore the original '+originalReferenceList.length+' reference records?'))return;
+ refs=originalReferenceList.slice();cleanedReferenceList=null;results=[];manualOnly=false;duplicateAudit=null;dedupGroups=[];
+ if($('resultsPanel'))$('resultsPanel').classList.add('hidden');
+ if($('preview'))$('preview').classList.add('hidden');
+ if($('cleanedExports'))$('cleanedExports').classList.add('hidden');
+ if($('duplicateResults')){$('duplicateResults').innerHTML='';$('duplicateResults').classList.add('hidden')}
+ if($('dedupCounts'))$('dedupCounts').innerHTML='';
+ consistencyAudit=null;if($('consistencyResults'))$('consistencyResults').classList.add('hidden');
+ $('duplicateStatus').textContent='Original list restored: '+refs.length+' references. Run duplicate detection again if needed.';
+});
+$('downloadCleanTxt').addEventListener('click',()=>{if(!cleanedReferenceList){alert('Create the cleaned working list first.');return}download('cleaned_references.txt',cleanedReferenceList.join(String.fromCharCode(10)))});
+$('downloadCleanCsv').addEventListener('click',()=>{if(!cleanedReferenceList){alert('Create the cleaned working list first.');return}downloadCsvFile('cleaned_references.csv',[['Original index','Reference text'],...cleanedReferenceList.map(r=>[originalReferenceList.indexOf(r)+1,r])])});
+$('downloadExcludedCsv').addEventListener('click',()=>{if(!duplicateAudit){alert('Run duplicate detection first.');return}downloadCsvFile('excluded_duplicate_records.csv',excludedDedupRows())});
+$('downloadDecisionCsv').addEventListener('click',()=>{if(!duplicateAudit){alert('Run duplicate detection first.');return}downloadCsvFile('deduplication_decision_log.csv',decisionDedupRows())});
 $('extractBtn').addEventListener('click',async()=>{
  const f=$('file').files[0];
  if(!f){setStatus('Please upload a reference list file.');return}
