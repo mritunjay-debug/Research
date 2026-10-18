@@ -8,6 +8,7 @@ on:
       - "citation-verification.html"
       - "literature.html"
       - "workspace.html"
+      - "pillar-simulator.html"
       - "manuscript-audit.html"
       - "thesis-manuscript-studio.html"
       - "research-tools.html"
