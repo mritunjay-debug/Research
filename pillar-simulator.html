@@ -33,9 +33,53 @@ return {sv:sv,sp:sp,strength:strength,strengthRatio:Number.isFinite(strength)&&s
 }
 function f(x,d){return Number.isFinite(x)?x.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'}function txt(id,v){$(id).textContent=v}
 function results(p,q){txt('mSv',f(q.sv,2)+' MPa');txt('mSp',f(q.sp,2)+' MPa');txt('mRatio',f(q.strengthRatio,2));txt('mWh',f(q.wh,2));txt('rSv',f(q.sv,2));txt('rSp',f(q.sp,2));txt('rRatio',f(q.strengthRatio,2));txt('rWh',f(q.wh,2));txt('rExtract',f(q.extract*100,1)+'%');txt('rLoad',f(q.load,1));txt('rStrength',f(q.strength,2));txt('rStrengthRatio',f(q.strengthRatio,2));let warning=q.modelNote||'Selected formula is an empirical estimate; confirm applicability and calibration for the actual mine.';txt('modelWarning',warning);txt('inputStatus','Updated from current inputs.')}
-function project(x,y,z,a,cx,cy,s){let X=x*Math.cos(a)-y*Math.sin(a),Y=x*Math.sin(a)+y*Math.cos(a);return {x:cx+(X-Y)*s*.82,y:cy+(X+Y)*s*.38-z*s}}
-function draw(){let p=get();if(err(p))return;let r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);c.width=Math.max(1,r.width*d);c.height=Math.max(1,r.height*d);ctx.setTransform(d,0,0,d,0,0);let w=r.width,h=r.height;ctx.clearRect(0,0,w,h);let n=p.count,step=p.width+p.room,extent=n*step,s=Math.min((w-65)/(extent*1.7),(h-55)/(extent*.8+p.height*.8))*zoom,cx=w/2,cy=h*.53;let floor=[[0,0],[extent,0],[extent,extent],[0,extent]].map(v=>project(v[0],v[1],0,angle,cx,cy,s));ctx.beginPath();floor.forEach((v,i)=>i?ctx.lineTo(v.x,v.y):ctx.moveTo(v.x,v.y));ctx.closePath();ctx.fillStyle='#e2e9df';ctx.fill();ctx.strokeStyle='#b9c8b9';ctx.stroke();for(let i=0;i<=n;i++){let a=project(i*step,0,0,angle,cx,cy,s),b=project(i*step,extent,0,angle,cx,cy,s),d1=project(0,i*step,0,angle,cx,cy,s),d2=project(extent,i*step,0,angle,cx,cy,s);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.moveTo(d1.x,d1.y);ctx.lineTo(d2.x,d2.y);ctx.strokeStyle='#c4d0c3';ctx.stroke()}
-let arr=[];for(let row=0;row<n;row++)for(let col=0;col<n;col++){let id=row*n+col+1,x=col*step+p.room/2,y=row*step+p.room/2;let b=[[x,y],[x+p.width,y],[x+p.width,y+p.width],[x,y+p.width]].map(v=>project(v[0],v[1],0,angle,cx,cy,s)),t=[[x,y],[x+p.width,y],[x+p.width,y+p.width],[x,y+p.width]].map(v=>project(v[0],v[1],p.height,angle,cx,cy,s));arr.push({id,x,y,b:b,t:t})}arr.sort((a,b)=>a.x+a.y-b.x-b.y);arr.forEach(q=>{let is=q.id===selected,top=is?'#e8b094':'#a9c0ac',side=is?'#b45f42':'#66816f',front=is?'#d28a68':'#7f9b87';if(p.mode==='ratio'&&!is)top=calc(p).ratio<1?'#c87865':calc(p).ratio<2?'#d7bb79':'#a9c0ac';if(p.mode==='stress'&&!is)top='#9eb8a3';function face(points,color){ctx.beginPath();points.forEach((v,i)=>i?ctx.lineTo(v.x,v.y):ctx.moveTo(v.x,v.y));ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.strokeStyle=is?'#8d452e':'#5e7965';ctx.lineWidth=is?2:1;ctx.stroke()}face([q.b[1],q.b[2],q.t[2],q.t[1]],side);face([q.b[2],q.b[3],q.t[3],q.t[2]],front);face(q.t,top);if(is){ctx.fillStyle='#3d3027';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('P'+q.id,(q.t[0].x+q.t[2].x)/2,(q.t[0].y+q.t[2].y)/2+4)}});c._pillars=arr;txt('selected','Pillar P'+selected);txt('selectionInfo','P'+selected+' · '+p.width+' m × '+p.width+' m plan × '+p.height+' m high. IDs select visual pillars only; each uses the same overall input assumptions.')}
+function project(x,y,z,a,cx,cy,s){const X=x*Math.cos(a)-y*Math.sin(a),Y=x*Math.sin(a)+y*Math.cos(a);return{x:cx+(X-Y)*s*.82,y:cy+(X+Y)*s*.38-z*s}}
+function draw(){
+ const p=get();if(err(p))return;
+ const rect=c.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2),w=rect.width,h=rect.height;
+ if(w<2||h<2)return;
+ c.width=Math.max(1,Math.round(w*d));c.height=Math.max(1,Math.round(h*d));ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,w,h);
+ const n=Math.max(1,Math.min(6,Math.round(p.count))),step=p.width+p.room,extent=n*step;
+ // Fit the complete excavation and the full pillar height to the canvas at every aspect ratio.
+ const raw=(x,y,z)=>project(x,y,z,angle,0,0,1),bounds=[];
+ [[0,0,0],[extent,0,0],[extent,extent,0],[0,extent,0],[0,0,p.height],[extent,0,p.height],[extent,extent,p.height],[0,extent,p.height]].forEach(v=>bounds.push(raw(v[0],v[1],v[2])));
+ const minX=Math.min(...bounds.map(v=>v.x)),maxX=Math.max(...bounds.map(v=>v.x)),minY=Math.min(...bounds.map(v=>v.y)),maxY=Math.max(...bounds.map(v=>v.y));
+ const pad=Math.max(24,Math.min(52,Math.min(w,h)*.1)),s=Math.max(.1,Math.min((w-pad*2)/(maxX-minX||1),(h-pad*2)/(maxY-minY||1)))*zoom;
+ const cx=w/2-(minX+maxX)*s/2,cy=h/2-(minY+maxY)*s/2+Math.min(10,h*.025);
+ const pt=(x,y,z)=>project(x,y,z,angle,cx,cy,s);
+ const poly=(pts,fill,stroke='#5d7764',lw=1)=>{ctx.beginPath();pts.forEach((v,i)=>i?ctx.lineTo(v.x,v.y):ctx.moveTo(v.x,v.y));ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke()};
+ // Excavation floor: clear outline and a subtle, correctly spaced room grid.
+ const floor=[[0,0],[extent,0],[extent,extent],[0,extent]].map(v=>pt(v[0],v[1],0));
+ poly(floor,'#e6ebe3','#9aab9a',1.4);
+ ctx.save();ctx.beginPath();floor.forEach((v,i)=>i?ctx.lineTo(v.x,v.y):ctx.moveTo(v.x,v.y));ctx.closePath();ctx.clip();
+ for(let i=0;i<=n;i++){const v=i*step,a=pt(v,0,0),b=pt(v,extent,0),cc=pt(0,v,0),dd=pt(extent,v,0);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.moveTo(cc.x,cc.y);ctx.lineTo(dd.x,dd.y);ctx.strokeStyle='#c3d0c1';ctx.lineWidth=1;ctx.stroke()}
+ ctx.restore();
+ const arr=[];
+ for(let row=0;row<n;row++)for(let col=0;col<n;col++){
+  const id=row*n+col+1,x=col*step+p.room/2,y=row*step+p.room/2,wid=p.width,dep=p.width,z=p.height;
+  const b=[[x,y],[x+wid,y],[x+wid,y+dep],[x,y+dep]].map(v=>pt(v[0],v[1],0));
+  const t=[[x,y],[x+wid,y],[x+wid,y+dep],[x,y+dep]].map(v=>pt(v[0],v[1],z));
+  arr.push({id,x,y,b,t,depthKey:x+y});
+ }
+ // Back-to-front painter ordering keeps individual solids legible while preserving hit-test polygons.
+ arr.sort((a,b)=>a.depthKey-b.depthKey);
+ arr.forEach(q=>{
+  const is=q.id===selected,edge=is?'#914a32':'#425f4b';
+  let top=is?'#edb79a':'#b9cdbb',front=is?'#c87959':'#789782',side=is?'#aa573c':'#547561',far=is?'#d18a6a':'#91aa96';
+  if(p.mode==='ratio'&&!is){const r=calc(p).ratio;top=r<1?'#d28a7a':r<2?'#e1cb8c':'#b9cdbb'}
+  if(p.mode==='stress'&&!is)top='#a9c2ad';
+  // Four solid vertical faces, closed base edges and a distinct top face make each pillar a complete prism.
+  poly([q.b[0],q.b[1],q.t[1],q.t[0]],far,edge,is?1.6:.8);
+  poly([q.b[1],q.b[2],q.t[2],q.t[1]],side,edge,is?1.8:.8);
+  poly([q.b[2],q.b[3],q.t[3],q.t[2]],front,edge,is?1.8:.8);
+  poly([q.b[3],q.b[0],q.t[0],q.t[3]],far,edge,is?1.4:.7);
+  poly(q.t,top,edge,is?2:1);
+  // Explicit vertical corner lines reinforce that the object is a solid, upright pillar.
+  ctx.beginPath();[[0,1],[1,2],[2,3],[3,0]].forEach(pair=>{const k=pair[0];ctx.moveTo(q.b[k].x,q.b[k].y);ctx.lineTo(q.t[k].x,q.t[k].y)});ctx.strokeStyle=edge;ctx.lineWidth=is?1.8:1;ctx.stroke();
+  if(is){const tx=q.t.reduce((a,v)=>a+v.x,0)/4,ty=q.t.reduce((a,v)=>a+v.y,0)/4;ctx.fillStyle='#263b2d';ctx.font='700 '+Math.max(10,Math.min(13,s*1.8))+'px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('P'+q.id,tx,ty)}
+ });
+ c._pillars=arr;txt('selected','Pillar P'+selected);txt('selectionInfo','P'+selected+' · '+p.width+' m × '+p.width+' m plan × '+p.height+' m high. Solid rectangular prism; room gaps and pillar height follow the inputs. Selection changes highlighting only; all pillars share the same input assumptions.');
+}
 function chart(){let p=get();if(err(p))return;let k=$('sweep').value,range={depth:[10,Math.max(150,p.depth*1.5)],width:[Math.max(1,p.width*.35),Math.min(30,p.width*2.2)],room:[Math.max(1,p.room*.35),Math.min(30,p.room*2.2)],height:[Math.max(1,p.height*.35),Math.min(60,p.height*2.2)],ucs:[Math.max(1,p.ucs*.35),Math.min(300,p.ucs*2.2)]}[k],pts=[];for(let i=0;i<31;i++){let v=range[0]+(range[1]-range[0])*i/30,q=calc(Object.assign({},p,{[k]:v}));pts.push({x:v,y:q.sp})}let W=760,H=250,L=58,R=18,T=16,B=40,pw=W-L-R,ph=H-T-B,ymax=Math.max(...pts.map(q=>q.y))*1.12||1,X=v=>L+(v-range[0])/(range[1]-range[0])*pw,Y=v=>T+ph-v/ymax*ph,o='';for(let i=0;i<=4;i++){let v=ymax*i/4,y=Y(v);o+='<line x1="'+L+'" y1="'+y+'" x2="'+(W-R)+'" y2="'+y+'" stroke="#e6e8df"/><text x="'+(L-8)+'" y="'+(y+4)+'" font-size="10" text-anchor="end" fill="#718074">'+f(v,1)+'</text>'}o+='<path d="'+pts.map((q,i)=>(i?'L':'M')+X(q.x).toFixed(2)+' '+Y(q.y).toFixed(2)).join(' ')+'" fill="none" stroke="#276b50" stroke-width="3"/>';for(let i=0;i<=4;i++){let v=range[0]+(range[1]-range[0])*i/4;o+='<text x="'+X(v)+'" y="'+(H-18)+'" font-size="10" text-anchor="middle" fill="#718074">'+f(v,0)+'</text>'}o+='<text x="'+(L+pw/2)+'" y="'+(H-3)+'" font-size="11" text-anchor="middle" fill="#536657">'+({depth:'Mining depth (m)',width:'Pillar width (m)',room:'Room width (m)',height:'Pillar height (m)',ucs:'Intact UCS (MPa)'}[k])+'</text><text x="14" y="'+(T+ph/2)+'" transform="rotate(-90 14 '+(T+ph/2)+')" font-size="11" text-anchor="middle" fill="#536657">Estimated pillar stress (MPa)</text>';$('chart').innerHTML=o}
 function render(){let p=get(),e=err(p);if(e){txt('inputStatus',e);return}results(p,calc(p));draw();chart()}
 function record(name){let p=get();return {scenario:name,inputs:p,outputs:calc(p),materialLabel:$('material').selectedOptions[0].textContent,methodLabel:$('method').selectedOptions[0].textContent,stressMethod:'square-layout tributary-area mean pillar stress estimate',version:'1.1.0',generatedAt:new Date().toISOString(),limitations:'Empirical strength estimate is not site-validated and is not a universal factor of safety. Check method applicability and calibrate independently.'}}
