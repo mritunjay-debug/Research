@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
-const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html', 'pillar-simulator.html', 'pillar-validation.html', 'pillar-case-history.html'];
+const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html', 'pillar-simulator.html', 'pillar-validation.html', 'pillar-case-history.html', 'pillar-layout-editor.html'];
 const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js', 'data-analysis-core.js', 'data-analysis-stats.js', 'data-analysis-figure.js', 'pillar-strength-core.js', 'scripts/pillar-strength-core-test.mjs', 'scripts/data-analysis-figure-test.mjs', 'scripts/live-smoke-test.mjs', 'scripts/data-analysis-core-test.mjs', 'scripts/data-analysis-stats-test.mjs'];
 const errors = [];
 for (const file of htmlFiles) {
@@ -213,3 +213,6 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(`Static site checks passed: ${htmlFiles.length} pages and ${standaloneScripts.length} standalone script(s) inspected; inline JavaScript syntax and required dashboard/tool hooks are valid.`);
+
+const customPillarEditor = fs.readFileSync(path.join(root, 'pillar-layout-editor.html'), 'utf8');
+for (const required of ['id="plan"', 'function validate()', 'function parseCsv(', 'function exportCsv()', 'function exportJson()', 'Plan footprints overlap', 'unit_weight_mn_m3', 'local Cartesian']) { if (!customPillarEditor.includes(required)) errors.push('Custom Pillar Layout Editor is missing required feature marker: ' + required); }
