@@ -17,7 +17,8 @@ const requiredPages = [
   ['research-planning.html', 'Research Planning'],
   ['research-library.html', 'Research Library'],
   ['pillar-simulator.html', 'Underground Pillar Stability Lab'],
-  ['pillar-validation.html', 'Pillar Model Validation']
+  ['pillar-validation.html', 'Pillar Model Validation'],
+  ['pillar-case-history.html', 'Pillar Case-History']
 ];
 
 async function fetchWithRetry(url, attempts = 8) {
