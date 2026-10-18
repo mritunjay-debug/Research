@@ -60,7 +60,7 @@ function draw(){
   for(let row=0;row<n;row++)for(let col=0;col<n;col++){
    const id=row*n+col+1,x=col*stepX+p.roomX/2,y=row*stepY+p.roomY/2;
    const corners=[[x,y],[x+p.width,y],[x+p.width,y+p.length],[x,y+p.length]].map(v=>pt(v[0],v[1],0));
-   arr.push({id,x,y,corners,depthKey:x+y});
+   arr.push({id,x,y,corners,t:corners,depthKey:x+y});
   }
   arr.sort((a,b)=>a.depthKey-b.depthKey);
   arr.forEach(q=>{
