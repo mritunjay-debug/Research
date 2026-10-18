@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
-const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html', 'pillar-simulator.html', 'pillar-validation.html'];
+const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html', 'pillar-simulator.html', 'pillar-validation.html', 'pillar-case-history.html'];
 const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js', 'data-analysis-core.js', 'data-analysis-stats.js', 'data-analysis-figure.js', 'pillar-strength-core.js', 'scripts/pillar-strength-core-test.mjs', 'scripts/data-analysis-figure-test.mjs', 'scripts/live-smoke-test.mjs', 'scripts/data-analysis-core-test.mjs', 'scripts/data-analysis-stats-test.mjs'];
 const errors = [];
 for (const file of htmlFiles) {
@@ -40,7 +40,7 @@ for (const file of standaloneScripts) {
 const pillarSimulator = fs.existsSync(path.join(root, 'pillar-simulator.html'))
   ? fs.readFileSync(path.join(root, 'pillar-simulator.html'), 'utf8')
   : '';
-for (const required of ['id="mine"', 'id="material"', 'id="method"', 'id="width"', 'id="height"', 'id="room"', 'window.PillarStrengthCore.estimate(p)', 'function draw()', 'function chart()', 'function json()', 'function csv()', 'id="rows"', 'Strength / stress ratio', 'not universal FoS']) {
+for (const required of ['id="mine"', 'id="material"', 'id="method"', 'id="width"', 'id="height"', 'id="room"', 'window.PillarStrengthCore.estimate(p)', 'function draw()', 'function chart()', 'function json()', 'function csv()', 'id="rows"', 'Strength / stress ratio', 'not universal FoS', 'const raw=(x,y,z)', 'poly([q.b[0],q.b[1],q.t[1],q.t[0]]', 'poly([q.b[1],q.b[2],q.t[2],q.t[1]]', 'poly([q.b[2],q.b[3],q.t[3],q.t[2]]', 'poly([q.b[3],q.b[0],q.t[0],q.t[3]]', 'Fit the complete excavation', 'Solid rectangular prism']) {
   if (!pillarSimulator.includes(required)) errors.push(`Pillar Stability Lab is missing required feature or limitation marker: ${required}`);
 }
 
