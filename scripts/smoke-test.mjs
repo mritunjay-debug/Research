@@ -64,7 +64,7 @@ for (const file of htmlFiles.filter(file => file !== 'index.html')) {
 const validation = fs.existsSync(path.join(root, 'pillar-validation.html'))
   ? fs.readFileSync(path.join(root, 'pillar-validation.html'), 'utf8')
   : '';
-for (const required of ['id="csvFile"', 'id="observed"', 'id="predicted"', 'id="validate"', 'id="rmse"', 'id="mae"', 'id="bias"', 'id="r2"', 'id="mape"', 'id="plot"', 'id="downloadMetrics"', 'id="downloadPairs"', 'observedRaw:r[oh]', 'independent observations']) {
+for (const required of ['id="csvFile"', 'id="observed"', 'id="predicted"', 'id="validate"', 'id="rmse"', 'id="mae"', 'id="bias"', 'id="r2"', 'id="mape"', 'id="plot"', 'id="downloadMetrics"', 'id="downloadPairs"', 'id="downloadJson"', 'id="residSd"', 'id="loaLow"', 'id="loaHigh"', 'observedRaw:r[oh]', 'independent observations']) {
   if (!validation.includes(required)) errors.push(`Pillar Model Validation Bench is missing required validation feature: ${required}`);
 }
 
