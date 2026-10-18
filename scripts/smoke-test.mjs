@@ -207,6 +207,9 @@ for (const required of [
   if (!caseHistory.includes(required)) errors.push(`Pillar Case-History Workbench is missing required feature or research-integrity hook: ${required}`);
 }
 
+const customPillarEditor = fs.readFileSync(path.join(root, 'pillar-layout-editor.html'), 'utf8');
+for (const required of ['id="plan"', 'function validate()', 'function parseCsv(', 'function exportCsv()', 'function exportJson()', 'Plan footprints overlap', 'unit_weight_mn_m3', 'local Cartesian']) { if (!customPillarEditor.includes(required)) errors.push('Custom Pillar Layout Editor is missing required feature marker: ' + required); }
+
 if (errors.length) {
   console.error('Static site checks failed:');
   for (const error of errors) console.error(`- ${error}`);
@@ -214,5 +217,3 @@ if (errors.length) {
 }
 console.log(`Static site checks passed: ${htmlFiles.length} pages and ${standaloneScripts.length} standalone script(s) inspected; inline JavaScript syntax and required dashboard/tool hooks are valid.`);
 
-const customPillarEditor = fs.readFileSync(path.join(root, 'pillar-layout-editor.html'), 'utf8');
-for (const required of ['id="plan"', 'function validate()', 'function parseCsv(', 'function exportCsv()', 'function exportJson()', 'Plan footprints overlap', 'unit_weight_mn_m3', 'local Cartesian']) { if (!customPillarEditor.includes(required)) errors.push('Custom Pillar Layout Editor is missing required feature marker: ' + required); }
