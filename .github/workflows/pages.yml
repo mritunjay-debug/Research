@@ -10,6 +10,7 @@ on:
       - "workspace.html"
       - "pillar-simulator.html"
       - "pillar-validation.html"
+      - "pillar-case-history.html"
       - "responsive-mobile.css"
       - "pillar-strength-core.js"
       - "manuscript-audit.html"
