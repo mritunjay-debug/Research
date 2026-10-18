@@ -201,7 +201,7 @@ for (const required of [
   'id="downloadClean"', 'id="downloadReport"', 'id="downloadFlags"',
   'id="runQC"', 'id="nComplete"', 'id="nDup"', 'id="f_ucs"',
   'id="unitUcs"', 'id="unitLength"', 'id="runSensitivity"',
-  'id="exportSensitivity"', 'pillar_case_history_qc/v1',
+  'id="exportSensitivity"', 'pillar-case-history-qc/v1',
   'independent validation cases', 'not a pillar factor of safety'
 ]) {
   if (!caseHistory.includes(required)) errors.push(`Pillar Case-History Workbench is missing required feature or research-integrity hook: ${required}`);
