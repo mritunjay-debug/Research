@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
-const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html', 'pillar-simulator.html', 'pillar-validation.html', 'pillar-case-history.html', 'pillar-layout-editor.html'];
+const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html', 'pillar-simulator.html', 'pillar-validation.html', 'pillar-case-history.html', 'pillar-layout-editor.html', 'pillar-load-assessment.html'];
 const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js', 'data-analysis-core.js', 'data-analysis-stats.js', 'data-analysis-figure.js', 'pillar-strength-core.js', 'scripts/pillar-strength-core-test.mjs', 'scripts/data-analysis-figure-test.mjs', 'scripts/live-smoke-test.mjs', 'scripts/data-analysis-core-test.mjs', 'scripts/data-analysis-stats-test.mjs'];
 const errors = [];
 for (const file of htmlFiles) {
@@ -206,6 +206,9 @@ for (const required of [
 ]) {
   if (!caseHistory.includes(required)) errors.push(`Pillar Case-History Workbench is missing required feature or research-integrity hook: ${required}`);
 }
+
+const pillarLoadAssessment = fs.readFileSync(path.join(root, 'pillar-load-assessment.html'), 'utf8');
+for (const required of ['id="tributary_width_m"', 'id="tributary_length_m"', 'id="calculate"', 'function calculate()', 'vertical_stress_mpa', 'pillar_stress_mpa', 'estimated_strength_mpa', 'strength_stress_ratio', 'pillar-load-assessment/v1', 'not a universal FoS', 'tributary cell must be supplied explicitly']) { if (!pillarLoadAssessment.includes(required)) errors.push('Pillar Load & Strength Assessment is missing required feature or limitation marker: ' + required); }
 
 const customPillarEditor = fs.readFileSync(path.join(root, 'pillar-layout-editor.html'), 'utf8');
 for (const required of ['id="plan"', 'function validate()', 'function parseCsv(', 'function exportCsv()', 'function exportJson()', 'Plan footprints overlap', 'unit_weight_mn_m3', 'local Cartesian', 'boundary-envelope', 'layout_summary', 'Boundary means a pillar touches the outer bounding rectangle']) { if (!customPillarEditor.includes(required)) errors.push('Custom Pillar Layout Editor is missing required feature marker: ' + required); }
