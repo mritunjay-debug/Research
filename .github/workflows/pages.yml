@@ -11,6 +11,7 @@ on:
       - "pillar-simulator.html"
       - "pillar-validation.html"
       - "pillar-case-history.html"
+      - "pillar-layout-editor.html"
       - "responsive-mobile.css"
       - "pillar-strength-core.js"
       - "manuscript-audit.html"
