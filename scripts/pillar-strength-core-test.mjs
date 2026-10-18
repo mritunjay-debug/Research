@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import core from '../pillar-strength-core.js';
+
+const base={material:'generic',method:'krauland',width:10,height:10,ucs:100};
+const ks=core.estimate(base);
+assert.ok(Math.abs(ks.strength-35.4)<1e-10,'Krauland–Soder w/h=1 must give 0.354 × UCS');
+assert.equal(ks.note.includes('limestone/skarn'),true,'Krauland model applicability must be disclosed for non-limestone material');
+const limestone=core.estimate({...base,material:'limestone'});
+assert.ok(Math.abs(limestone.strength-35.4)<1e-10);
+const lp=core.estimate({...base,method:'lunder'});
+assert.ok(Number.isFinite(lp.strength)&&lp.strength>0,'Lunder–Pakalnis must return a positive finite strength for w/h=1');
+assert.ok(Number.isFinite(lp.cpav)&&lp.cpav>=0&&lp.cpav<1);
+const slender=core.estimate({...base,method:'lunder',width:2,height:10});
+assert.equal(slender.strength,null,'W/H ≤ 0.25 must not silently return a fabricated result');
+assert.match(slender.note,/W\/H ≤ 0.25/);
+const coal=core.estimate({...base,material:'coal',method:'lunder'});
+assert.match(coal.note,/Coal is not an appropriate target/);
+const none=core.estimate({...base,method:'none'});
+assert.equal(none.strength,null);
+assert.match(none.note,/disabled/);
+console.log('Pillar strength core regression tests passed.');
