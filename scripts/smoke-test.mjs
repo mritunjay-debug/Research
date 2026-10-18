@@ -208,7 +208,7 @@ for (const required of [
 }
 
 const pillarLoadAssessment = fs.readFileSync(path.join(root, 'pillar-load-assessment.html'), 'utf8');
-for (const required of ['id="tributary_width_m"', 'id="tributary_length_m"', 'id="calculate"', 'function calculate()', 'vertical_stress_mpa', 'pillar_stress_mpa', 'estimated_strength_mpa', 'strength_stress_ratio', 'pillar-load-assessment/v1', 'not a universal FoS', 'tributary cell must be supplied explicitly']) { if (!pillarLoadAssessment.includes(required)) errors.push('Pillar Load & Strength Assessment is missing required feature or limitation marker: ' + required); }
+for (const required of ['data-key="tributary_width_m"', 'data-key="tributary_length_m"', 'id="calculate"', 'function calculate()', 'vertical_stress_mpa', 'pillar_stress_mpa', 'estimated_strength_mpa', 'strength_stress_ratio', 'pillar-load-assessment/v1', 'not a universal FoS', 'tributary cell must be supplied explicitly']) { if (!pillarLoadAssessment.includes(required)) errors.push('Pillar Load & Strength Assessment is missing required feature or limitation marker: ' + required); }
 
 const customPillarEditor = fs.readFileSync(path.join(root, 'pillar-layout-editor.html'), 'utf8');
 for (const required of ['id="plan"', 'function validate()', 'function parseCsv(', 'function exportCsv()', 'function exportJson()', 'Plan footprints overlap', 'unit_weight_mn_m3', 'local Cartesian', 'boundary-envelope', 'layout_summary', 'Boundary means a pillar touches the outer bounding rectangle']) { if (!customPillarEditor.includes(required)) errors.push('Custom Pillar Layout Editor is missing required feature marker: ' + required); }
