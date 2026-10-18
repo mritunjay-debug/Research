@@ -15,7 +15,9 @@ const requiredPages = [
   ['manuscript-audit.html', 'Manuscript'],
   ['thesis-manuscript-studio.html', 'Thesis'],
   ['research-planning.html', 'Research Planning'],
-  ['research-library.html', 'Research Library']
+  ['research-library.html', 'Research Library'],
+  ['pillar-simulator.html', 'Underground Pillar Stability Lab'],
+  ['pillar-validation.html', 'Pillar Model Validation']
 ];
 
 async function fetchWithRetry(url, attempts = 8) {
@@ -54,6 +56,17 @@ for (const [path, expectedTitle] of requiredPages) {
     failures.push(`${path}: ${error.message}`);
     console.error(`FAIL ${path}: ${error.message}`);
   }
+}
+
+try {
+  const cssResponse = await fetchWithRetry(new URL('responsive-mobile.css', base).toString());
+  const css = await cssResponse.text();
+  assert.match(css, /@media \(max-width: 720px\)/, 'Mobile breakpoint missing from deployed responsive stylesheet');
+  assert.match(css, /@media \(max-width: 480px\)/, 'Small-screen breakpoint missing from deployed responsive stylesheet');
+  console.log('PASS responsive-mobile.css — deployed mobile breakpoints verified');
+} catch (error) {
+  failures.push('responsive-mobile.css: ' + error.message);
+  console.error('FAIL responsive-mobile.css: ' + error.message);
 }
 
 if (failures.length) {

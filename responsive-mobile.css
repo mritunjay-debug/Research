@@ -1,0 +1,82 @@
+/* Shared mobile-first refinements for Fieldnotes Research Toolkit.
+   Loaded after page styles so these rules normalize narrow-screen behavior without replacing page themes. */
+:root { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html { scroll-behavior: smooth; }
+body { max-width: 100%; overflow-x: clip; }
+img, svg, video, canvas, iframe { max-width: 100%; }
+main, section, article, aside, header, footer, .main, .content, .wrap, .utility-wrap,
+.panel, .tool, .stat, .metric, .result, .analysis-chart-wrap, .tablewrap { min-width: 0; }
+button, input, select, textarea { max-width: 100%; }
+button, [role="button"], input[type="checkbox"], input[type="radio"], select { touch-action: manipulation; }
+button, a, input, select, textarea, summary { -webkit-tap-highlight-color: transparent; }
+button, input, select { min-height: 40px; }
+textarea { max-width: 100%; }
+pre, code, .result, .status, .muted, p, li { overflow-wrap: anywhere; }
+.tablewrap, .table-wrap, .table-container, .data-table-wrap, .prisma-diagram,
+.analysis-chart-wrap, .chart-wrap, .scene { max-width: 100%; overflow-x: auto; }
+table { max-width: 100%; }
+canvas, .chart, #analysisChart, .js-plotly-plot { max-width: 100%; }
+:focus-visible { outline-offset: 3px; }
+@media (max-width: 900px) {
+  .analysis-workbench, .analysis-lower-grid, .prisma-layout, .dashboard-lower {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .cols { grid-template-columns: minmax(0, 1fr) !important; }
+  .utility-head { align-items: flex-start; }
+  .tablewrap { overscroll-behavior-x: contain; }
+}
+@media (max-width: 720px) {
+  html { scroll-padding-top: 12px; }
+  .layout, .shell { grid-template-columns: minmax(0, 1fr) !important; }
+  .sidebar, .side { position: relative; width: 100%; padding: 12px !important; }
+  .nav, .utility-nav, .stepnav {
+    max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav { flex-wrap: nowrap !important; gap: 4px; }
+  .nav a { flex: 0 0 auto; white-space: nowrap; }
+  .content, .main, .utility-wrap { padding-left: 12px !important; padding-right: 12px !important; }
+  .panel, .utility-panel { padding: 14px !important; }
+  .welcome, .hero, .utility-head, .head, .panel-head {
+    align-items: flex-start !important; flex-wrap: wrap; gap: 10px;
+  }
+  .welcome, .hero, .utility-head { display: block; }
+  .actions { max-width: 100%; flex-wrap: wrap; }
+  .actions > *, .utility-actions > * { flex: 0 1 auto; }
+  .grid, .grid2, .formrow, .fields, .metrics, .results,
+  .cols, .columns, .dashboard-lower, .analysis-workbench, .analysis-lower-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .fields .wide { grid-column: 1 / -1; }
+  .field input, .field select, .field textarea, input, select, textarea { font-size: 16px; }
+  .tablewrap { width: 100%; }
+  table { width: max-content; min-width: 100%; }
+  th, td { max-width: 260px; }
+  .chart, #analysisChart { min-width: 0 !important; }
+  .scene canvas { max-width: 100%; touch-action: pan-y; }
+  .utility-nav { flex-wrap: nowrap !important; }
+  .utility-nav button { min-width: 112px !important; }
+  .stepnav a { flex: 0 0 auto; }
+  .dashboard-search { width: 100% !important; max-width: 100%; }
+  .topbar { max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .grid, .grid2, .formrow, .fields, .cols, .columns, .metrics, .results,
+  .dashboard-lower, .analysis-workbench, .analysis-lower-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .fields .wide { grid-column: auto; }
+  .content, .main, .utility-wrap { padding-left: 10px !important; padding-right: 10px !important; }
+  .panel, .utility-panel { padding: 12px !important; }
+  .actions > button, .utility-actions > button { min-height: 44px; }
+  .stat { min-width: 0; }
+  .stat strong, .metric strong { overflow-wrap: anywhere; }
+  .scene canvas { height: 250px !important; }
+  .chart { min-height: 190px; }
+  .stepnav a { font-size: 12px; }
+  .activity-item { grid-template-columns: 10px minmax(0, 1fr); }
+  .activity-item time { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

@@ -9,6 +9,8 @@ on:
       - "literature.html"
       - "workspace.html"
       - "pillar-simulator.html"
+      - "pillar-validation.html"
+      - "responsive-mobile.css"
       - "pillar-strength-core.js"
       - "manuscript-audit.html"
       - "thesis-manuscript-studio.html"
