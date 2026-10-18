@@ -9,6 +9,7 @@ on:
       - "literature.html"
       - "workspace.html"
       - "pillar-simulator.html"
+      - "pillar-strength-core.js"
       - "manuscript-audit.html"
       - "thesis-manuscript-studio.html"
       - "research-tools.html"
@@ -52,6 +53,8 @@ jobs:
           node-version: 20
       - name: Validate static site and inline JavaScript
         run: node scripts/smoke-test.mjs
+      - name: Test pillar strength calculation core
+        run: node scripts/pillar-strength-core-test.mjs
       - name: Test reference deduplication logic
         run: node scripts/reference-dedup-regression-test.mjs
       - name: Test data analysis ingestion and profiling
