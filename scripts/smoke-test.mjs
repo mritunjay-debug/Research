@@ -208,7 +208,7 @@ for (const required of [
 }
 
 const customPillarEditor = fs.readFileSync(path.join(root, 'pillar-layout-editor.html'), 'utf8');
-for (const required of ['id="plan"', 'function validate()', 'function parseCsv(', 'function exportCsv()', 'function exportJson()', 'Plan footprints overlap', 'unit_weight_mn_m3', 'local Cartesian']) { if (!customPillarEditor.includes(required)) errors.push('Custom Pillar Layout Editor is missing required feature marker: ' + required); }
+for (const required of ['id="plan"', 'function validate()', 'function parseCsv(', 'function exportCsv()', 'function exportJson()', 'Plan footprints overlap', 'unit_weight_mn_m3', 'local Cartesian', 'boundary-envelope', 'layout_summary', 'Boundary means a pillar touches the outer bounding rectangle']) { if (!customPillarEditor.includes(required)) errors.push('Custom Pillar Layout Editor is missing required feature marker: ' + required); }
 
 if (errors.length) {
   console.error('Static site checks failed:');
