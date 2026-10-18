@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
-const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html', 'pillar-simulator.html'];
+const htmlFiles = ['index.html', 'citation-verification.html', 'literature.html', 'workspace.html', 'manuscript-audit.html', 'thesis-manuscript-studio.html', 'research-tools.html', 'research-planning.html', 'research-library.html', 'pillar-simulator.html', 'pillar-validation.html'];
 const standaloneScripts = ['research-tools-cloud-sync.js', 'literature-cloud-sync.js', 'journal-finder.js', 'supabase-auth.js', 'workspace-cloud-sync.js', 'data-analysis-core.js', 'data-analysis-stats.js', 'data-analysis-figure.js', 'pillar-strength-core.js', 'scripts/pillar-strength-core-test.mjs', 'scripts/data-analysis-figure-test.mjs', 'scripts/live-smoke-test.mjs', 'scripts/data-analysis-core-test.mjs', 'scripts/data-analysis-stats-test.mjs'];
 const errors = [];
 for (const file of htmlFiles) {
@@ -50,6 +50,24 @@ const workspace = fs.existsSync(path.join(root, 'workspace.html'))
 for (const required of ['const TOOL_REGISTRY=', 'id="availableToolCount"', 'id="projectCount"', 'id="openCount"', 'id="doneCount"']) {
   if (!workspace.includes(required)) errors.push(`Workspace is missing required dashboard element: ${required}`);
 }
+
+const responsiveCss = fs.existsSync(path.join(root, 'responsive-mobile.css'))
+  ? fs.readFileSync(path.join(root, 'responsive-mobile.css'), 'utf8')
+  : '';
+for (const required of ['@media (max-width: 720px)', '@media (max-width: 480px)', 'prefers-reduced-motion', 'overflow-x: clip', 'min-height: 44px']) {
+  if (!responsiveCss.includes(required)) errors.push(`Shared responsive stylesheet is missing mobile/accessibility behavior: ${required}`);
+}
+for (const file of htmlFiles.filter(file => file !== 'index.html')) {
+  const html = fs.existsSync(path.join(root, file)) ? fs.readFileSync(path.join(root, file), 'utf8') : '';
+  if (!html.includes('href="responsive-mobile.css"')) errors.push(`${file} is missing shared responsive stylesheet`);
+}
+const validation = fs.existsSync(path.join(root, 'pillar-validation.html'))
+  ? fs.readFileSync(path.join(root, 'pillar-validation.html'), 'utf8')
+  : '';
+for (const required of ['id="csvFile"', 'id="observed"', 'id="predicted"', 'id="validate"', 'id="rmse"', 'id="mae"', 'id="bias"', 'id="r2"', 'id="mape"', 'id="plot"', 'id="downloadMetrics"', 'id="downloadPairs"', 'observedRaw:r[oh]', 'Independent observations']) {
+  if (!validation.includes(required)) errors.push(`Pillar Model Validation Bench is missing required validation feature: ${required}`);
+}
+
 const accountUi = fs.existsSync(path.join(root, 'supabase-auth.js'))
   ? fs.readFileSync(path.join(root, 'supabase-auth.js'), 'utf8')
   : '';
