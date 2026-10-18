@@ -12,6 +12,7 @@ on:
       - "pillar-validation.html"
       - "pillar-case-history.html"
       - "pillar-layout-editor.html"
+      - "pillar-load-assessment.html"
       - "responsive-mobile.css"
       - "pillar-strength-core.js"
       - "manuscript-audit.html"
