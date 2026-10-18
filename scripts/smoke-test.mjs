@@ -193,6 +193,20 @@ for (const required of [
   if (!library.includes(required)) errors.push(`Research Library & Methods is missing required feature or provenance hook: ${required}`);
 }
 
+
+const caseHistory = fs.existsSync(path.join(root, 'pillar-case-history.html'))
+  ? fs.readFileSync(path.join(root, 'pillar-case-history.html'), 'utf8')
+  : '';
+for (const required of [
+  'id="downloadClean"', 'id="downloadReport"', 'id="downloadFlags"',
+  'id="runQC"', 'id="nComplete"', 'id="nDup"', 'id="f_ucs"',
+  'id="unitUcs"', 'id="unitLength"', 'id="runSensitivity"',
+  'id="exportSensitivity"', 'pillar_case_history_qc/v1',
+  'independent validation cases', 'not a pillar factor of safety'
+]) {
+  if (!caseHistory.includes(required)) errors.push(`Pillar Case-History Workbench is missing required feature or research-integrity hook: ${required}`);
+}
+
 if (errors.length) {
   console.error('Static site checks failed:');
   for (const error of errors) console.error(`- ${error}`);
