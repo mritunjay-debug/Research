@@ -58,7 +58,18 @@ for (const [path, expectedTitle] of requiredPages) {
   }
 }
 
-try {\n  const cssResponse = await fetchWithRetry(new URL('responsive-mobile.css', base).toString());\n  const css = await cssResponse.text();\n  assert.match(css, /@media \\(max-width: 720px\\)/, 'Mobile breakpoint missing from deployed responsive stylesheet');\n  assert.match(css, /@media \\(max-width: 480px\\)/, 'Small-screen breakpoint missing from deployed responsive stylesheet');\n  console.log('PASS responsive-mobile.css — deployed mobile breakpoints verified');\n} catch (error) { failures.push('responsive-mobile.css: ' + error.message); console.error('FAIL responsive-mobile.css: ' + error.message); }\n\nif (failures.length) {
+try {
+  const cssResponse = await fetchWithRetry(new URL('responsive-mobile.css', base).toString());
+  const css = await cssResponse.text();
+  assert.match(css, /@media \(max-width: 720px\)/, 'Mobile breakpoint missing from deployed responsive stylesheet');
+  assert.match(css, /@media \(max-width: 480px\)/, 'Small-screen breakpoint missing from deployed responsive stylesheet');
+  console.log('PASS responsive-mobile.css — deployed mobile breakpoints verified');
+} catch (error) {
+  failures.push('responsive-mobile.css: ' + error.message);
+  console.error('FAIL responsive-mobile.css: ' + error.message);
+}
+
+if (failures.length) {
   console.error(`Live deployment smoke test failed for ${failures.length} page(s).`);
   process.exit(1);
 }
